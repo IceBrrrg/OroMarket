@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../includes/db_connect.php';
+require_once '../includes/db_connect.php'; // Ensure this uses PDO as discussed!
 
 // Initialize variables
 $step = isset($_GET['step']) ? (int) $_GET['step'] : 1;
@@ -37,14 +37,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Password must be at least 6 characters long.";
             } else {
                 // Check if username or email already exists
-                $stmt = $pdo->prepare("SELECT COUNT(*) FROM sellers WHERE username = ? OR email = ?");
-                $stmt->execute([$_SESSION['signup_data']['username'], $_SESSION['signup_data']['email']]);
-                if ($stmt->fetchColumn() > 0) {
-                    $error = "Username or email already exists.";
-                } else {
-                    // Move to next step
-                    header("Location: signup.php?step=2");
-                    exit();
+                try {
+                    $stmt = $pdo->prepare("SELECT COUNT(*) FROM sellers WHERE username = ? OR email = ?");
+                    $stmt->execute([$_SESSION['signup_data']['username'], $_SESSION['signup_data']['email']]);
+                    if ($stmt->fetchColumn() > 0) {
+                        $error = "Username or email already exists.";
+                    } else {
+                        // Move to next step
+                        header("Location: signup.php?step=2");
+                        exit();
+                    }
+                } catch (PDOException $e) {
+                    $error = "Database error: " . $e->getMessage();
                 }
             }
         } elseif ($current_step === 2) {
@@ -70,48 +74,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         } elseif ($current_step === 3) {
-            // Bank information and documents
+            // Bank information
             $_SESSION['signup_data']['bank_account_name'] = $_POST['bank_account_name'] ?? '';
             $_SESSION['signup_data']['bank_account_number'] = $_POST['bank_account_number'] ?? '';
             $_SESSION['signup_data']['bank_name'] = $_POST['bank_name'] ?? '';
             $_SESSION['signup_data']['facebook_url'] = $_POST['facebook_url'] ?? '';
 
-            // Handle document uploads
-            $documents = [];
-            if (isset($_FILES['documents']) && is_array($_FILES['documents']['name'])) {
-                $upload_dir = '../uploads/seller_documents/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
+            // --- Handle individual document uploads ---
+            $upload_dir = '../uploads/seller_documents/';
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
 
-                for ($i = 0; $i < count($_FILES['documents']['name']); $i++) {
-                    if ($_FILES['documents']['error'][$i] === UPLOAD_ERR_OK) {
-                        $file_name = $_FILES['documents']['name'][$i];
-                        $file_tmp = $_FILES['documents']['tmp_name'][$i];
-                        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+            // Define required documents and their session keys
+            $required_documents = [
+                'dti_document' => 'DTI Certificate',
+                'business_permit_document' => 'Business Permit',
+                'barangay_clearance_document' => 'Barangay Clearance',
+                'bir_tin_document' => 'BIR (TIN)',
+                'sanitary_permit_document' => 'Sanitary Permit'
+            ];
 
-                        // Generate unique filename
-                        $new_file_name = uniqid() . '.' . $file_ext;
-                        $destination = $upload_dir . $new_file_name;
+            $uploaded_document_paths = [];
+            $all_documents_uploaded = true; // Flag to check if all required docs are present
 
-                        // Move uploaded file
-                        if (move_uploaded_file($file_tmp, $destination)) {
-                            $documents[] = 'uploads/seller_documents/' . $new_file_name;
-                        }
+            foreach ($required_documents as $input_name => $label) {
+                if (isset($_FILES[$input_name]) && $_FILES[$input_name]['error'] === UPLOAD_ERR_OK) {
+                    $file_name = $_FILES[$input_name]['name'];
+                    $file_tmp = $_FILES[$input_name]['tmp_name'];
+                    $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+                    // Allowed extensions for documents (you might want to restrict this further)
+                    $allowed_doc_extensions = ['jpg', 'jpeg', 'png', 'pdf'];
+                    if (!in_array($file_ext, $allowed_doc_extensions)) {
+                        $error = "Invalid file type for $label. Only JPG, JPEG, PNG, PDF are allowed.";
+                        $all_documents_uploaded = false;
+                        break; // Stop processing other files if one is invalid
                     }
+
+                    $new_file_name = uniqid($input_name . '_') . '.' . $file_ext; // Unique name with doc type prefix
+                    $destination = $upload_dir . $new_file_name;
+
+                    if (move_uploaded_file($file_tmp, $destination)) {
+                        $uploaded_document_paths[$input_name] = 'uploads/seller_documents/' . $new_file_name;
+                    } else {
+                        $error = "Error uploading $label. Please try again.";
+                        $all_documents_uploaded = false;
+                        break;
+                    }
+                } else {
+                    // This document was not uploaded or had an error
+                    $error = "$label is required.";
+                    $all_documents_uploaded = false;
+                    break;
                 }
             }
 
-            $_SESSION['signup_data']['documents'] = $documents;
+            $_SESSION['signup_data']['uploaded_documents'] = $uploaded_document_paths;
 
-            // Validate step 3
+            // Validate step 3 and check if all documents were uploaded
             if (
                 empty($_SESSION['signup_data']['bank_account_name']) ||
                 empty($_SESSION['signup_data']['bank_account_number']) ||
                 empty($_SESSION['signup_data']['bank_name'])
             ) {
                 $error = "All bank fields are required.";
-            } else {
+            } elseif (!$all_documents_uploaded) {
+                // Error already set by the loop for specific document missing/invalid
+            }
+            else {
                 // Create seller account and application
                 try {
                     $pdo->beginTransaction();
@@ -137,16 +168,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $seller_id = $pdo->lastInsertId();
 
                     // Insert into seller_applications table
+                    // We'll store individual document paths as JSON in a single 'documents_submitted' column
                     $stmt = $pdo->prepare("
                         INSERT INTO seller_applications (
-                            seller_id, business_name, business_address, business_phone, 
+                            seller_id, business_name, business_address, business_phone,
                             business_email, tax_id, business_registration_number,
                             bank_account_name, bank_account_number, bank_name, documents_submitted
                         )
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ");
 
-                    $documents_json = !empty($documents) ? json_encode($documents) : null;
+                    // Encode all uploaded document paths into a single JSON string
+                    $documents_json = !empty($uploaded_document_paths) ? json_encode($uploaded_document_paths) : null;
 
                     $stmt->execute([
                         $seller_id,
@@ -173,7 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 } catch (Exception $e) {
                     $pdo->rollBack();
-                    $error = "An error occurred. Please try again.";
+                    $error = "An error occurred during application submission. Please try again.";
+                    // Log the actual error for debugging: error_log($e->getMessage());
                 }
             }
         }
@@ -182,6 +216,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get stored data from session
 $data = $_SESSION['signup_data'] ?? [];
+$uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying previews
 ?>
 
 <!DOCTYPE html>
@@ -244,13 +279,91 @@ $data = $_SESSION['signup_data'] ?? [];
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
-        .document-preview {
-            max-width: 150px;
-            max-height: 150px;
-            margin: 10px;
+        .document-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .document-preview-item {
+            width: 120px;
+            height: 120px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+            background-color: #f0f0f0;
+            font-size: 0.8em;
+            color: #555;
             padding: 5px;
+        }
+
+        .document-preview-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .document-preview-item .file-icon {
+            font-size: 3em;
+            color: #6c757d;
+        }
+
+        .document-preview-item .file-name {
+            word-break: break-all;
+            margin-top: 5px;
+            font-size: 0.7em;
+            max-height: 30px; /* Limit height for file name */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Hide the default file input text */
+        .custom-file-input::-webkit-file-upload-button {
+            visibility: hidden;
+        }
+        .custom-file-input::before {
+            content: 'Upload File';
+            display: inline-block;
+            background: #0d6efd;
+            color: white;
+            border: 1px solid #0d6efd;
+            border-radius: .25rem;
+            padding: .375rem .75rem;
+            outline: none;
+            white-space: nowrap;
+            -webkit-user-select: none;
+            cursor: pointer;
+            font-weight: 400;
+            font-size: 1rem;
+            line-height: 1.5;
+            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        }
+        .custom-file-input:hover::before {
+            background-color: #0a58ca;
+            border-color: #0a53be;
+        }
+        .custom-file-input:active::before {
+            background-color: #0a53be;
+            border-color: #0a53be;
+        }
+        .custom-file-input {
+            color: transparent; /* Hides the "No file chosen" text */
+        }
+        .custom-file-input::file-selector-button {
+            display: none; /* Modern browsers */
+        }
+        .custom-file-input::after {
+            content: attr(data-filename); /* Display selected file name */
+            display: inline-block;
+            margin-left: 10px;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -261,7 +374,10 @@ $data = $_SESSION['signup_data'] ?? [];
             <h2 class="text-center mb-4">Seller Registration</h2>
 
             <?php if ($error): ?>
-                <div class="alert alert-danger"><?php echo $error; ?></div>
+                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+            <?php if ($success): // This is not currently used, but good to keep if you add success messages to steps ?>
+                <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
             <?php endif; ?>
 
             <div class="step-indicator">
@@ -280,18 +396,17 @@ $data = $_SESSION['signup_data'] ?? [];
                 <input type="hidden" name="step" value="<?php echo $step; ?>">
 
                 <?php if ($step === 1): ?>
-                    <!-- Step 1: Basic Information -->
                     <h4 class="mb-3">Basic Information</h4>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="username" class="form-label">Username *</label>
                             <input type="text" class="form-control" id="username" name="username"
-                                value="<?php echo $data['username'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['username'] ?? ''); ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label for="email" class="form-label">Email *</label>
                             <input type="email" class="form-control" id="email" name="email"
-                                value="<?php echo $data['email'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['email'] ?? ''); ?>" required>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -309,60 +424,59 @@ $data = $_SESSION['signup_data'] ?? [];
                         <div class="col-md-6">
                             <label for="first_name" class="form-label">First Name</label>
                             <input type="text" class="form-control" id="first_name" name="first_name"
-                                value="<?php echo $data['first_name'] ?? ''; ?>">
+                                value="<?php echo htmlspecialchars($data['first_name'] ?? ''); ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="last_name" class="form-label">Last Name</label>
                             <input type="text" class="form-control" id="last_name" name="last_name"
-                                value="<?php echo $data['last_name'] ?? ''; ?>">
+                                value="<?php echo htmlspecialchars($data['last_name'] ?? ''); ?>">
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="phone" class="form-label">Phone Number</label>
                         <input type="text" class="form-control" id="phone" name="phone"
-                            value="<?php echo $data['phone'] ?? ''; ?>">
+                            value="<?php echo htmlspecialchars($data['phone'] ?? ''); ?>">
                     </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Next</button>
                     </div>
 
                 <?php elseif ($step === 2): ?>
-                    <!-- Step 2: Business Information -->
                     <h4 class="mb-3">Business Information</h4>
                     <div class="mb-3">
                         <label for="business_name" class="form-label">Business Name *</label>
                         <input type="text" class="form-control" id="business_name" name="business_name"
-                            value="<?php echo $data['business_name'] ?? ''; ?>" required>
+                            value="<?php echo htmlspecialchars($data['business_name'] ?? ''); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="business_address" class="form-label">Business Address *</label>
                         <textarea class="form-control" id="business_address" name="business_address" rows="3"
-                            required><?php echo $data['business_address'] ?? ''; ?></textarea>
+                            required><?php echo htmlspecialchars($data['business_address'] ?? ''); ?></textarea>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="business_phone" class="form-label">Business Phone *</label>
                             <input type="text" class="form-control" id="business_phone" name="business_phone"
-                                value="<?php echo $data['business_phone'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label for="business_email" class="form-label">Business Email *</label>
                             <input type="email" class="form-control" id="business_email" name="business_email"
-                                value="<?php echo $data['business_email'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['business_email'] ?? ''); ?>" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="tax_id" class="form-label">Tax ID</label>
                             <input type="text" class="form-control" id="tax_id" name="tax_id"
-                                value="<?php echo $data['tax_id'] ?? ''; ?>">
+                                value="<?php echo htmlspecialchars($data['tax_id'] ?? ''); ?>">
                         </div>
                         <div class="col-md-6">
                             <label for="business_registration_number" class="form-label">Business Registration
                                 Number</label>
                             <input type="text" class="form-control" id="business_registration_number"
                                 name="business_registration_number"
-                                value="<?php echo $data['business_registration_number'] ?? ''; ?>">
+                                value="<?php echo htmlspecialchars($data['business_registration_number'] ?? ''); ?>">
                         </div>
                     </div>
                     <div class="d-flex justify-content-between">
@@ -371,42 +485,148 @@ $data = $_SESSION['signup_data'] ?? [];
                     </div>
 
                 <?php elseif ($step === 3): ?>
-                    <!-- Step 3: Bank Information and Documents -->
                     <h4 class="mb-3">Bank Information</h4>
                     <div class="mb-3">
                         <label for="bank_account_name" class="form-label">Bank Account Name *</label>
                         <input type="text" class="form-control" id="bank_account_name" name="bank_account_name"
-                            value="<?php echo $data['bank_account_name'] ?? ''; ?>" required>
+                            value="<?php echo htmlspecialchars($data['bank_account_name'] ?? ''); ?>" required>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="bank_account_number" class="form-label">Bank Account Number *</label>
                             <input type="text" class="form-control" id="bank_account_number" name="bank_account_number"
-                                value="<?php echo $data['bank_account_number'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['bank_account_number'] ?? ''); ?>" required>
                         </div>
                         <div class="col-md-6">
                             <label for="bank_name" class="form-label">Bank Name *</label>
                             <input type="text" class="form-control" id="bank_name" name="bank_name"
-                                value="<?php echo $data['bank_name'] ?? ''; ?>" required>
+                                value="<?php echo htmlspecialchars($data['bank_name'] ?? ''); ?>" required>
                         </div>
                     </div>
                     <div class="mb-3">
                         <label for="facebook_url" class="form-label">Facebook Profile URL</label>
                         <input type="url" class="form-control" id="facebook_url" name="facebook_url"
-                            value="<?php echo $data['facebook_url'] ?? ''; ?>"
+                            value="<?php echo htmlspecialchars($data['facebook_url'] ?? ''); ?>"
                             placeholder="https://facebook.com/yourprofile">
                         <small class="text-muted">This will be used for customers to contact you directly.</small>
                     </div>
 
-                    <h4 class="mb-3 mt-4">Business Documents</h4>
+                    <h4 class="mb-3 mt-4">Required Business Documents</h4>
+
                     <div class="mb-3">
-                        <label for="documents" class="form-label">Upload Business Documents</label>
-                        <input type="file" class="form-control" id="documents" name="documents[]" multiple>
-                        <small class="text-muted">Upload business registration, permits, and other relevant documents (PDF,
-                            JPG, PNG).</small>
+                        <label for="dti_document" class="form-label">DTI Certificate *</label>
+                        <input type="file" class="form-control custom-file-input" id="dti_document" name="dti_document" accept="image/*,.pdf" required
+                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['dti_document'] ?? '')); ?>">
+                        <small class="text-muted">Upload your Department of Trade and Industry certificate (JPG, PNG, PDF).</small>
+                        <div id="dti-preview-container" class="document-preview-container">
+                            <?php if (isset($uploaded_document_paths['dti_document'])): ?>
+                                <?php
+                                $dti_path = '../' . $uploaded_document_paths['dti_document'];
+                                $dti_ext = strtolower(pathinfo($dti_path, PATHINFO_EXTENSION));
+                                ?>
+                                <div class="document-preview-item">
+                                    <?php if (in_array($dti_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                        <img src="<?php echo htmlspecialchars($dti_path); ?>" alt="DTI Preview">
+                                    <?php else: ?>
+                                        <i class="fas fa-file-pdf file-icon"></i>
+                                    <?php endif; ?>
+                                    <span class="file-name"><?php echo htmlspecialchars(basename($dti_path)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
-                    <div id="document-preview" class="d-flex flex-wrap mb-3"></div>
+                    <div class="mb-3">
+                        <label for="business_permit_document" class="form-label">Business Permit *</label>
+                        <input type="file" class="form-control custom-file-input" id="business_permit_document" name="business_permit_document" accept="image/*,.pdf" required
+                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['business_permit_document'] ?? '')); ?>">
+                        <small class="text-muted">Upload your valid Business Permit (JPG, PNG, PDF).</small>
+                        <div id="business-permit-preview-container" class="document-preview-container">
+                            <?php if (isset($uploaded_document_paths['business_permit_document'])): ?>
+                                <?php
+                                $bp_path = '../' . $uploaded_document_paths['business_permit_document'];
+                                $bp_ext = strtolower(pathinfo($bp_path, PATHINFO_EXTENSION));
+                                ?>
+                                <div class="document-preview-item">
+                                    <?php if (in_array($bp_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                        <img src="<?php echo htmlspecialchars($bp_path); ?>" alt="Business Permit Preview">
+                                    <?php else: ?>
+                                        <i class="fas fa-file-pdf file-icon"></i>
+                                    <?php endif; ?>
+                                    <span class="file-name"><?php echo htmlspecialchars(basename($bp_path)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="barangay_clearance_document" class="form-label">Barangay Clearance *</label>
+                        <input type="file" class="form-control custom-file-input" id="barangay_clearance_document" name="barangay_clearance_document" accept="image/*,.pdf" required
+                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['barangay_clearance_document'] ?? '')); ?>">
+                        <small class="text-muted">Upload your Barangay Clearance (JPG, PNG, PDF).</small>
+                        <div id="barangay-clearance-preview-container" class="document-preview-container">
+                            <?php if (isset($uploaded_document_paths['barangay_clearance_document'])): ?>
+                                <?php
+                                $bc_path = '../' . $uploaded_document_paths['barangay_clearance_document'];
+                                $bc_ext = strtolower(pathinfo($bc_path, PATHINFO_EXTENSION));
+                                ?>
+                                <div class="document-preview-item">
+                                    <?php if (in_array($bc_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                        <img src="<?php echo htmlspecialchars($bc_path); ?>" alt="Barangay Clearance Preview">
+                                    <?php else: ?>
+                                        <i class="fas fa-file-pdf file-icon"></i>
+                                    <?php endif; ?>
+                                    <span class="file-name"><?php echo htmlspecialchars(basename($bc_path)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="bir_tin_document" class="form-label">BIR (TIN) Document *</label>
+                        <input type="file" class="form-control custom-file-input" id="bir_tin_document" name="bir_tin_document" accept="image/*,.pdf" required
+                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['bir_tin_document'] ?? '')); ?>">
+                        <small class="text-muted">Upload your Bureau of Internal Revenue (TIN) document (JPG, PNG, PDF).</small>
+                        <div id="bir-tin-preview-container" class="document-preview-container">
+                            <?php if (isset($uploaded_document_paths['bir_tin_document'])): ?>
+                                <?php
+                                $bir_path = '../' . $uploaded_document_paths['bir_tin_document'];
+                                $bir_ext = strtolower(pathinfo($bir_path, PATHINFO_EXTENSION));
+                                ?>
+                                <div class="document-preview-item">
+                                    <?php if (in_array($bir_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                        <img src="<?php echo htmlspecialchars($bir_path); ?>" alt="BIR (TIN) Preview">
+                                    <?php else: ?>
+                                        <i class="fas fa-file-pdf file-icon"></i>
+                                    <?php endif; ?>
+                                    <span class="file-name"><?php echo htmlspecialchars(basename($bir_path)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="sanitary_permit_document" class="form-label">Sanitary Permit *</label>
+                        <input type="file" class="form-control custom-file-input" id="sanitary_permit_document" name="sanitary_permit_document" accept="image/*,.pdf" required
+                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['sanitary_permit_document'] ?? '')); ?>">
+                        <small class="text-muted">Upload your Sanitary Permit (JPG, PNG, PDF).</small>
+                        <div id="sanitary-permit-preview-container" class="document-preview-container">
+                            <?php if (isset($uploaded_document_paths['sanitary_permit_document'])): ?>
+                                <?php
+                                $sp_path = '../' . $uploaded_document_paths['sanitary_permit_document'];
+                                $sp_ext = strtolower(pathinfo($sp_path, PATHINFO_EXTENSION));
+                                ?>
+                                <div class="document-preview-item">
+                                    <?php if (in_array($sp_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                        <img src="<?php echo htmlspecialchars($sp_path); ?>" alt="Sanitary Permit Preview">
+                                    <?php else: ?>
+                                        <i class="fas fa-file-pdf file-icon"></i>
+                                    <?php endif; ?>
+                                    <span class="file-name"><?php echo htmlspecialchars(basename($sp_path)); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
 
                     <div class="d-flex justify-content-between">
                         <a href="signup.php?step=2" class="btn btn-secondary">Previous</a>
@@ -419,28 +639,66 @@ $data = $_SESSION['signup_data'] ?? [];
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Document preview
-        document.getElementById('documents')?.addEventListener('change', function (e) {
-            const preview = document.getElementById('document-preview');
-            preview.innerHTML = '';
+        // Array of document input IDs and their corresponding preview container IDs
+        const documentInputs = [
+            { id: 'dti_document', previewContainerId: 'dti-preview-container' },
+            { id: 'business_permit_document', previewContainerId: 'business-permit-preview-container' },
+            { id: 'barangay_clearance_document', previewContainerId: 'barangay-clearance-preview-container' },
+            { id: 'bir_tin_document', previewContainerId: 'bir-tin-preview-container' },
+            { id: 'sanitary_permit_document', previewContainerId: 'sanitary-permit-preview-container' }
+        ];
 
-            for (let i = 0; i < this.files.length; i++) {
-                const file = this.files[i];
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.classList.add('document-preview');
-                        preview.appendChild(img);
+        documentInputs.forEach(doc => {
+            const input = document.getElementById(doc.id);
+            const previewContainer = document.getElementById(doc.previewContainerId);
+
+            // Update custom file input label on file selection
+            input?.addEventListener('change', function () {
+                const fileName = this.files.length > 0 ? this.files[0].name : '';
+                this.setAttribute('data-filename', fileName);
+
+                // Clear previous previews
+                previewContainer.innerHTML = '';
+
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    const item = document.createElement('div');
+                    item.classList.add('document-preview-item');
+
+                    const fileNameSpan = document.createElement('span');
+                    fileNameSpan.classList.add('file-name');
+                    fileNameSpan.textContent = file.name;
+
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            item.appendChild(img);
+                            item.appendChild(fileNameSpan);
+                            previewContainer.appendChild(item);
+                        }
+                        reader.readAsDataURL(file);
+                    } else if (file.type === 'application/pdf') {
+                        const icon = document.createElement('i');
+                        icon.classList.add('fas', 'fa-file-pdf', 'file-icon');
+                        item.appendChild(icon);
+                        item.appendChild(fileNameSpan);
+                        previewContainer.appendChild(item);
+                    } else {
+                        const icon = document.createElement('i');
+                        icon.classList.add('fas', 'fa-file', 'file-icon'); // Generic file icon
+                        item.appendChild(icon);
+                        item.appendChild(fileNameSpan);
+                        previewContainer.appendChild(item);
                     }
-                    reader.readAsDataURL(file);
-                } else {
-                    const div = document.createElement('div');
-                    div.classList.add('document-preview');
-                    div.innerHTML = `<i class="fas fa-file-pdf fa-3x"></i><br>${file.name}`;
-                    preview.appendChild(div);
                 }
+            });
+
+            // Set initial data-filename if a file was previously uploaded
+            const initialFilename = input.getAttribute('data-filename');
+            if (initialFilename) {
+                input.setAttribute('data-filename', initialFilename);
             }
         });
     </script>
