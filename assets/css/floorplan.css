@@ -1,0 +1,288 @@
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    color: #2c5aa0;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.header p {
+    color: #666;
+    margin: 0;
+    font-size: 16px;
+}
+
+.message {
+    background-color: #4a90e2;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.market-container {
+    width: 850px;
+    height: 500px;
+    background-color: #e8e8e8;
+    position: relative;
+    border: 4px solid #4a90e2;
+    border-radius: 12px;
+    padding: 5px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+/* Base stall styling */
+.stall {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #2c5aa0;
+    color: white;
+    font-weight: bold;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #4a90e2;
+    border-radius: 4px;
+}
+
+.stall:hover {
+    transform: scale(1.05);
+    background-color: #357abd;
+}
+
+/* Square stalls */
+.square-stall {
+    width: 55px;
+    height: 55px;
+    position: absolute;
+}
+
+/* Rectangle stalls - reduced width and repositioned */
+.rect-stall {
+    width: 180px;
+    height: 45px;
+    position: absolute;
+}
+
+/* Top row squares - T1 to T11 - moved down slightly for balance */
+.top-1 { top: 25px; left: 50px; }
+.top-2 { top: 25px; left: 115px; }
+.top-3 { top: 25px; left: 180px; }
+.top-4 { top: 25px; left: 245px; }
+.top-5 { top: 25px; left: 310px; }
+.top-6 { top: 25px; left: 375px; }
+.top-7 { top: 25px; left: 470px; }
+.top-8 { top: 25px; left: 535px; }
+.top-9 { top: 25px; left: 600px; }
+.top-10 { top: 25px; left: 665px; }
+.top-11 { top: 25px; left: 730px; }
+
+/* Bottom row squares - B1 to B11 - moved up for balance and gap */
+.bottom-1 { bottom: 25px; left: 75px; }
+.bottom-2 { bottom: 25px; left: 140px; }
+.bottom-3 { bottom: 25px; left: 205px; }
+.bottom-4 { bottom: 25px; left: 270px; }
+.bottom-5 { bottom: 25px; left: 335px; }
+.bottom-6 { bottom: 25px; left: 400px; }
+.bottom-7 { bottom: 25px; left: 495px; }
+.bottom-8 { bottom: 25px; left: 560px; }
+.bottom-9 { bottom: 25px; left: 625px; }
+.bottom-10 { bottom: 25px; left: 690px; }
+.bottom-11 { bottom: 25px; left: 755px; }
+
+/* Left column squares - L1 to L6 */
+.left-1 { top: 90px; left: 10px; }
+.left-2 { top: 150px; left: 10px; }
+.left-3 { top: 210px; left: 10px; }
+.left-4 { top: 270px; left: 10px; }
+.left-5 { top: 330px; left: 10px; }
+.left-6 { top: 370px; left: 10px; }
+
+/* Right column squares - R1 to R6 */
+.right-1 { top: 90px; right: 10px; }
+.right-2 { top: 150px; right: 10px; }
+.right-3 { top: 210px; right: 10px; }
+.right-4 { top: 270px; right: 10px; }
+.right-5 { top: 330px; right: 10px; }
+.right-6 { top: 370px; right: 10px; }
+
+/* Left section - Fish Vendors (F1 to F16) - 4 vendors per row */
+.fish-vendor {
+    width: 42px;
+    height: 35px;
+    position: absolute;
+    font-size: 10px;
+}
+
+/* Fish vendors row 1 */
+.fish-1 { top: 120px; left: 120px; }
+.fish-2 { top: 120px; left: 167px; }
+.fish-3 { top: 120px; left: 214px; }
+.fish-4 { top: 120px; left: 261px; }
+
+/* Fish vendors row 2 */
+.fish-5 { top: 160px; left: 120px; }
+.fish-6 { top: 160px; left: 167px; }
+.fish-7 { top: 160px; left: 214px; }
+.fish-8 { top: 160px; left: 261px; }
+
+/* Fish vendors row 3 */
+.fish-9 { top: 225px; left: 120px; }
+.fish-10 { top: 225px; left: 167px; }
+.fish-11 { top: 225px; left: 214px; }
+.fish-12 { top: 225px; left: 261px; }
+
+/* Fish vendors row 4 */
+.fish-13 { top: 265px; left: 120px; }
+.fish-14 { top: 265px; left: 167px; }
+.fish-15 { top: 265px; left: 214px; }
+.fish-16 { top: 265px; left: 261px; }
+
+/* Right section - Meat Vendors (M1 to M16) - 4 vendors per row */
+.meat-vendor {
+    width: 42px;
+    height: 35px;
+    position: absolute;
+    font-size: 10px;
+}
+
+/* Meat vendors row 1 */
+.meat-1 { top: 120px; right: 261px; }
+.meat-2 { top: 120px; right: 214px; }
+.meat-3 { top: 120px; right: 167px; }
+.meat-4 { top: 120px; right: 120px; }
+
+/* Meat vendors row 2 */
+.meat-5 { top: 160px; right: 261px; }
+.meat-6 { top: 160px; right: 214px; }
+.meat-7 { top: 160px; right: 167px; }
+.meat-8 { top: 160px; right: 120px; }
+
+/* Meat vendors row 3 */
+.meat-9 { top: 225px; right: 261px; }
+.meat-10 { top: 225px; right: 214px; }
+.meat-11 { top: 225px; right: 167px; }
+.meat-12 { top: 225px; right: 120px; }
+
+/* Meat vendors row 4 */
+.meat-13 { top: 265px; right: 261px; }
+.meat-14 { top: 265px; right: 214px; }
+.meat-15 { top: 265px; right: 167px; }
+.meat-16 { top: 265px; right: 120px; }
+
+/* Center circle */
+.center-circle {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    background-color: #f8f9fa;
+    border: 3px solid #4a90e2;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #2c5aa0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Selected stall highlight */
+.selected {
+    background-color: #ff6b6b !important;
+    border-color: #ff5252 !important;
+    animation: pulse 0.8s ease-in-out;
+}
+
+/* Fish vendor styling */
+.fish-vendor {
+    background-color: #20b2aa;
+    border-color: #1a9a91;
+}
+
+.fish-vendor:hover {
+    background-color: #1a9a91;
+}
+
+/* Meat vendor styling */
+.meat-vendor {
+    background-color: #dc3545;
+    border-color: #c82333;
+}
+
+.meat-vendor:hover {
+    background-color: #c82333;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.controls {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.register-btn {
+    padding: 12px 30px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.register-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.legend {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-size: 14px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #333;
+    border-radius: 4px;
+}
+
+.available { background-color: #4a90e2; }
+.selected-legend { background-color: #ff6b6b; }

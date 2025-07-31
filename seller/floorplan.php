@@ -1,12 +1,21 @@
 <?php
-// Handle shape clicks
-$clicked_shape = '';
+// Handle stall selection
+$selected_stall = '';
 $message = '';
 
 if ($_POST) {
-    if (isset($_POST['shape'])) {
-        $clicked_shape = $_POST['shape'];
-        $message = "You clicked on: " . ucfirst(str_replace('_', ' ', $clicked_shape));
+    if (isset($_POST['stall'])) {
+        $selected_stall = $_POST['stall'];
+        
+        // Determine vendor type for message
+        $vendor_type = '';
+        if (strpos($selected_stall, 'F') === 0) {
+            $vendor_type = ' (Fish Vendor)';
+        } elseif (strpos($selected_stall, 'M') === 0) {
+            $vendor_type = ' (Meat Vendor)';
+        }
+        
+        $message = "You selected stall: " . strtoupper($selected_stall) . $vendor_type . " - Click 'Register' to confirm your market spot!";
     }
 }
 ?>
@@ -16,252 +25,107 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Visual Map</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-        }
-
-        .message {
-            background-color: #4a90e2;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .map-container {
-            width: 800px;
-            height: 600px;
-            background-color: #e8e8e8;
-            position: relative;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-        }
-
-        /* Clickable shapes */
-        .clickable {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .clickable:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-
-        /* Center stacked rectangles */
-        .center-rect {
-            width: 120px;
-            height: 50px;
-            background-color: #4a90e2;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 12px;
-        }
-
-        .center-rect:nth-child(1) {
-            top: 220px;
-        }
-
-        .center-rect:nth-child(2) {
-            top: 285px;
-        }
-
-        .center-rect:nth-child(3) {
-            top: 350px;
-        }
-
-        /* Side squares */
-        .side-square {
-            width: 80px;
-            height: 80px;
-            background-color: #7b7b7b;
-            position: absolute;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            border: none;
-            color: white;
-            font-weight: bold;
-            font-size: 11px;
-        }
-
-        /* Top squares */
-        .top-left {
-            top: 80px;
-            left: 120px;
-        }
-
-        .top-center {
-            top: 80px;
-            left: 360px;
-        }
-
-        .top-right {
-            top: 80px;
-            right: 120px;
-        }
-
-        /* Bottom squares */
-        .bottom-left {
-            bottom: 80px;
-            left: 120px;
-        }
-
-        .bottom-center {
-            bottom: 80px;
-            left: 360px;
-        }
-
-        .bottom-right {
-            bottom: 80px;
-            right: 120px;
-        }
-
-        /* Left and right side squares */
-        .left-side {
-            top: 50%;
-            left: 40px;
-            transform: translateY(-50%);
-        }
-
-        .right-side {
-            top: 50%;
-            right: 40px;
-            transform: translateY(-50%);
-        }
-
-        /* Pathway lines */
-        .pathway {
-            position: absolute;
-            background-color: #d4d4d4;
-            border-radius: 2px;
-        }
-
-        /* Horizontal pathways connecting to center */
-        .pathway-h {
-            height: 4px;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
-        .pathway-h.left {
-            left: 130px;
-            width: 210px;
-            top: 300px;
-        }
-
-        .pathway-h.right {
-            right: 130px;
-            width: 210px;
-            top: 300px;
-        }
-
-        /* Vertical pathways */
-        .pathway-v {
-            width: 4px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .pathway-v.top {
-            top: 170px;
-            height: 40px;
-        }
-
-        .pathway-v.bottom {
-            bottom: 170px;
-            height: 40px;
-        }
-
-        /* Highlight clicked shape */
-        .clicked {
-            background-color: #ff6b6b !important;
-            animation: pulse 0.5s ease-in-out;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-    </style>
+    <title>Market Stall Registration Map</title>
+    <link rel="stylesheet" href="../assets/css/floorplan.css">
 </head>
 <body>
+    <div class="header">
+        <h1>Market Stall Registration</h1>
+        <p>Click on any available stall to select your market spot</p>
+    </div>
+
     <?php if ($message): ?>
         <div class="message"><?php echo $message; ?></div>
     <?php endif; ?>
 
-    <form method="POST" id="mapForm">
-        <div class="map-container">
-            <!-- Center blue rectangles -->
-            <button type="submit" name="shape" value="center_rect_1" 
-                    class="center-rect clickable <?php echo ($clicked_shape == 'center_rect_1') ? 'clicked' : ''; ?>">
-                Rect 1
-            </button>
-            <button type="submit" name="shape" value="center_rect_2" 
-                    class="center-rect clickable <?php echo ($clicked_shape == 'center_rect_2') ? 'clicked' : ''; ?>">
-                Rect 2
-            </button>
-            <button type="submit" name="shape" value="center_rect_3" 
-                    class="center-rect clickable <?php echo ($clicked_shape == 'center_rect_3') ? 'clicked' : ''; ?>">
-                Rect 3
-            </button>
+    <form method="POST" id="marketForm">
+        <div class="market-container">
+            <!-- Top row stalls -->
+            <?php for ($i = 1; $i <= 11; $i++): ?>
+                <button type="submit" name="stall" value="T<?php echo $i; ?>"
+                    class="stall square-stall top-<?php echo $i; ?> <?php echo ($selected_stall == 'T'.$i) ? 'selected' : ''; ?>">
+                    T<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
 
-            <!-- Side squares -->
-            <button type="submit" name="shape" value="top_left" 
-                    class="side-square top-left clickable <?php echo ($clicked_shape == 'top_left') ? 'clicked' : ''; ?>">
-                TL
-            </button>
-            <button type="submit" name="shape" value="top_center" 
-                    class="side-square top-center clickable <?php echo ($clicked_shape == 'top_center') ? 'clicked' : ''; ?>">
-                TC
-            </button>
-            <button type="submit" name="shape" value="top_right" 
-                    class="side-square top-right clickable <?php echo ($clicked_shape == 'top_right') ? 'clicked' : ''; ?>">
-                TR
-            </button>
-            <button type="submit" name="shape" value="bottom_left" 
-                    class="side-square bottom-left clickable <?php echo ($clicked_shape == 'bottom_left') ? 'clicked' : ''; ?>">
-                BL
-            </button>
-            <button type="submit" name="shape" value="bottom_center" 
-                    class="side-square bottom-center clickable <?php echo ($clicked_shape == 'bottom_center') ? 'clicked' : ''; ?>">
-                BC
-            </button>
-            <button type="submit" name="shape" value="bottom_right" 
-                    class="side-square bottom-right clickable <?php echo ($clicked_shape == 'bottom_right') ? 'clicked' : ''; ?>">
-                BR
-            </button>
-            <button type="submit" name="shape" value="left_side" 
-                    class="side-square left-side clickable <?php echo ($clicked_shape == 'left_side') ? 'clicked' : ''; ?>">
-                L
-            </button>
-            <button type="submit" name="shape" value="right_side" 
-                    class="side-square right-side clickable <?php echo ($clicked_shape == 'right_side') ? 'clicked' : ''; ?>">
-                R
-            </button>
+            <!-- Bottom row stalls -->
+            <?php for ($i = 1; $i <= 11; $i++): ?>
+                <button type="submit" name="stall" value="B<?php echo $i; ?>"
+                    class="stall square-stall bottom-<?php echo $i; ?> <?php echo ($selected_stall == 'B'.$i) ? 'selected' : ''; ?>">
+                    B<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
 
-            <!-- Pathways -->
-            <div class="pathway pathway-h left"></div>
-            <div class="pathway pathway-h right"></div>
-            <div class="pathway pathway-v top"></div>
-            <div class="pathway pathway-v bottom"></div>
+            <!-- Left column stalls -->
+            <?php for ($i = 1; $i <= 6; $i++): ?>
+                <button type="submit" name="stall" value="L<?php echo $i; ?>"
+                    class="stall square-stall left-<?php echo $i; ?> <?php echo ($selected_stall == 'L'.$i) ? 'selected' : ''; ?>">
+                    L<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
+
+            <!-- Right column stalls -->
+            <?php for ($i = 1; $i <= 6; $i++): ?>
+                <button type="submit" name="stall" value="R<?php echo $i; ?>"
+                    class="stall square-stall right-<?php echo $i; ?> <?php echo ($selected_stall == 'R'.$i) ? 'selected' : ''; ?>">
+                    R<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
+
+            <!-- Fish Vendors (Left Section) - F1 to F16 -->
+            <?php for ($i = 1; $i <= 16; $i++): ?>
+                <button type="submit" name="stall" value="F<?php echo $i; ?>"
+                    class="stall fish-vendor fish-<?php echo $i; ?> <?php echo ($selected_stall == 'F'.$i) ? 'selected' : ''; ?>">
+                    F<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
+
+            <!-- Meat Vendors (Right Section) - M1 to M16 -->
+            <?php for ($i = 1; $i <= 16; $i++): ?>
+                <button type="submit" name="stall" value="M<?php echo $i; ?>"
+                    class="stall meat-vendor meat-<?php echo $i; ?> <?php echo ($selected_stall == 'M'.$i) ? 'selected' : ''; ?>">
+                    M<?php echo $i; ?>
+                </button>
+            <?php endfor; ?>
+
+            <!-- Center Circle -->
+            <div class="center-circle">
+                Market<br>Center
+            </div>
+        </div>
+
+        <div class="controls">
+            <?php if ($selected_stall): ?>
+                <button type="button" class="register-btn"
+                    onclick="alert('Registration confirmed for stall <?php echo $selected_stall; ?>!')">
+                    Register for Stall <?php echo $selected_stall; ?>
+                </button>
+            <?php else: ?>
+                <button type="button" class="register-btn" disabled>
+                    Select a stall first
+                </button>
+            <?php endif; ?>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color available"></div>
+                <span>General Stalls</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #20b2aa; border-color: #1a9a91;"></div>
+                <span>Fish Vendors</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background-color: #dc3545; border-color: #c82333;"></div>
+                <span>Meat Vendors</span>
+            </div>
+            <?php if ($selected_stall): ?>
+            <div class="legend-item">
+                <div class="legend-color selected-legend"></div>
+                <span>Selected Stall</span>
+            </div>
+            <?php endif; ?>
         </div>
     </form>
 </body>
