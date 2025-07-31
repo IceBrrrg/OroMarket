@@ -48,7 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit();
                     }
                 } catch (PDOException $e) {
-                    $error = "Database error: " . $e->getMessage();
+                    error_log("Database error in step 1: " . $e->getMessage());
+                    $error = "Database error occurred. Please try again.";
                 }
             }
         } elseif ($current_step === 2) {
@@ -141,82 +142,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "All bank fields are required.";
             } elseif (!$all_documents_uploaded) {
                 // Error already set by the loop for specific document missing/invalid
+            } else {
+                // Move to step 4 (stall selection)
+                header("Location: signup.php?step=4");
+                exit();
             }
-            else {
-                // Create seller account and application
+        } elseif ($current_step === 4) {
+            // Stall selection
+            if (isset($_POST['stall']) && !empty($_POST['stall'])) {
+                $selected_stall = $_POST['stall'];
+                
+                // Validate that the stall exists and is available
                 try {
-                    $pdo->beginTransaction();
+                    $stmt = $pdo->prepare("SELECT id, status FROM stalls WHERE stall_number = ?");
+                    $stmt->execute([$selected_stall]);
+                    $stall = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if (!$stall) {
+                        $error = "Selected stall does not exist. Please choose another stall.";
+                    } elseif ($stall['status'] !== 'available') {
+                        $error = "Selected stall is not available. Please choose another stall.";
+                    } else {
+                        $_SESSION['signup_data']['selected_stall'] = $selected_stall;
+                        $_SESSION['signup_data']['stall_id'] = $stall['id'];
+                        
+                        // Create seller account and application
+                        try {
+                            $pdo->beginTransaction();
 
-                    // Insert into sellers table
-                    $stmt = $pdo->prepare("
-                        INSERT INTO sellers (username, email, password, first_name, last_name, phone, facebook_url)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ");
+                            // Insert into sellers table
+                            $stmt = $pdo->prepare("
+                                INSERT INTO sellers (username, email, password, first_name, last_name, phone, facebook_url)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)
+                            ");
 
-                    $hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
+                            $hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
 
-                    $stmt->execute([
-                        $_SESSION['signup_data']['username'],
-                        $_SESSION['signup_data']['email'],
-                        $hashed_password,
-                        $_SESSION['signup_data']['first_name'],
-                        $_SESSION['signup_data']['last_name'],
-                        $_SESSION['signup_data']['phone'],
-                        $_SESSION['signup_data']['facebook_url']
-                    ]);
+                            $stmt->execute([
+                                $_SESSION['signup_data']['username'],
+                                $_SESSION['signup_data']['email'],
+                                $hashed_password,
+                                $_SESSION['signup_data']['first_name'],
+                                $_SESSION['signup_data']['last_name'],
+                                $_SESSION['signup_data']['phone'],
+                                $_SESSION['signup_data']['facebook_url']
+                            ]);
 
-                    $seller_id = $pdo->lastInsertId();
+                            $seller_id = $pdo->lastInsertId();
 
-                    // Insert into seller_applications table
-                    // We'll store individual document paths as JSON in a single 'documents_submitted' column
-                    $stmt = $pdo->prepare("
-                        INSERT INTO seller_applications (
-                            seller_id, business_name, business_address, business_phone,
-                            business_email, tax_id, business_registration_number,
-                            bank_account_name, bank_account_number, bank_name, documents_submitted
-                        )
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    ");
+                            // Insert into seller_applications table (now including stall selection)
+                            $stmt = $pdo->prepare("
+                                INSERT INTO seller_applications (
+                                    seller_id, business_name, business_address, business_phone,
+                                    business_email, tax_id, business_registration_number,
+                                    bank_account_name, bank_account_number, bank_name, 
+                                    documents_submitted, selected_stall
+                                )
+                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ");
 
-                    // Encode all uploaded document paths into a single JSON string
-                    $documents_json = !empty($uploaded_document_paths) ? json_encode($uploaded_document_paths) : null;
+                            // Encode all uploaded document paths into a single JSON string
+                            $documents_json = !empty($_SESSION['signup_data']['uploaded_documents']) ? json_encode($_SESSION['signup_data']['uploaded_documents']) : null;
 
-                    $stmt->execute([
-                        $seller_id,
-                        $_SESSION['signup_data']['business_name'],
-                        $_SESSION['signup_data']['business_address'],
-                        $_SESSION['signup_data']['business_phone'],
-                        $_SESSION['signup_data']['business_email'],
-                        $_SESSION['signup_data']['tax_id'],
-                        $_SESSION['signup_data']['business_registration_number'],
-                        $_SESSION['signup_data']['bank_account_name'],
-                        $_SESSION['signup_data']['bank_account_number'],
-                        $_SESSION['signup_data']['bank_name'],
-                        $documents_json
-                    ]);
+                            $stmt->execute([
+                                $seller_id,
+                                $_SESSION['signup_data']['business_name'],
+                                $_SESSION['signup_data']['business_address'],
+                                $_SESSION['signup_data']['business_phone'],
+                                $_SESSION['signup_data']['business_email'],
+                                $_SESSION['signup_data']['tax_id'],
+                                $_SESSION['signup_data']['business_registration_number'],
+                                $_SESSION['signup_data']['bank_account_name'],
+                                $_SESSION['signup_data']['bank_account_number'],
+                                $_SESSION['signup_data']['bank_name'],
+                                $documents_json,
+                                $_SESSION['signup_data']['selected_stall']
+                            ]);
 
-                    $pdo->commit();
+                            // Create stall application
+                            $stmt = $pdo->prepare("
+                                INSERT INTO stall_applications (stall_id, seller_id, status)
+                                VALUES (?, ?, 'pending')
+                            ");
+                            $stmt->execute([$_SESSION['signup_data']['stall_id'], $seller_id]);
 
-                    // Clear session data
-                    unset($_SESSION['signup_data']);
+                            // Optionally reserve the stall
+                            $stmt = $pdo->prepare("UPDATE stalls SET status = 'reserved' WHERE id = ?");
+                            $stmt->execute([$_SESSION['signup_data']['stall_id']]);
 
-                    // Redirect to success page
-                    header("Location: signup_success.php");
-                    exit();
+                            $pdo->commit();
 
-                } catch (Exception $e) {
-                    $pdo->rollBack();
-                    $error = "An error occurred during application submission. Please try again.";
-                    // Log the actual error for debugging: error_log($e->getMessage());
+                            // Clear session data
+                            unset($_SESSION['signup_data']);
+
+                            // Redirect to success page
+                            header("Location: signup_success.php");
+                            exit();
+
+                        } catch (Exception $e) {
+                            $pdo->rollBack();
+                            error_log("Database error in step 4: " . $e->getMessage());
+                            $error = "An error occurred during application submission. Please try again.";
+                        }
+                    }
+                } catch (PDOException $e) {
+                    error_log("Database error validating stall: " . $e->getMessage());
+                    $error = "Error validating stall selection. Please try again.";
                 }
+            } else {
+                $error = "Please select a stall to continue.";
             }
         }
+    }
+    
+    // Handle direct stall selection on step 4 (from the floorplan buttons)
+    if (isset($_POST['stall']) && $step === 4 && !isset($_POST['step'])) {
+        $_SESSION['signup_data']['selected_stall'] = $_POST['stall'];
     }
 }
 
 // Get stored data from session
 $data = $_SESSION['signup_data'] ?? [];
 $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying previews
+$selected_stall = $data['selected_stall'] ?? '';
+
+// For step 4, get list of available stalls
+$available_stalls = [];
+if ($step === 4) {
+    try {
+        $stmt = $pdo->prepare("SELECT stall_number, section, monthly_rent FROM stalls WHERE status = 'available' ORDER BY stall_number");
+        $stmt->execute();
+        $available_stalls = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error fetching available stalls: " . $e->getMessage());
+        $error = "Error loading available stalls. Please refresh and try again.";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -228,6 +289,9 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
     <title>Seller Signup - ORO Market</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <?php if ($step === 4): ?>
+        <link rel="stylesheet" href="../assets/css/floorplan.css">
+    <?php endif; ?>
     <style>
         .step-indicator {
             display: flex;
@@ -365,6 +429,41 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
             margin-left: 10px;
             color: #6c757d;
         }
+
+        /* Floorplan specific styles for step 4 */
+        .floorplan-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stall-selection-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Disable unavailable stalls */
+        .stall:disabled {
+            background-color: #6c757d !important;
+            border-color: #5a6268 !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+        }
+
+        .stall:disabled::after {
+            content: 'Taken';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.7em;
+            font-weight: bold;
+            color: white;
+        }
     </style>
 </head>
 
@@ -376,7 +475,7 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
             <?php if ($error): ?>
                 <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
-            <?php if ($success): // This is not currently used, but good to keep if you add success messages to steps ?>
+            <?php if ($success): ?>
                 <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
             <?php endif; ?>
 
@@ -387,8 +486,11 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
                 <div class="step <?php echo $step === 2 ? 'active' : ($step > 2 ? 'completed' : ''); ?>">
                     <i class="fas fa-store"></i> Business Info
                 </div>
-                <div class="step <?php echo $step === 3 ? 'active' : ''; ?>">
+                <div class="step <?php echo $step === 3 ? 'active' : ($step > 3 ? 'completed' : ''); ?>">
                     <i class="fas fa-file-alt"></i> Documents
+                </div>
+                <div class="step <?php echo $step === 4 ? 'active' : ''; ?>">
+                    <i class="fas fa-map-marked-alt"></i> Stall Selection
                 </div>
             </div>
 
@@ -630,7 +732,145 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
 
                     <div class="d-flex justify-content-between">
                         <a href="signup.php?step=2" class="btn btn-secondary">Previous</a>
-                        <button type="submit" class="btn btn-success">Submit Application</button>
+                        <button type="submit" class="btn btn-primary">Next</button>
+                    </div>
+
+                <?php elseif ($step === 4): ?>
+                    <div class="floorplan-container">
+                        <h4 class="mb-3 text-center">Select Your Market Stall</h4>
+                        <p class="text-center text-muted">Click on any available stall to select your market spot</p>
+
+                        <?php if ($selected_stall): ?>
+                            <?php
+                            $vendor_type = '';
+                            if (strpos($selected_stall, 'F') === 0) {
+                                $vendor_type = ' (Fish Vendor)';
+                            } elseif (strpos($selected_stall, 'M') === 0) {
+                                $vendor_type = ' (Meat Vendor)';
+                            }
+                            ?>
+                            <div class="stall-selection-message">
+                                <strong>Selected Stall: <?php echo strtoupper($selected_stall) . $vendor_type; ?></strong>
+                                <br>Click 'Complete Registration' to confirm your market spot!
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="market-container">
+                            <!-- Top row stalls -->
+                            <?php for ($i = 1; $i <= 11; $i++): 
+                                $stall_num = 'T'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall square-stall top-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Bottom row stalls -->
+                            <?php for ($i = 1; $i <= 11; $i++): 
+                                $stall_num = 'B'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall square-stall bottom-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Left column stalls -->
+                            <?php for ($i = 1; $i <= 6; $i++): 
+                                $stall_num = 'L'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall square-stall left-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Right column stalls -->
+                            <?php for ($i = 1; $i <= 6; $i++): 
+                                $stall_num = 'R'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall square-stall right-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Fish Vendors (Left Section) - F1 to F16 -->
+                            <?php for ($i = 1; $i <= 16; $i++): 
+                                $stall_num = 'F'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall fish-vendor fish-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Meat Vendors (Right Section) - M1 to M16 -->
+                            <?php for ($i = 1; $i <= 16; $i++): 
+                                $stall_num = 'M'.$i;
+                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                            ?>
+                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                    class="stall meat-vendor meat-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                    <?php echo $stall_num; ?>
+                                </button>
+                            <?php endfor; ?>
+
+                            <!-- Center Circle -->
+                            <div class="center-circle">
+                                Market<br>Center
+                            </div>
+                        </div>
+
+                        <div class="legend mt-4">
+                            <div class="legend-item">
+                                <div class="legend-color available"></div>
+                                <span>General Stalls</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #20b2aa; border-color: #1a9a91;"></div>
+                                <span>Fish Vendors</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #dc3545; border-color: #c82333;"></div>
+                                <span>Meat Vendors</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #6c757d; border-color: #5a6268;"></div>
+                                <span>Unavailable</span>
+                            </div>
+                            <?php if ($selected_stall): ?>
+                            <div class="legend-item">
+                                <div class="legend-color selected-legend"></div>
+                                <span>Selected Stall</span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="signup.php?step=3" class="btn btn-secondary">Previous</a>
+                            <?php if ($selected_stall): ?>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check-circle"></i> Complete Registration
+                                </button>
+                            <?php else: ?>
+                                <button type="button" class="btn btn-success btn-lg" disabled>
+                                    Select a stall first
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 <?php endif; ?>
             </form>
@@ -696,7 +936,7 @@ $uploaded_document_paths = $data['uploaded_documents'] ?? []; // For displaying 
             });
 
             // Set initial data-filename if a file was previously uploaded
-            const initialFilename = input.getAttribute('data-filename');
+            const initialFilename = input?.getAttribute('data-filename');
             if (initialFilename) {
                 input.setAttribute('data-filename', initialFilename);
             }
