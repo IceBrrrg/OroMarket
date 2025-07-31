@@ -203,65 +203,9 @@ $total_products = $row['total'];
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon orders">
-                                <i class="bi bi-cart"></i>
-                            </div>
-                            <div class="stat-number"><?php echo $total_orders; ?></div>
-                            <div class="stat-label">Total Orders</div>
-                            <a href="manage_orders.php" class="btn btn-warning">View Details</a>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="quick-actions">
-                        <h4 class="mb-4">Quick Actions</h4>
-                        <div class="row g-4">
-                            <div class="col-md-3">
-                                <a href="manage_sellers.php" class="action-btn d-block">
-                                    <div class="action-icon">
-                                        <i class="bi bi-people"></i>
-                                    </div>
-                                    <h5>Manage Sellers</h5>
-                                    <p class="text-muted mb-0">View and manage seller accounts</p>
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="manage_products.php" class="action-btn d-block">
-                                    <div class="action-icon">
-                                        <i class="bi bi-box"></i>
-                                    </div>
-                                    <h5>Manage Products</h5>
-                                    <p class="text-muted mb-0">Approve and manage products</p>
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="manage_orders.php" class="action-btn d-block">
-                                    <div class="action-icon">
-                                        <i class="bi bi-cart-check"></i>
-                                    </div>
-                                    <h5>Manage Orders</h5>
-                                    <p class="text-muted mb-0">View and process orders</p>
-                                </a>
-                            </div>
-                            <div class="col-md-3">
-                                <a href="settings.php" class="action-btn d-block">
-                                    <div class="action-icon">
-                                        <i class="bi bi-gear"></i>
-                                    </div>
-                                    <h5>Settings</h5>
-                                    <p class="text-muted mb-0">Configure marketplace settings</p>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </div>
 
