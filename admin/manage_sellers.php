@@ -14,11 +14,11 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
     $action = $_POST['action'];
 
     if ($action == 'activate') {
-        $sql = "UPDATE sellers SET status = 'active' WHERE id = ?";
+        $sql = "UPDATE sellers SET is_active = 1 WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$seller_id]);
     } elseif ($action == 'deactivate') {
-        $sql = "UPDATE sellers SET status = 'inactive' WHERE id = ?";
+        $sql = "UPDATE sellers SET is_active = 0 WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$seller_id]);
     } elseif ($action == 'delete') {
@@ -115,19 +115,35 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
                                 $stmt = $pdo->query($sql);
 
                                 while ($row = $stmt->fetch()) {
-                                    $status_class = $row['status'] == 'active' ? 'bg-success' : 'bg-danger';
+                                    // Handle status - use is_active field (1 = active, 0 = inactive)
+                                    $status = $row['is_active'] ? 'active' : 'inactive';
+                                    $status_class = $row['is_active'] ? 'bg-success' : 'bg-danger';
 
-                                    echo "<tr class='seller-row' data-status='{$row['status']}'>";
+                                    echo "<tr class='seller-row' data-status='{$status}'>";
                                     echo "<td>{$row['id']}</td>";
-                                    echo "<td>" . ($row['shop_name'] ? $row['shop_name'] : 'N/A') . "</td>";
-                                    echo "<td>" . ($row['owner_name'] ? $row['owner_name'] : ($row['first_name'] . ' ' . $row['last_name'])) . "</td>";
-                                    echo "<td>{$row['email']}</td>";
-                                    echo "<td>{$row['phone']}</td>";
+                                    
+                                    // Shop name - use username as shop identifier
+                                    echo "<td>" . htmlspecialchars($row['username']) . "</td>";
+                                    
+                                    // Owner name - combine first_name and last_name
+                                    $owner_name = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
+                                    if (empty($owner_name)) {
+                                        $owner_name = $row['username']; // fallback to username
+                                    }
+                                    echo "<td>" . htmlspecialchars($owner_name) . "</td>";
+                                    
+                                    // Email
+                                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
+                                    
+                                    // Phone contact
+                                    $phone = $row['phone'] ?? 'N/A';
+                                    echo "<td>" . htmlspecialchars($phone) . "</td>";
+                                    
                                     echo "<td>{$row['product_count']}</td>";
-                                    echo "<td><span class='badge {$status_class} status-badge'>{$row['status']}</span></td>";
+                                    echo "<td><span class='badge {$status_class} status-badge'>" . ucfirst($status) . "</span></td>";
                                     echo "<td class='action-buttons'>";
 
-                                    if ($row['status'] == 'inactive') {
+                                    if (!$row['is_active']) {
                                         echo "<form method='POST' style='display:inline;'>";
                                         echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='activate'>";
@@ -183,12 +199,19 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
         function filterSellers(status) {
             const rows = document.querySelectorAll('.seller-row');
             rows.forEach(row => {
-                if (status === 'all' || row.dataset.status === status) {
+                const rowStatus = row.dataset.status;
+                if (status === 'all' || rowStatus === status) {
                     row.style.display = '';
                 } else {
                     row.style.display = 'none';
                 }
             });
+            
+            // Update active button state
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
         }
 
         function viewDetails(id) {
