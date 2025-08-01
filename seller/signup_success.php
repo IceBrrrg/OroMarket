@@ -2,11 +2,12 @@
 session_start();
 require_once '../includes/db_connect.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['seller_id'])) {
-    header("Location: login.php");
-    exit();
-}
+// Remove the login check since this page should be accessible after registration
+// The session is cleared after successful registration, so there's no seller_id to check
+
+// Optional: You could add a flag to ensure they came from the registration process
+// For example, you could set a temporary session variable in the signup process
+// and check for it here, then unset it
 ?>
 
 <!DOCTYPE html>

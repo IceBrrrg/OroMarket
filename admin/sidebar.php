@@ -1,4 +1,5 @@
 <?php
+// Check if session is not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -185,8 +186,3 @@ $current_page = basename($_SERVER['PHP_SELF']);
         margin-left: 0.5em;
     }
 </style>
-
-<!-- Add this right after the sidebar to wrap the main content -->
-<div class="content">
-    <!-- Your page content goes here -->
-</div>
