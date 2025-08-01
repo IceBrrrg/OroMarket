@@ -3,39 +3,54 @@ session_start();
 require_once '../includes/db_connect.php';
 
 // Check if user is already logged in
-if (isset($_SESSION['user_id']) && isset($_SESSION['is_seller']) && $_SESSION['is_seller'] === true) {
+if (isset($_SESSION['seller_id']) && isset($_SESSION['seller_username'])) {
     header("Location: dashboard.php");
     exit();
 }
 
 $error = '';
 
-// Process login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
-
+    
     if (empty($username) || empty($password)) {
         $error = "Please enter both username and password.";
     } else {
-        // Prepare and execute query using PDO
-        $stmt = $pdo->prepare("SELECT * FROM sellers WHERE username = ? AND is_active = TRUE");
-        $stmt->execute([$username]);
-        $seller = $stmt->fetch();
-
-        if ($seller && password_verify($password, $seller['password'])) {
-            // Set session variables
-            $_SESSION['user_id'] = $seller['id'];
-            $_SESSION['username'] = $seller['username'];
-            $_SESSION['is_seller'] = true;
-
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $error = "Invalid username or password.";
+        try {
+            // Modified query to include status check
+            $stmt = $pdo->prepare("SELECT id, username, email, password, status FROM sellers WHERE username = ? OR email = ?");
+            $stmt->execute([$username, $username]);
+            $seller = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($seller && password_verify($password, $seller['password'])) {
+                // Check if account is approved
+                if ($seller['status'] !== 'approved') {
+                    $status_messages = [
+                        'pending' => 'Your account is pending approval. Please wait for admin review.',
+                        'rejected' => 'Your account application has been rejected. Please contact support.',
+                        'suspended' => 'Your account has been suspended. Please contact support.'
+                    ];
+                    $error = $status_messages[$seller['status']] ?? 'Your account is not active.';
+                } else {
+                    // Login successful - use consistent session variable names
+                    $_SESSION['seller_id'] = $seller['id'];
+                    $_SESSION['seller_username'] = $seller['username'];
+                    $_SESSION['seller_email'] = $seller['email'];
+                    
+                    header("Location: dashboard.php");
+                    exit();
+                }
+            } else {
+                $error = "Invalid username or password.";
+            }
+        } catch (PDOException $e) {
+            error_log("Login error: " . $e->getMessage());
+            $error = "Login failed. Please try again.";
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -102,6 +117,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             margin-top: 20px;
         }
+
+        .status-info {
+            background-color: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-info h6 {
+            color: #0066cc;
+            margin-bottom: 10px;
+        }
+
+        .status-info ul {
+            margin-bottom: 0;
+            padding-left: 20px;
+        }
+
+        .status-info li {
+            color: #333;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 
@@ -118,13 +156,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
             <div class="login-body">
                 <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <div class="alert alert-danger">
+                        <?php echo htmlspecialchars($error); ?>
+                        <?php if (strpos($error, 'pending approval') !== false): ?>
+                            <hr>
+                            <small>
+                                <strong>Note:</strong> You will receive an email notification once your application is reviewed.
+                            </small>
+                        <?php endif; ?>
+                    </div>
                 <?php endif; ?>
+
+                <!-- Information box for new sellers -->
+                <div class="status-info">
+                    <h6><i class="bi bi-info-circle"></i> Account Status Information</h6>
+                    <ul>
+                        <li><strong>Pending:</strong> Your application is under review</li>
+                        <li><strong>Approved:</strong> You can log in and start selling</li>
+                        <li><strong>Rejected:</strong> Contact support for assistance</li>
+                    </ul>
+                </div>
 
                 <form method="POST">
                     <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <label for="username" class="form-label">Username or Email</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>" required>
                     </div>
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
@@ -135,6 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="signup-link">
                     <p class="mb-0">Don't have an account? <a href="signup.php">Register as a Seller</a></p>
+                    <p class="mb-0 mt-2"><small><a href="#" class="text-muted">Forgot Password?</a></small></p>
                 </div>
             </div>
         </div>

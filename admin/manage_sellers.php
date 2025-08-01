@@ -8,35 +8,188 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
     exit();
 }
 
-// Handle seller status updates
-if (isset($_POST['action']) && isset($_POST['seller_id'])) {
-    $seller_id = $_POST['seller_id'];
-    $action = $_POST['action'];
-
-    if ($action == 'activate') {
-        $sql = "UPDATE sellers SET is_active = 1 WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
+// Admin approval process functions
+function approveSeller($seller_id, $pdo) {
+    try {
+        $pdo->beginTransaction();
+        
+        // Update seller status to approved
+        $stmt = $pdo->prepare("UPDATE sellers SET status = 'approved', is_active = 1 WHERE id = ?");
         $stmt->execute([$seller_id]);
-    } elseif ($action == 'deactivate') {
-        $sql = "UPDATE sellers SET is_active = 0 WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
+        
+        // Update seller application status
+        $stmt = $pdo->prepare("UPDATE seller_applications SET status = 'approved' WHERE seller_id = ?");
         $stmt->execute([$seller_id]);
-    } elseif ($action == 'delete') {
-        // First check if seller has any products
-        $check_sql = "SELECT COUNT(*) as count FROM products WHERE seller_id = ?";
-        $stmt = $pdo->prepare($check_sql);
+        
+        // Get stall application and approve it
+        $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ? AND status = 'pending'");
         $stmt->execute([$seller_id]);
-        $row = $stmt->fetch();
-
-        if ($row['count'] > 0) {
-            $error = "Cannot delete seller with existing products";
-        } else {
-            $sql = "DELETE FROM sellers WHERE id = ?";
-            $stmt = $pdo->prepare($sql);
+        $stall_application = $stmt->fetch();
+        
+        if ($stall_application) {
+            // Update stall application status
+            $stmt = $pdo->prepare("UPDATE stall_applications SET status = 'approved' WHERE seller_id = ?");
             $stmt->execute([$seller_id]);
+            
+            // Assign stall to seller
+            $stmt = $pdo->prepare("UPDATE stalls SET status = 'occupied', current_seller_id = ? WHERE id = ?");
+            $stmt->execute([$seller_id, $stall_application['stall_id']]);
         }
+        
+        // Send notification to seller
+        $stmt = $pdo->prepare("
+            INSERT INTO notifications (recipient_type, recipient_id, title, message, link) 
+            VALUES ('seller', ?, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php')
+        ");
+        $stmt->execute([$seller_id]);
+        
+        $pdo->commit();
+        return true;
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log("Error approving seller: " . $e->getMessage());
+        return false;
     }
 }
+
+// When admin rejects a seller application:
+function rejectSeller($seller_id, $pdo, $reason = '') {
+    try {
+        $pdo->beginTransaction();
+        
+        // Update seller status to rejected
+        $stmt = $pdo->prepare("UPDATE sellers SET status = 'rejected', is_active = 0 WHERE id = ?");
+        $stmt->execute([$seller_id]);
+        
+        // Update seller application status
+        $stmt = $pdo->prepare("UPDATE seller_applications SET status = 'rejected', admin_notes = ? WHERE seller_id = ?");
+        $stmt->execute([$reason, $seller_id]);
+        
+        // Free up the reserved stall
+        $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ? AND status = 'pending'");
+        $stmt->execute([$seller_id]);
+        $stall_application = $stmt->fetch();
+        
+        if ($stall_application) {
+            $stmt = $pdo->prepare("UPDATE stall_applications SET status = 'rejected' WHERE seller_id = ?");
+            $stmt->execute([$seller_id]);
+            
+            $stmt = $pdo->prepare("UPDATE stalls SET status = 'available', current_seller_id = NULL WHERE id = ?");
+            $stmt->execute([$stall_application['stall_id']]);
+        }
+        
+        // Send notification to seller
+        $message = "Your seller application has been reviewed. " . ($reason ? "Reason: $reason" : "Please check for more details.");
+        $stmt = $pdo->prepare("
+            INSERT INTO notifications (recipient_type, recipient_id, title, message, link) 
+            VALUES ('seller', ?, 'Application Status Update', ?, 'application_status.php')
+        ");
+        $stmt->execute([$seller_id, $message]);
+        
+        $pdo->commit();
+        return true;
+        
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        error_log("Error rejecting seller: " . $e->getMessage());
+        return false;
+    }
+}
+
+// Handle application approval/rejection via AJAX
+if (isset($_POST['ajax_action']) && isset($_POST['application_id'])) {
+    $application_id = $_POST['application_id'];
+    $action = $_POST['ajax_action'];
+    $admin_notes = $_POST['admin_notes'] ?? '';
+
+    if ($action == 'approve') {
+        // Get application details
+        $sql = "SELECT * FROM seller_applications WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$application_id]);
+        $application = $stmt->fetch();
+
+        if ($application) {
+            // Use the new approval function
+            if (approveSeller($application['seller_id'], $pdo)) {
+                // Update admin notes if provided
+                if ($admin_notes) {
+                    $update_sql = "UPDATE seller_applications SET admin_notes = ? WHERE id = ?";
+                    $stmt = $pdo->prepare($update_sql);
+                    $stmt->execute([$admin_notes, $application_id]);
+                }
+                echo json_encode(['success' => true, 'message' => 'Application approved successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error approving application. Please try again.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Application not found.']);
+        }
+    } elseif ($action == 'reject') {
+        // Get application details
+        $sql = "SELECT seller_id FROM seller_applications WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$application_id]);
+        $application = $stmt->fetch();
+        
+        if ($application) {
+            // Use the new rejection function
+            if (rejectSeller($application['seller_id'], $pdo, $admin_notes)) {
+                echo json_encode(['success' => true, 'message' => 'Application rejected successfully!']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error rejecting application. Please try again.']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Application not found.']);
+        }
+    }
+    exit();
+}
+
+// Get application details for modal
+if (isset($_GET['get_application']) && isset($_GET['id'])) {
+    $id = $_GET['id'];
+    $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
+                   st.stall_number, st.section, st.floor_number, st.monthly_rent
+            FROM seller_applications sa 
+            LEFT JOIN sellers s ON sa.seller_id = s.id 
+            LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
+            LEFT JOIN stalls st ON sta.stall_id = st.id
+            WHERE sa.id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$id]);
+    $application = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($application) {
+        // Parse documents if they exist
+        if ($application['documents_submitted']) {
+            $documents = json_decode($application['documents_submitted'], true);
+            
+            // Log for debugging
+            error_log("Raw documents: " . $application['documents_submitted']);
+            error_log("Decoded documents: " . print_r($documents, true));
+            
+            if (json_last_error() === JSON_ERROR_NONE && $documents) {
+                $application['documents'] = $documents;
+            } else {
+                error_log("JSON decode error: " . json_last_error_msg());
+                $application['documents'] = [];
+            }
+        } else {
+            $application['documents'] = [];
+        }
+        
+        echo json_encode($application);
+    } else {
+        echo json_encode(['error' => 'Application not found']);
+    }
+    exit();
+}
+
+// Count pending applications for notification badge
+$pending_count_sql = "SELECT COUNT(*) FROM seller_applications WHERE status = 'pending'";
+$pending_count = $pdo->query($pending_count_sql)->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -45,30 +198,10 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Sellers - Admin Dashboard</title>
+    <title>Seller Applications - Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-    <style>
-        .main-content {
-            margin-left: 250px;
-            padding: 20px;
-        }
-
-        .status-badge {
-            font-size: 0.875rem;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .action-buttons .btn {
-            margin: 0 2px;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/seller_applications.css">
 </head>
 
 <body>
@@ -77,118 +210,120 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
     <div class="main-content">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h2">Manage Sellers</h1>
-                <div class="btn-group">
-                    <button class="btn btn-outline-secondary" onclick="filterSellers('all')">All</button>
-                    <button class="btn btn-outline-success" onclick="filterSellers('active')">Active</button>
-                    <button class="btn btn-outline-danger" onclick="filterSellers('inactive')">Inactive</button>
+                <div class="d-flex align-items-center">
+                    <h1 class="h2 me-3">Seller Applications</h1>
+                    <?php if ($pending_count > 0): ?>
+                        <span class="notification-count"><?php echo $pending_count; ?></span>
+                    <?php endif; ?>
                 </div>
             </div>
 
-            <?php if (isset($error)): ?>
-                <div class="alert alert-danger"><?php echo $error; ?></div>
-            <?php endif; ?>
-
-            <div class="card">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Shop Name</th>
-                                    <th>Owner Name</th>
-                                    <th>Email</th>
-                                    <th>Contact</th>
-                                    <th>Products</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php
-                                $sql = "SELECT s.*, COUNT(p.id) as product_count 
-                                       FROM sellers s 
-                                       LEFT JOIN products p ON s.id = p.seller_id 
-                                       GROUP BY s.id 
-                                       ORDER BY s.id DESC";
-                                $stmt = $pdo->query($sql);
-
-                                while ($row = $stmt->fetch()) {
-                                    // Handle status - use is_active field (1 = active, 0 = inactive)
-                                    $status = $row['is_active'] ? 'active' : 'inactive';
-                                    $status_class = $row['is_active'] ? 'bg-success' : 'bg-danger';
-
-                                    echo "<tr class='seller-row' data-status='{$status}'>";
-                                    echo "<td>{$row['id']}</td>";
-                                    
-                                    // Shop name - use username as shop identifier
-                                    echo "<td>" . htmlspecialchars($row['username']) . "</td>";
-                                    
-                                    // Owner name - combine first_name and last_name
-                                    $owner_name = trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? ''));
-                                    if (empty($owner_name)) {
-                                        $owner_name = $row['username']; // fallback to username
-                                    }
-                                    echo "<td>" . htmlspecialchars($owner_name) . "</td>";
-                                    
-                                    // Email
-                                    echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                                    
-                                    // Phone contact
-                                    $phone = $row['phone'] ?? 'N/A';
-                                    echo "<td>" . htmlspecialchars($phone) . "</td>";
-                                    
-                                    echo "<td>{$row['product_count']}</td>";
-                                    echo "<td><span class='badge {$status_class} status-badge'>" . ucfirst($status) . "</span></td>";
-                                    echo "<td class='action-buttons'>";
-
-                                    if (!$row['is_active']) {
-                                        echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
-                                        echo "<input type='hidden' name='action' value='activate'>";
-                                        echo "<button type='submit' class='btn btn-sm btn-success' title='Activate'>";
-                                        echo "<i class='bi bi-check-lg'></i></button></form> ";
-                                    } else {
-                                        echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
-                                        echo "<input type='hidden' name='action' value='deactivate'>";
-                                        echo "<button type='submit' class='btn btn-sm btn-warning' title='Deactivate'>";
-                                        echo "<i class='bi bi-pause-fill'></i></button></form> ";
-                                    }
-
-                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['id']})' title='View Details'>";
-                                    echo "<i class='bi bi-eye'></i></button> ";
-
-                                    if ($row['product_count'] == 0) {
-                                        echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
-                                        echo "<input type='hidden' name='action' value='delete'>";
-                                        echo "<button type='submit' class='btn btn-sm btn-danger' title='Delete' onclick='return confirm(\"Are you sure you want to delete this seller?\")'>";
-                                        echo "<i class='bi bi-trash'></i></button></form>";
-                                    }
-
-                                    echo "</td></tr>";
-                                }
-                                ?>
-                            </tbody>
-                        </table>
+            <div class="inbox-container">
+                <div class="inbox-header">
+                    <div class="inbox-filters">
+                        <button class="btn active" onclick="filterApplications('all', this)">
+                            <i class="bi bi-inbox"></i> All
+                        </button>
+                        <button class="btn" onclick="filterApplications('pending', this)">
+                            <i class="bi bi-clock"></i> Pending
+                            <?php if ($pending_count > 0): ?>
+                                <span class="notification-count"><?php echo $pending_count; ?></span>
+                            <?php endif; ?>
+                        </button>
+                        <button class="btn" onclick="filterApplications('approved', this)">
+                            <i class="bi bi-check-circle"></i> Approved
+                        </button>
+                        <button class="btn" onclick="filterApplications('rejected', this)">
+                            <i class="bi bi-x-circle"></i> Rejected
+                        </button>
                     </div>
+                </div>
+
+                <div class="inbox-list" id="inboxList">
+                    <?php
+                    // Get all applications with seller status
+                    $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
+                                   st.stall_number, st.section, st.floor_number
+                            FROM seller_applications sa 
+                            LEFT JOIN sellers s ON sa.seller_id = s.id 
+                            LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
+                            LEFT JOIN stalls st ON sta.stall_id = st.id
+                            ORDER BY sa.created_at DESC";
+                    $stmt = $pdo->query($sql);
+
+                    if ($stmt->rowCount() > 0) {
+                        while ($row = $stmt->fetch()) {
+                            $is_new = (strtotime($row['created_at']) > strtotime('-24 hours'));
+                            $read_status = ($row['status'] == 'pending') ? 'unread' : 'read';
+                            
+                            $business_name = $row['business_name'] ?? $row['username'] ?? 'N/A';
+                            $owner_name = $row['bank_account_name'] ?? trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) ?: $row['username'] ?? 'N/A';
+                            $email = $row['business_email'] ?? $row['seller_email'] ?? 'N/A';
+                            $phone = $row['business_phone'] ?? $row['phone'] ?? 'N/A';
+                            
+                            // Create preview text with seller status
+                            $preview_parts = [];
+                            if ($row['stall_number']) {
+                                $preview_parts[] = "Stall: {$row['stall_number']} ({$row['section']})";
+                            }
+                            $preview_parts[] = "Phone: {$phone}";
+                            if ($row['tax_id']) {
+                                $preview_parts[] = "Tax ID: {$row['tax_id']}";
+                            }
+                            if ($row['seller_status']) {
+                                $preview_parts[] = "Seller Status: " . ucfirst($row['seller_status']);
+                            }
+                            $preview_text = implode(' • ', $preview_parts);
+                            
+                            // Format timestamp
+                            $timestamp = date('M d', strtotime($row['created_at']));
+                            if (date('Y-m-d') == date('Y-m-d', strtotime($row['created_at']))) {
+                                $timestamp = date('g:i A', strtotime($row['created_at']));
+                            }
+                            
+                            echo "<div class='inbox-item {$read_status}' data-status='{$row['status']}' onclick='viewApplication({$row['id']})'>";
+                            echo "  <div class='status-dot {$row['status']}'></div>";
+                            echo "  <div class='sender-info'>";
+                            echo "    <div class='sender-name'>{$owner_name}";
+                            if ($is_new && $row['status'] == 'pending') {
+                                echo "<span class='new-badge'>NEW</span>";
+                            }
+                            echo "    </div>";
+                            echo "    <div class='sender-email'>{$email}</div>";
+                            echo "  </div>";
+                            echo "  <div class='subject-preview'>";
+                            echo "    <div class='subject'>Seller Application: {$business_name}</div>";
+                            echo "    <div class='preview-text'>{$preview_text}</div>";
+                            echo "  </div>";
+                            echo "  <div class='timestamp'>{$timestamp}</div>";
+                            echo "</div>";
+                        }
+                    } else {
+                        echo "<div class='empty-inbox'>";
+                        echo "  <i class='bi bi-inbox'></i>";
+                        echo "  <h4>No applications yet</h4>";
+                        echo "  <p>Seller applications will appear here when submitted.</p>";
+                        echo "</div>";
+                    }
+                    ?>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- View Details Modal -->
-    <div class="modal fade" id="detailsModal" tabindex="-1">
+    <!-- Application Details Modal -->
+    <div class="modal fade" id="applicationModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Seller Details</h5>
+                    <h5 class="modal-title">Application Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <!-- Details will be loaded here -->
+                <div class="modal-body" id="modalBody">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="modal-footer" id="modalFooter">
+                    <!-- Action buttons will be loaded here -->
                 </div>
             </div>
         </div>
@@ -196,28 +331,313 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function filterSellers(status) {
-            const rows = document.querySelectorAll('.seller-row');
-            rows.forEach(row => {
-                const rowStatus = row.dataset.status;
-                if (status === 'all' || rowStatus === status) {
-                    row.style.display = '';
+        function filterApplications(status, buttonElement) {
+            const items = document.querySelectorAll('.inbox-item');
+            items.forEach(item => {
+                const itemStatus = item.dataset.status;
+                if (status === 'all' || itemStatus === status) {
+                    item.style.display = 'flex';
                 } else {
-                    row.style.display = 'none';
+                    item.style.display = 'none';
                 }
             });
             
             // Update active button state
-            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+            document.querySelectorAll('.inbox-filters .btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            buttonElement.classList.add('active');
         }
 
-        function viewDetails(id) {
-            // Implement AJAX call to fetch seller details
-            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+        function viewApplication(id) {
+            const modalBody = document.getElementById('modalBody');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            // Show loading state
+            modalBody.innerHTML = `
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading application details...</p>
+                </div>
+            `;
+            modalFooter.innerHTML = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('applicationModal'));
             modal.show();
+            
+            // Fetch application details
+            fetch(`?get_application=1&id=${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Application data received:', data);
+                    
+                    if (data.error) {
+                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                        return;
+                    }
+                    
+                    // Build documents HTML
+                    let documentsHtml = '';
+                    
+                    // Check if documents exist and process them
+                    if (data.documents) {
+                        let hasDocuments = false;
+                        
+                        if (Array.isArray(data.documents)) {
+                            hasDocuments = data.documents.length > 0;
+                        } else if (typeof data.documents === 'object') {
+                            hasDocuments = Object.keys(data.documents).length > 0;
+                        }
+                        
+                        if (hasDocuments) {
+                            documentsHtml = '<div class="document-preview">';
+                            
+                            if (Array.isArray(data.documents)) {
+                                // Handle array format (old format)
+                                data.documents.forEach(doc => {
+                                    if (doc && doc.trim() !== '') {
+                                        const filename = doc.split('/').pop();
+                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+                                        
+                                        documentsHtml += `
+                                            <div class="document-item">
+                                                ${isImage ? 
+                                                    `<img src="../${doc}" alt="Document" class="img-thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                     <i class="bi bi-file-earmark-text fs-1 text-muted" style="display:none;"></i>` : 
+                                                    `<i class="bi bi-file-earmark-text fs-1 text-muted"></i>`
+                                                }
+                                                <div class="flex-grow-1">
+                                                    <strong>${filename}</strong><br>
+                                                    <a href="../${doc}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> View Document
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                });
+                            } else {
+                                // Handle object format (new format)
+                                Object.entries(data.documents).forEach(([docType, docPath]) => {
+                                    if (docPath && docPath.trim() !== '') {
+                                        const filename = docPath.split('/').pop();
+                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
+                                        
+                                        // Clean up document type name
+                                        let docLabel = docType.replace(/_/g, ' ').replace(/document/g, '').trim();
+                                        docLabel = docLabel.charAt(0).toUpperCase() + docLabel.slice(1);
+                                        if (docLabel === '') docLabel = 'Document';
+                                        
+                                        documentsHtml += `
+                                            <div class="document-item">
+                                                ${isImage ? 
+                                                    `<img src="../${docPath}" alt="Document" class="img-thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                     <i class="bi bi-file-earmark-text fs-1 text-muted" style="display:none;"></i>` : 
+                                                    `<i class="bi bi-file-earmark-text fs-1 text-muted"></i>`
+                                                }
+                                                <div class="flex-grow-1">
+                                                    <strong>${docLabel}</strong><br>
+                                                    <small class="text-muted">${filename}</small><br>
+                                                    <a href="../${docPath}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> View Document
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        `;
+                                    }
+                                });
+                            }
+                            documentsHtml += '</div>';
+                        } else {
+                            documentsHtml = '<p class="text-muted">No documents submitted</p>';
+                        }
+                    } else {
+                        documentsHtml = '<p class="text-muted">No documents submitted</p>';
+                    }
+                    
+                    // Stall information
+                    let stallInfo = '';
+                    if (data.stall_number) {
+                        stallInfo = `
+                            <div class="stall-info">
+                                <h6><i class="bi bi-shop"></i> Requested Stall</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Stall Number:</strong> ${data.stall_number}</p>
+                                        <p><strong>Section:</strong> ${data.section}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Floor:</strong> ${data.floor_number}</p>
+                                        <p><strong>Monthly Rent:</strong> ₱${parseFloat(data.monthly_rent).toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // Seller status badge
+                    const getStatusBadge = (status) => {
+                        const statusClasses = {
+                            'pending': 'bg-warning',
+                            'approved': 'bg-success',
+                            'rejected': 'bg-danger'
+                        };
+                        return `<span class="badge ${statusClasses[status] || 'bg-secondary'}">${status ? status.toUpperCase() : 'UNKNOWN'}</span>`;
+                    };
+                    
+                    modalBody.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Business Information</h6>
+                                <p><strong>Business Name:</strong> ${data.business_name || 'N/A'}</p>
+                                <p><strong>Business Address:</strong> ${data.business_address || 'N/A'}</p>
+                                <p><strong>Business Email:</strong> ${data.business_email || 'N/A'}</p>
+                                <p><strong>Business Phone:</strong> ${data.business_phone || 'N/A'}</p>
+                                <p><strong>Tax ID:</strong> ${data.tax_id || 'N/A'}</p>
+                                <p><strong>Registration Number:</strong> ${data.business_registration_number || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Banking Information</h6>
+                                <p><strong>Account Name:</strong> ${data.bank_account_name || 'N/A'}</p>
+                                <p><strong>Account Number:</strong> ${data.bank_account_number || 'N/A'}</p>
+                                <p><strong>Bank Name:</strong> ${data.bank_name || 'N/A'}</p>
+                                
+                                <h6 class="mt-3">Seller Information</h6>
+                                <p><strong>Username:</strong> ${data.username || 'N/A'}</p>
+                                <p><strong>Name:</strong> ${(data.first_name || '') + ' ' + (data.last_name || '') || 'N/A'}</p>
+                                <p><strong>Email:</strong> ${data.seller_email || 'N/A'}</p>
+                                <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+                                <p><strong>Account Status:</strong> ${getStatusBadge(data.seller_status)}</p>
+                            </div>
+                        </div>
+                        
+                        ${stallInfo}
+                        
+                        <div class="mt-3">
+                            <h6>Submitted Documents</h6>
+                            ${documentsHtml}
+                        </div>
+                        
+                        ${data.admin_notes ? `
+                            <div class="mt-3">
+                                <h6>Admin Notes</h6>
+                                <div class="alert alert-info">${data.admin_notes}</div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <strong>Applied:</strong> ${new Date(data.created_at).toLocaleString()}<br>
+                                <strong>Application Status:</strong> ${getStatusBadge(data.status)}
+                            </small>
+                        </div>
+                    `;
+                    
+                    // Add action buttons for pending applications
+                    if (data.status === 'pending') {
+                        modalFooter.innerHTML = `
+                            <div class="w-100">
+                                <div class="mb-3">
+                                    <label for="adminNotes" class="form-label">Admin Notes (Optional)</label>
+                                    <textarea class="form-control" id="adminNotes" rows="2" placeholder="Add any notes about this decision..."></textarea>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-danger" onclick="processApplication(${id}, 'reject')">
+                                        <i class="bi bi-x-lg"></i> Reject
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="processApplication(${id}, 'approve')">
+                                        <i class="bi bi-check-lg"></i> Approve
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        modalFooter.innerHTML = `
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    modalBody.innerHTML = '<div class="alert alert-danger">Error loading application details.</div>';
+                });
+        }
+
+        function processApplication(id, action) {
+            const adminNotes = document.getElementById('adminNotes')?.value || '';
+            const actionText = action === 'approve' ? 'approve' : 'reject';
+            
+            if (!confirm(`Are you sure you want to ${actionText} this application?`)) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('ajax_action', action);
+            formData.append('application_id', id);
+            formData.append('admin_notes', adminNotes);
+            
+            fetch('', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('applicationModal')).hide();
+                    
+                    // Show success message
+                    showToast(data.message, 'success');
+                    
+                    // Reload page to reflect changes
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.message || 'Error processing application', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('Error processing application', 'error');
+            });
+        }
+
+        function showToast(message, type) {
+            // Create toast element
+            const toastHtml = `
+                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                </div>
+            `;
+            
+            // Add to toast container (create if doesn't exist)
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+            
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+            
+            // Show toast element
+            const toastElement = toastContainer.lastElementChild;
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
         }
     </script>
 </body>
