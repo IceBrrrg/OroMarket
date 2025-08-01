@@ -55,18 +55,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($current_step === 2) {
             // Business information
             $_SESSION['signup_data']['business_name'] = $_POST['business_name'] ?? '';
-            $_SESSION['signup_data']['business_address'] = $_POST['business_address'] ?? '';
             $_SESSION['signup_data']['business_phone'] = $_POST['business_phone'] ?? '';
-            $_SESSION['signup_data']['business_email'] = $_POST['business_email'] ?? '';
-            $_SESSION['signup_data']['tax_id'] = $_POST['tax_id'] ?? '';
-            $_SESSION['signup_data']['business_registration_number'] = $_POST['business_registration_number'] ?? '';
+            $_SESSION['signup_data']['facebook_url'] = $_POST['facebook_url'] ?? '';
+
 
             // Validate step 2
             if (
                 empty($_SESSION['signup_data']['business_name']) ||
-                empty($_SESSION['signup_data']['business_address']) ||
                 empty($_SESSION['signup_data']['business_phone']) ||
-                empty($_SESSION['signup_data']['business_email'])
+                empty($_SESSION['signup_data']['facebook_url'])
             ) {
                 $error = "All business fields are required.";
             } else {
@@ -75,11 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         } elseif ($current_step === 3) {
-            // Bank information
-            $_SESSION['signup_data']['bank_account_name'] = $_POST['bank_account_name'] ?? '';
-            $_SESSION['signup_data']['bank_account_number'] = $_POST['bank_account_number'] ?? '';
-            $_SESSION['signup_data']['bank_name'] = $_POST['bank_name'] ?? '';
-            $_SESSION['signup_data']['facebook_url'] = $_POST['facebook_url'] ?? '';
 
             // --- Handle individual document uploads ---
             $upload_dir = '../uploads/seller_documents/';
@@ -134,13 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['signup_data']['uploaded_documents'] = $uploaded_document_paths;
 
             // Validate step 3 and check if all documents were uploaded
-            if (
-                empty($_SESSION['signup_data']['bank_account_name']) ||
-                empty($_SESSION['signup_data']['bank_account_number']) ||
-                empty($_SESSION['signup_data']['bank_name'])
-            ) {
-                $error = "All bank fields are required.";
-            } elseif (!$all_documents_uploaded) {
+            if (!$all_documents_uploaded) {
                 // Error already set by the loop for specific document missing/invalid
             } else {
                 // Move to step 4 (stall selection)
@@ -151,13 +137,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Stall selection
             if (isset($_POST['stall']) && !empty($_POST['stall'])) {
                 $selected_stall = $_POST['stall'];
-                
+
                 // Validate that the stall exists and is available
                 try {
                     $stmt = $pdo->prepare("SELECT id, status FROM stalls WHERE stall_number = ?");
                     $stmt->execute([$selected_stall]);
                     $stall = $stmt->fetch(PDO::FETCH_ASSOC);
-                    
+
                     if (!$stall) {
                         $error = "Selected stall does not exist. Please choose another stall.";
                     } elseif ($stall['status'] !== 'available') {
@@ -165,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         $_SESSION['signup_data']['selected_stall'] = $selected_stall;
                         $_SESSION['signup_data']['stall_id'] = $stall['id'];
-                        
+
                         // Create seller account and application
                         try {
                             $pdo->beginTransaction();
@@ -254,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
-    
+
     // Handle direct stall selection on step 4 (from the floorplan buttons)
     if (isset($_POST['stall']) && $step === 4 && !isset($_POST['step'])) {
         $_SESSION['signup_data']['selected_stall'] = $_POST['stall'];
@@ -343,18 +329,38 @@ if ($step === 4) {
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
         }
 
+        .document-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .document-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .document-card h5 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
         .document-preview-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .document-preview-item {
-            width: 120px;
-            height: 120px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            width: 150px;
+            height: 150px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -362,16 +368,25 @@ if ($step === 4) {
             text-align: center;
             overflow: hidden;
             position: relative;
-            background-color: #f0f0f0;
+            background-color: #f8f9fa;
             font-size: 0.8em;
             color: #555;
-            padding: 5px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .document-preview-item:hover {
+            border-color: #0d6efd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .document-preview-item img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            cursor: pointer;
         }
 
         .document-preview-item .file-icon {
@@ -381,17 +396,120 @@ if ($step === 4) {
 
         .document-preview-item .file-name {
             word-break: break-all;
-            margin-top: 5px;
-            font-size: 0.7em;
-            max-height: 30px; /* Limit height for file name */
+            margin-top: 8px;
+            font-size: 0.75em;
+            max-height: 40px;
             overflow: hidden;
             text-overflow: ellipsis;
+            color: #495057;
+        }
+
+        /* Modal styles */
+        .modal-document {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-document-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+            overflow: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .modal-document-content::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .modal-document-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .modal-document-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .modal-document-content::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-document img {
+            max-width: 100%;
+            max-height: none;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Add smooth scrolling to modal content */
+        .modal-document-content {
+            scroll-behavior: smooth;
+        }
+
+        /* Ensure modal content is properly sized */
+        .modal-document-content {
+            min-width: 200px;
+            min-height: 200px;
+        }
+
+        .modal-document-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #fff;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10000;
+        }
+
+        .modal-document-close:hover {
+            color: #ddd;
+        }
+
+        .document-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status-uploaded {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-required {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         /* Hide the default file input text */
         .custom-file-input::-webkit-file-upload-button {
             visibility: hidden;
         }
+
         .custom-file-input::before {
             content: 'Upload File';
             display: inline-block;
@@ -407,24 +525,32 @@ if ($step === 4) {
             font-weight: 400;
             font-size: 1rem;
             line-height: 1.5;
-            transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+            transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
         }
+
         .custom-file-input:hover::before {
             background-color: #0a58ca;
             border-color: #0a53be;
         }
+
         .custom-file-input:active::before {
             background-color: #0a53be;
             border-color: #0a53be;
         }
+
         .custom-file-input {
-            color: transparent; /* Hides the "No file chosen" text */
+            color: transparent;
+            /* Hides the "No file chosen" text */
         }
+
         .custom-file-input::file-selector-button {
-            display: none; /* Modern browsers */
+            display: none;
+            /* Modern browsers */
         }
+
         .custom-file-input::after {
-            content: attr(data-filename); /* Display selected file name */
+            content: attr(data-filename);
+            /* Display selected file name */
             display: inline-block;
             margin-left: 10px;
             color: #6c757d;
@@ -484,7 +610,7 @@ if ($step === 4) {
                     <i class="fas fa-user"></i> Basic Info
                 </div>
                 <div class="step <?php echo $step === 2 ? 'active' : ($step > 2 ? 'completed' : ''); ?>">
-                    <i class="fas fa-store"></i> Business Info
+                    <i class="fas fa-store"></i> Stall Info
                 </div>
                 <div class="step <?php echo $step === 3 ? 'active' : ($step > 3 ? 'completed' : ''); ?>">
                     <i class="fas fa-file-alt"></i> Documents
@@ -544,41 +670,27 @@ if ($step === 4) {
                     </div>
 
                 <?php elseif ($step === 2): ?>
-                    <h4 class="mb-3">Business Information</h4>
+                    <h4 class="mb-3">Stall Information</h4>
                     <div class="mb-3">
-                        <label for="business_name" class="form-label">Business Name *</label>
+                        <label for="business_name" class="form-label">Store Name *</label>
                         <input type="text" class="form-control" id="business_name" name="business_name"
                             value="<?php echo htmlspecialchars($data['business_name'] ?? ''); ?>" required>
                     </div>
-                    <div class="mb-3">
-                        <label for="business_address" class="form-label">Business Address *</label>
-                        <textarea class="form-control" id="business_address" name="business_address" rows="3"
-                            required><?php echo htmlspecialchars($data['business_address'] ?? ''); ?></textarea>
-                    </div>
+
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="business_phone" class="form-label">Business Phone *</label>
+                            <label for="business_phone" class="form-label">Business Phone Number *</label>
                             <input type="text" class="form-control" id="business_phone" name="business_phone"
                                 value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="business_email" class="form-label">Business Email *</label>
-                            <input type="email" class="form-control" id="business_email" name="business_email"
-                                value="<?php echo htmlspecialchars($data['business_email'] ?? ''); ?>" required>
-                        </div>
                     </div>
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="tax_id" class="form-label">Tax ID</label>
-                            <input type="text" class="form-control" id="tax_id" name="tax_id"
-                                value="<?php echo htmlspecialchars($data['tax_id'] ?? ''); ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="business_registration_number" class="form-label">Business Registration
-                                Number</label>
-                            <input type="text" class="form-control" id="business_registration_number"
-                                name="business_registration_number"
-                                value="<?php echo htmlspecialchars($data['business_registration_number'] ?? ''); ?>">
+                        <div class="mb-3">
+                            <label for="facebook_url" class="form-label">Facebook Profile URL</label>
+                            <input type="url" class="form-control" id="facebook_url" name="facebook_url"
+                                value="<?php echo htmlspecialchars($data['facebook_url'] ?? ''); ?>"
+                                placeholder="https://facebook.com/yourprofile">
+                            <small class="text-muted">This will be used for customers to contact you directly.</small>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between">
@@ -587,46 +699,33 @@ if ($step === 4) {
                     </div>
 
                 <?php elseif ($step === 3): ?>
-                    <h4 class="mb-3">Bank Information</h4>
-                    <div class="mb-3">
-                        <label for="bank_account_name" class="form-label">Bank Account Name *</label>
-                        <input type="text" class="form-control" id="bank_account_name" name="bank_account_name"
-                            value="<?php echo htmlspecialchars($data['bank_account_name'] ?? ''); ?>" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="bank_account_number" class="form-label">Bank Account Number *</label>
-                            <input type="text" class="form-control" id="bank_account_number" name="bank_account_number"
-                                value="<?php echo htmlspecialchars($data['bank_account_number'] ?? ''); ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="bank_name" class="form-label">Bank Name *</label>
-                            <input type="text" class="form-control" id="bank_name" name="bank_name"
-                                value="<?php echo htmlspecialchars($data['bank_name'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="facebook_url" class="form-label">Facebook Profile URL</label>
-                        <input type="url" class="form-control" id="facebook_url" name="facebook_url"
-                            value="<?php echo htmlspecialchars($data['facebook_url'] ?? ''); ?>"
-                            placeholder="https://facebook.com/yourprofile">
-                        <small class="text-muted">This will be used for customers to contact you directly.</small>
-                    </div>
 
                     <h4 class="mb-3 mt-4">Required Business Documents</h4>
+                    <p class="text-muted mb-4">Please upload all required business documents. Click on uploaded images to
+                        view them in full size.</p>
 
-                    <div class="mb-3">
-                        <label for="dti_document" class="form-label">DTI Certificate *</label>
-                        <input type="file" class="form-control custom-file-input" id="dti_document" name="dti_document" accept="image/*,.pdf" required
-                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['dti_document'] ?? '')); ?>">
-                        <small class="text-muted">Upload your Department of Trade and Industry certificate (JPG, PNG, PDF).</small>
+                    <!-- DTI Certificate Card -->
+                    <div class="document-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5><i class="fas fa-certificate text-primary"></i> DTI Certificate</h5>
+                            <span
+                                class="document-status <?php echo isset($uploaded_document_paths['dti_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                <?php echo isset($uploaded_document_paths['dti_document']) ? 'Uploaded' : 'Required'; ?>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">Upload your Department of Trade and Industry certificate (JPG, PNG, PDF).
+                        </p>
+                        <input type="file" class="form-control custom-file-input mb-3" id="dti_document" name="dti_document"
+                            accept="image/*,.pdf" required
+                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['dti_document'] ?? '')); ?>">
                         <div id="dti-preview-container" class="document-preview-container">
                             <?php if (isset($uploaded_document_paths['dti_document'])): ?>
                                 <?php
                                 $dti_path = '../' . $uploaded_document_paths['dti_document'];
                                 $dti_ext = strtolower(pathinfo($dti_path, PATHINFO_EXTENSION));
                                 ?>
-                                <div class="document-preview-item">
+                                <div class="document-preview-item"
+                                    onclick="openDocumentModal('<?php echo htmlspecialchars($dti_path); ?>', '<?php echo htmlspecialchars(basename($dti_path)); ?>', '<?php echo $dti_ext; ?>')">
                                     <?php if (in_array($dti_ext, ['jpg', 'jpeg', 'png'])): ?>
                                         <img src="<?php echo htmlspecialchars($dti_path); ?>" alt="DTI Preview">
                                     <?php else: ?>
@@ -638,18 +737,27 @@ if ($step === 4) {
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="business_permit_document" class="form-label">Business Permit *</label>
-                        <input type="file" class="form-control custom-file-input" id="business_permit_document" name="business_permit_document" accept="image/*,.pdf" required
-                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['business_permit_document'] ?? '')); ?>">
-                        <small class="text-muted">Upload your valid Business Permit (JPG, PNG, PDF).</small>
+                    <!-- Business Permit Card -->
+                    <div class="document-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5><i class="fas fa-building text-success"></i> Business Permit</h5>
+                            <span
+                                class="document-status <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'Uploaded' : 'Required'; ?>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">Upload your valid Business Permit (JPG, PNG, PDF).</p>
+                        <input type="file" class="form-control custom-file-input mb-3" id="business_permit_document"
+                            name="business_permit_document" accept="image/*,.pdf" required
+                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['business_permit_document'] ?? '')); ?>">
                         <div id="business-permit-preview-container" class="document-preview-container">
                             <?php if (isset($uploaded_document_paths['business_permit_document'])): ?>
                                 <?php
                                 $bp_path = '../' . $uploaded_document_paths['business_permit_document'];
                                 $bp_ext = strtolower(pathinfo($bp_path, PATHINFO_EXTENSION));
                                 ?>
-                                <div class="document-preview-item">
+                                <div class="document-preview-item"
+                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bp_path); ?>', '<?php echo htmlspecialchars(basename($bp_path)); ?>', '<?php echo $bp_ext; ?>')">
                                     <?php if (in_array($bp_ext, ['jpg', 'jpeg', 'png'])): ?>
                                         <img src="<?php echo htmlspecialchars($bp_path); ?>" alt="Business Permit Preview">
                                     <?php else: ?>
@@ -661,18 +769,27 @@ if ($step === 4) {
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="barangay_clearance_document" class="form-label">Barangay Clearance *</label>
-                        <input type="file" class="form-control custom-file-input" id="barangay_clearance_document" name="barangay_clearance_document" accept="image/*,.pdf" required
-                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['barangay_clearance_document'] ?? '')); ?>">
-                        <small class="text-muted">Upload your Barangay Clearance (JPG, PNG, PDF).</small>
+                    <!-- Barangay Clearance Card -->
+                    <div class="document-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5><i class="fas fa-shield-alt text-warning"></i> Barangay Clearance</h5>
+                            <span
+                                class="document-status <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'Uploaded' : 'Required'; ?>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">Upload your Barangay Clearance (JPG, PNG, PDF).</p>
+                        <input type="file" class="form-control custom-file-input mb-3" id="barangay_clearance_document"
+                            name="barangay_clearance_document" accept="image/*,.pdf" required
+                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['barangay_clearance_document'] ?? '')); ?>">
                         <div id="barangay-clearance-preview-container" class="document-preview-container">
                             <?php if (isset($uploaded_document_paths['barangay_clearance_document'])): ?>
                                 <?php
                                 $bc_path = '../' . $uploaded_document_paths['barangay_clearance_document'];
                                 $bc_ext = strtolower(pathinfo($bc_path, PATHINFO_EXTENSION));
                                 ?>
-                                <div class="document-preview-item">
+                                <div class="document-preview-item"
+                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bc_path); ?>', '<?php echo htmlspecialchars(basename($bc_path)); ?>', '<?php echo $bc_ext; ?>')">
                                     <?php if (in_array($bc_ext, ['jpg', 'jpeg', 'png'])): ?>
                                         <img src="<?php echo htmlspecialchars($bc_path); ?>" alt="Barangay Clearance Preview">
                                     <?php else: ?>
@@ -684,18 +801,28 @@ if ($step === 4) {
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="bir_tin_document" class="form-label">BIR (TIN) Document *</label>
-                        <input type="file" class="form-control custom-file-input" id="bir_tin_document" name="bir_tin_document" accept="image/*,.pdf" required
-                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['bir_tin_document'] ?? '')); ?>">
-                        <small class="text-muted">Upload your Bureau of Internal Revenue (TIN) document (JPG, PNG, PDF).</small>
+                    <!-- BIR (TIN) Document Card -->
+                    <div class="document-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5><i class="fas fa-file-invoice-dollar text-info"></i> BIR (TIN) Document</h5>
+                            <span
+                                class="document-status <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'Uploaded' : 'Required'; ?>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">Upload your Bureau of Internal Revenue (TIN) document (JPG, PNG, PDF).
+                        </p>
+                        <input type="file" class="form-control custom-file-input mb-3" id="bir_tin_document"
+                            name="bir_tin_document" accept="image/*,.pdf" required
+                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['bir_tin_document'] ?? '')); ?>">
                         <div id="bir-tin-preview-container" class="document-preview-container">
                             <?php if (isset($uploaded_document_paths['bir_tin_document'])): ?>
                                 <?php
                                 $bir_path = '../' . $uploaded_document_paths['bir_tin_document'];
                                 $bir_ext = strtolower(pathinfo($bir_path, PATHINFO_EXTENSION));
                                 ?>
-                                <div class="document-preview-item">
+                                <div class="document-preview-item"
+                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bir_path); ?>', '<?php echo htmlspecialchars(basename($bir_path)); ?>', '<?php echo $bir_ext; ?>')">
                                     <?php if (in_array($bir_ext, ['jpg', 'jpeg', 'png'])): ?>
                                         <img src="<?php echo htmlspecialchars($bir_path); ?>" alt="BIR (TIN) Preview">
                                     <?php else: ?>
@@ -707,18 +834,27 @@ if ($step === 4) {
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="sanitary_permit_document" class="form-label">Sanitary Permit *</label>
-                        <input type="file" class="form-control custom-file-input" id="sanitary_permit_document" name="sanitary_permit_document" accept="image/*,.pdf" required
-                               data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['sanitary_permit_document'] ?? '')); ?>">
-                        <small class="text-muted">Upload your Sanitary Permit (JPG, PNG, PDF).</small>
+                    <!-- Sanitary Permit Card -->
+                    <div class="document-card">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5><i class="fas fa-clipboard-check text-danger"></i> Sanitary Permit</h5>
+                            <span
+                                class="document-status <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'Uploaded' : 'Required'; ?>
+                            </span>
+                        </div>
+                        <p class="text-muted mb-3">Upload your Sanitary Permit (JPG, PNG, PDF).</p>
+                        <input type="file" class="form-control custom-file-input mb-3" id="sanitary_permit_document"
+                            name="sanitary_permit_document" accept="image/*,.pdf" required
+                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['sanitary_permit_document'] ?? '')); ?>">
                         <div id="sanitary-permit-preview-container" class="document-preview-container">
                             <?php if (isset($uploaded_document_paths['sanitary_permit_document'])): ?>
                                 <?php
                                 $sp_path = '../' . $uploaded_document_paths['sanitary_permit_document'];
                                 $sp_ext = strtolower(pathinfo($sp_path, PATHINFO_EXTENSION));
                                 ?>
-                                <div class="document-preview-item">
+                                <div class="document-preview-item"
+                                    onclick="openDocumentModal('<?php echo htmlspecialchars($sp_path); ?>', '<?php echo htmlspecialchars(basename($sp_path)); ?>', '<?php echo $sp_ext; ?>')">
                                     <?php if (in_array($sp_ext, ['jpg', 'jpeg', 'png'])): ?>
                                         <img src="<?php echo htmlspecialchars($sp_path); ?>" alt="Sanitary Permit Preview">
                                     <?php else: ?>
@@ -757,10 +893,10 @@ if ($step === 4) {
 
                         <div class="market-container">
                             <!-- Top row stalls -->
-                            <?php for ($i = 1; $i <= 11; $i++): 
-                                $stall_num = 'T'.$i;
+                            <?php for ($i = 1; $i <= 11; $i++):
+                                $stall_num = 'T' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall square-stall top-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -769,10 +905,10 @@ if ($step === 4) {
                             <?php endfor; ?>
 
                             <!-- Bottom row stalls -->
-                            <?php for ($i = 1; $i <= 11; $i++): 
-                                $stall_num = 'B'.$i;
+                            <?php for ($i = 1; $i <= 11; $i++):
+                                $stall_num = 'B' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall square-stall bottom-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -781,10 +917,10 @@ if ($step === 4) {
                             <?php endfor; ?>
 
                             <!-- Left column stalls -->
-                            <?php for ($i = 1; $i <= 6; $i++): 
-                                $stall_num = 'L'.$i;
+                            <?php for ($i = 1; $i <= 6; $i++):
+                                $stall_num = 'L' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall square-stall left-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -793,10 +929,10 @@ if ($step === 4) {
                             <?php endfor; ?>
 
                             <!-- Right column stalls -->
-                            <?php for ($i = 1; $i <= 6; $i++): 
-                                $stall_num = 'R'.$i;
+                            <?php for ($i = 1; $i <= 6; $i++):
+                                $stall_num = 'R' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall square-stall right-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -805,10 +941,10 @@ if ($step === 4) {
                             <?php endfor; ?>
 
                             <!-- Fish Vendors (Left Section) - F1 to F16 -->
-                            <?php for ($i = 1; $i <= 16; $i++): 
-                                $stall_num = 'F'.$i;
+                            <?php for ($i = 1; $i <= 16; $i++):
+                                $stall_num = 'F' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall fish-vendor fish-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -817,10 +953,10 @@ if ($step === 4) {
                             <?php endfor; ?>
 
                             <!-- Meat Vendors (Right Section) - M1 to M16 -->
-                            <?php for ($i = 1; $i <= 16; $i++): 
-                                $stall_num = 'M'.$i;
+                            <?php for ($i = 1; $i <= 16; $i++):
+                                $stall_num = 'M' . $i;
                                 $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                            ?>
+                                ?>
                                 <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
                                     class="stall meat-vendor meat-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
                                     <?php echo !$is_available ? 'disabled' : ''; ?>>
@@ -852,10 +988,10 @@ if ($step === 4) {
                                 <span>Unavailable</span>
                             </div>
                             <?php if ($selected_stall): ?>
-                            <div class="legend-item">
-                                <div class="legend-color selected-legend"></div>
-                                <span>Selected Stall</span>
-                            </div>
+                                <div class="legend-item">
+                                    <div class="legend-color selected-legend"></div>
+                                    <span>Selected Stall</span>
+                                </div>
                             <?php endif; ?>
                         </div>
 
@@ -877,8 +1013,66 @@ if ($step === 4) {
         </div>
     </div>
 
+    <!-- Document Modal -->
+    <div id="documentModal" class="modal-document">
+        <span class="modal-document-close" onclick="closeDocumentModal()">&times;</span>
+        <div class="modal-document-content">
+            <img id="modalImage" src="" alt="Document Preview">
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Document modal functions
+        function openDocumentModal(imagePath, fileName, fileExt) {
+            const modal = document.getElementById('documentModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalContent = document.querySelector('.modal-document-content');
+
+            // Only show modal for image files
+            if (['jpg', 'jpeg', 'png'].includes(fileExt.toLowerCase())) {
+                modalImage.src = imagePath;
+                modalImage.alt = fileName;
+                modal.style.display = 'block';
+
+                // Prevent body scroll when modal is open
+                document.body.style.overflow = 'hidden';
+
+                // Reset scroll position of modal content
+                modalContent.scrollTop = 0;
+                modalContent.scrollLeft = 0;
+
+                // Add loading state
+                modalImage.style.opacity = '0';
+                modalImage.onload = function () {
+                    modalImage.style.opacity = '1';
+                    modalImage.style.transition = 'opacity 0.3s ease';
+                };
+            }
+        }
+
+        function closeDocumentModal() {
+            const modal = document.getElementById('documentModal');
+            modal.style.display = 'none';
+
+            // Restore body scroll
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside the image
+        document.getElementById('documentModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeDocumentModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeDocumentModal();
+            }
+        });
+
         // Array of document input IDs and their corresponding preview container IDs
         const documentInputs = [
             { id: 'dti_document', previewContainerId: 'dti-preview-container' },
@@ -917,6 +1111,11 @@ if ($step === 4) {
                             item.appendChild(img);
                             item.appendChild(fileNameSpan);
                             previewContainer.appendChild(item);
+
+                            // Add click handler for the new image
+                            item.onclick = function () {
+                                openDocumentModal(e.target.result, file.name, file.name.split('.').pop());
+                            };
                         }
                         reader.readAsDataURL(file);
                     } else if (file.type === 'application/pdf') {
