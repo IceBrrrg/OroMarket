@@ -159,26 +159,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $pdo->beginTransaction();
 
                             // Insert into sellers table
-                          
-// In your signup.php file, modify the seller creation part (step 4):
 
-// Around line 178, modify the seller insertion:
-$stmt = $pdo->prepare("
+                            // In your signup.php file, modify the seller creation part (step 4):
+
+                            // Around line 178, modify the seller insertion:
+                            $stmt = $pdo->prepare("
     INSERT INTO sellers (username, email, password, first_name, last_name, phone, facebook_url, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
 ");
 
-$hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
+                            $hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
 
-$stmt->execute([
-    $_SESSION['signup_data']['username'],
-    $_SESSION['signup_data']['email'],
-    $hashed_password,
-    $_SESSION['signup_data']['first_name'],
-    $_SESSION['signup_data']['last_name'],
-    $_SESSION['signup_data']['phone'],
-    $_SESSION['signup_data']['facebook_url']
-]);
+                            $stmt->execute([
+                                $_SESSION['signup_data']['username'],
+                                $_SESSION['signup_data']['email'],
+                                $hashed_password,
+                                $_SESSION['signup_data']['first_name'],
+                                $_SESSION['signup_data']['last_name'],
+                                $_SESSION['signup_data']['phone'],
+                                $_SESSION['signup_data']['facebook_url']
+                            ]);
 
 
                             $seller_id = $pdo->lastInsertId();
@@ -195,14 +195,14 @@ $stmt->execute([
                             // Encode all uploaded document paths into a single JSON string
                             $documents_json = !empty($_SESSION['signup_data']['uploaded_documents']) ? json_encode($_SESSION['signup_data']['uploaded_documents']) : null;
 
-                 $stmt->execute([
-    $seller_id,
-    $_SESSION['signup_data']['business_name'],
-    $_SESSION['signup_data']['business_phone'],
-    $_SESSION['signup_data']['tax_id'],
-    $documents_json,
-    $_SESSION['signup_data']['selected_stall']
-]);
+                            $stmt->execute([
+                                $seller_id,
+                                $_SESSION['signup_data']['business_name'],
+                                $_SESSION['signup_data']['business_phone'],
+                                $_SESSION['signup_data']['tax_id'],
+                                $documents_json,
+                                $_SESSION['signup_data']['selected_stall']
+                            ]);
 
                             // Create stall application
                             $stmt = $pdo->prepare("
@@ -309,6 +309,7 @@ if ($step === 4) {
             overflow: hidden;
             position: relative;
             display: flex;
+            flex-direction: column;
             min-height: 80vh;
         }
 
@@ -318,12 +319,12 @@ if ($step === 4) {
             padding: 3rem 2rem;
             position: relative;
             overflow: hidden;
-            width: 40%;
+            width: 100%;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            align-items: flex-start;
-            text-align: left;
+            align-items: center;
+            text-align: center;
         }
 
         .form-header::before {
@@ -368,7 +369,7 @@ if ($step === 4) {
         }
 
         .form-content {
-            width: 60%;
+            width: 100%;
             padding: 2rem;
             overflow-y: auto;
         }
@@ -393,7 +394,7 @@ if ($step === 4) {
             }
 
             .step-indicator {
-                flex-direction: row;
+                flex-direction: column;
                 gap: 0.5rem;
             }
 
@@ -408,6 +409,17 @@ if ($step === 4) {
                 display: block;
                 margin-bottom: 0.25rem;
             }
+
+            .step:not(:last-child):after {
+                content: '';
+                position: absolute;
+                bottom: -0.5rem;
+                left: 50%;
+                width: 2px;
+                height: 0.5rem;
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateX(-50%);
+            }
         }
 
         .step-indicator {
@@ -416,12 +428,12 @@ if ($step === 4) {
             margin: 2rem 0;
             position: relative;
             z-index: 1;
-            flex-direction: column;
+            flex-direction: row;
             gap: 1rem;
         }
 
         .step {
-            flex: none;
+            flex: 1;
             text-align: center;
             padding: 1rem 1.5rem;
             background-color: rgba(255, 255, 255, 0.2);
@@ -453,12 +465,12 @@ if ($step === 4) {
         .step:not(:last-child):after {
             content: '';
             position: absolute;
-            bottom: -1rem;
-            left: 50%;
-            width: 2px;
-            height: 1rem;
+            right: -0.5rem;
+            top: 50%;
+            width: 1rem;
+            height: 2px;
             background: rgba(255, 255, 255, 0.3);
-            transform: translateX(-50%);
+            transform: translateY(-50%);
         }
 
         .step.completed:not(:last-child):after {
