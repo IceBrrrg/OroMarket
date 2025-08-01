@@ -15,29 +15,30 @@ if (isset($_POST['action']) && isset($_POST['application_id'])) {
 
     if ($action == 'approve') {
         // Get application details
-        $sql = "SELECT * FROM seller_applications WHERE application_id = ?";
+        $sql = "SELECT * FROM seller_applications WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$application_id]);
         $application = $stmt->fetch();
 
-        // Insert into sellers table
-        $insert_sql = "INSERT INTO sellers (shop_name, owner_name, email, contact_number, address, status) 
-                      VALUES (?, ?, ?, ?, ?, 'active')";
-        $stmt = $pdo->prepare($insert_sql);
+        // Update the existing seller record with application details
+        $update_sql = "UPDATE sellers SET 
+                      shop_name = ?, 
+                      owner_name = ?, 
+                      status = 'active' 
+                      WHERE id = ?";
+        $stmt = $pdo->prepare($update_sql);
         $stmt->execute([
             $application['shop_name'],
             $application['owner_name'],
-            $application['email'],
-            $application['contact_number'],
-            $application['address']
+            $application['seller_id']
         ]);
 
         // Update application status
-        $update_sql = "UPDATE seller_applications SET status = 'approved' WHERE application_id = ?";
+        $update_sql = "UPDATE seller_applications SET status = 'approved' WHERE id = ?";
         $stmt = $pdo->prepare($update_sql);
         $stmt->execute([$application_id]);
     } elseif ($action == 'reject') {
-        $update_sql = "UPDATE seller_applications SET status = 'rejected' WHERE application_id = ?";
+        $update_sql = "UPDATE seller_applications SET status = 'rejected' WHERE id = ?";
         $stmt = $pdo->prepare($update_sql);
         $stmt->execute([$application_id]);
     }
@@ -118,7 +119,7 @@ if (isset($_POST['action']) && isset($_POST['application_id'])) {
                                         ($row['status'] == 'approved' ? 'bg-success' : 'bg-danger');
 
                                     echo "<tr class='application-row' data-status='{$row['status']}'>";
-                                    echo "<td>{$row['application_id']}</td>";
+                                    echo "<td>{$row['id']}</td>";
                                     echo "<td>{$row['shop_name']}</td>";
                                     echo "<td>{$row['owner_name']}</td>";
                                     echo "<td>{$row['email']}</td>";
@@ -129,19 +130,19 @@ if (isset($_POST['action']) && isset($_POST['application_id'])) {
 
                                     if ($row['status'] == 'pending') {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='application_id' value='{$row['application_id']}'>";
+                                        echo "<input type='hidden' name='application_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='approve'>";
                                         echo "<button type='submit' class='btn btn-sm btn-success' onclick='return confirm(\"Are you sure you want to approve this application?\")'>";
                                         echo "<i class='bi bi-check-lg'></i></button></form> ";
 
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='application_id' value='{$row['application_id']}'>";
+                                        echo "<input type='hidden' name='application_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='reject'>";
                                         echo "<button type='submit' class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure you want to reject this application?\")'>";
                                         echo "<i class='bi bi-x-lg'></i></button></form> ";
                                     }
 
-                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['application_id']})'>";
+                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['id']})'>";
                                     echo "<i class='bi bi-eye'></i></button>";
                                     echo "</td></tr>";
                                 }

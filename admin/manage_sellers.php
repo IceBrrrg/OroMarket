@@ -14,11 +14,11 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
     $action = $_POST['action'];
 
     if ($action == 'activate') {
-        $sql = "UPDATE sellers SET status = 'active' WHERE seller_id = ?";
+        $sql = "UPDATE sellers SET status = 'active' WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$seller_id]);
     } elseif ($action == 'deactivate') {
-        $sql = "UPDATE sellers SET status = 'inactive' WHERE seller_id = ?";
+        $sql = "UPDATE sellers SET status = 'inactive' WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$seller_id]);
     } elseif ($action == 'delete') {
@@ -31,7 +31,7 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
         if ($row['count'] > 0) {
             $error = "Cannot delete seller with existing products";
         } else {
-            $sql = "DELETE FROM sellers WHERE seller_id = ?";
+            $sql = "DELETE FROM sellers WHERE id = ?";
             $stmt = $pdo->prepare($sql);
             $stmt->execute([$seller_id]);
         }
@@ -107,46 +107,46 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
                             </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT s.*, COUNT(p.product_id) as product_count 
+                                $sql = "SELECT s.*, COUNT(p.id) as product_count 
                                        FROM sellers s 
-                                       LEFT JOIN products p ON s.seller_id = p.seller_id 
-                                       GROUP BY s.seller_id 
-                                       ORDER BY s.seller_id DESC";
+                                       LEFT JOIN products p ON s.id = p.seller_id 
+                                       GROUP BY s.id 
+                                       ORDER BY s.id DESC";
                                 $stmt = $pdo->query($sql);
 
                                 while ($row = $stmt->fetch()) {
                                     $status_class = $row['status'] == 'active' ? 'bg-success' : 'bg-danger';
 
                                     echo "<tr class='seller-row' data-status='{$row['status']}'>";
-                                    echo "<td>{$row['seller_id']}</td>";
-                                    echo "<td>{$row['shop_name']}</td>";
-                                    echo "<td>{$row['owner_name']}</td>";
+                                    echo "<td>{$row['id']}</td>";
+                                    echo "<td>" . ($row['shop_name'] ? $row['shop_name'] : 'N/A') . "</td>";
+                                    echo "<td>" . ($row['owner_name'] ? $row['owner_name'] : ($row['first_name'] . ' ' . $row['last_name'])) . "</td>";
                                     echo "<td>{$row['email']}</td>";
-                                    echo "<td>{$row['contact_number']}</td>";
+                                    echo "<td>{$row['phone']}</td>";
                                     echo "<td>{$row['product_count']}</td>";
                                     echo "<td><span class='badge {$status_class} status-badge'>{$row['status']}</span></td>";
                                     echo "<td class='action-buttons'>";
 
                                     if ($row['status'] == 'inactive') {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['seller_id']}'>";
+                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='activate'>";
                                         echo "<button type='submit' class='btn btn-sm btn-success' title='Activate'>";
                                         echo "<i class='bi bi-check-lg'></i></button></form> ";
                                     } else {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['seller_id']}'>";
+                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='deactivate'>";
                                         echo "<button type='submit' class='btn btn-sm btn-warning' title='Deactivate'>";
                                         echo "<i class='bi bi-pause-fill'></i></button></form> ";
                                     }
 
-                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['seller_id']})' title='View Details'>";
+                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['id']})' title='View Details'>";
                                     echo "<i class='bi bi-eye'></i></button> ";
 
                                     if ($row['product_count'] == 0) {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='seller_id' value='{$row['seller_id']}'>";
+                                        echo "<input type='hidden' name='seller_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='delete'>";
                                         echo "<button type='submit' class='btn btn-sm btn-danger' title='Delete' onclick='return confirm(\"Are you sure you want to delete this seller?\")'>";
                                         echo "<i class='bi bi-trash'></i></button></form>";

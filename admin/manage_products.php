@@ -14,29 +14,18 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
     $action = $_POST['action'];
 
     if ($action == 'approve') {
-        $sql = "UPDATE products SET status = 'approved' WHERE product_id = ?";
+        $sql = "UPDATE products SET status = 'approved' WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$product_id]);
     } elseif ($action == 'reject') {
-        $sql = "UPDATE products SET status = 'rejected' WHERE product_id = ?";
+        $sql = "UPDATE products SET status = 'rejected' WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$product_id]);
     } elseif ($action == 'delete') {
-        // Delete product images first
-        $img_sql = "SELECT product_image FROM products WHERE product_id = ?";
-        $stmt = $pdo->prepare($img_sql);
-        $stmt->execute([$product_id]);
-        if ($img_row = $stmt->fetch()) {
-            if ($img_row['product_image']) {
-                $image_path = "../uploads/products/" . $img_row['product_image'];
-                if (file_exists($image_path)) {
-                    unlink($image_path);
-                }
-            }
-        }
+        // Delete the product (image is stored as BLOB in products table)
 
         // Then delete the product
-        $sql = "DELETE FROM products WHERE product_id = ?";
+        $sql = "DELETE FROM products WHERE id = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$product_id]);
     }
@@ -114,11 +103,11 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                             </thead>
                             <tbody>
                                 <?php
-                                $sql = "SELECT p.*, c.category_name, s.shop_name 
+                                $sql = "SELECT p.*, c.name as category_name, s.shop_name 
                                        FROM products p 
-                                       LEFT JOIN categories c ON p.category_id = c.category_id
-                                       LEFT JOIN sellers s ON p.seller_id = s.seller_id 
-                                       ORDER BY p.product_id DESC";
+                                       LEFT JOIN categories c ON p.category_id = c.id
+                                       LEFT JOIN sellers s ON p.seller_id = s.id 
+                                       ORDER BY p.id DESC";
                                 $stmt = $pdo->query($sql);
 
                                 while ($row = $stmt->fetch()) {
@@ -136,18 +125,26 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                                     }
 
                                     echo "<tr class='product-row' data-status='{$row['status']}'>";
-                                    echo "<td>{$row['product_id']}</td>";
-                                    echo "<td><img src='../uploads/products/{$row['product_image']}' class='product-image' alt='Product'></td>";
-                                    echo "<td>{$row['product_name']}</td>";
-                                    echo "<td>{$row['category_name']}</td>";
+                                    echo "<td>{$row['id']}</td>";
+                                    echo "<td>";
+                                    if (!empty($row['image'])) {
+                                        echo "<img src='data:image/jpeg;base64," . base64_encode($row['image']) . "' class='product-image' alt='Product'>";
+                                    } else {
+                                        echo "<div class='product-image bg-light d-flex align-items-center justify-content-center'>";
+                                        echo "<i class='bi bi-image text-muted'></i>";
+                                        echo "</div>";
+                                    }
+                                    echo "</td>";
+                                    echo "<td>{$row['name']}</td>";
+                                    echo "<td>" . ($row['category_name'] ? $row['category_name'] : 'Uncategorized') . "</td>";
                                     echo "<td>₱" . number_format($row['price'], 2) . "</td>";
-                                    echo "<td>{$row['shop_name']}</td>";
+                                    echo "<td>" . ($row['shop_name'] ? $row['shop_name'] : 'Unknown Seller') . "</td>";
                                     echo "<td><span class='badge {$status_class} status-badge'>{$row['status']}</span></td>";
                                     echo "<td class='action-buttons'>";
 
                                     if ($row['status'] != 'approved') {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='product_id' value='{$row['product_id']}'>";
+                                        echo "<input type='hidden' name='product_id' value='{$row['id']}'>";
                                         echo "<input type='hidden' name='action' value='approve'>";
                                         echo "<button type='submit' class='btn btn-sm btn-success' title='Approve'>";
                                         echo "<i class='bi bi-check-lg'></i></button></form> ";
@@ -155,17 +152,17 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
 
                                     if ($row['status'] != 'rejected') {
                                         echo "<form method='POST' style='display:inline;'>";
-                                        echo "<input type='hidden' name='product_id' value='{$row['product_id']}'>";
                                         echo "<input type='hidden' name='action' value='reject'>";
+                                        echo "<input type='hidden' name='product_id' value='{$row['id']}'>";
                                         echo "<button type='submit' class='btn btn-sm btn-warning' title='Reject'>";
                                         echo "<i class='bi bi-x-lg'></i></button></form> ";
                                     }
 
-                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['product_id']})' title='View Details'>";
+                                    echo "<button class='btn btn-sm btn-info' onclick='viewDetails({$row['id']})' title='View Details'>";
                                     echo "<i class='bi bi-eye'></i></button> ";
 
                                     echo "<form method='POST' style='display:inline;'>";
-                                    echo "<input type='hidden' name='product_id' value='{$row['product_id']}'>";
+                                    echo "<input type='hidden' name='product_id' value='{$row['id']}'>";
                                     echo "<input type='hidden' name='action' value='delete'>";
                                     echo "<button type='submit' class='btn btn-sm btn-danger' title='Delete' onclick='return confirm(\"Are you sure you want to delete this product?\")'>";
                                     echo "<i class='bi bi-trash'></i></button></form>";

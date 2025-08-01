@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 21, 2025 at 04:49 AM
+-- Generation Time: Aug 01, 2025 at 09:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -32,8 +32,7 @@ CREATE TABLE `admins` (
   `username` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
-  `first_name` varchar(50) DEFAULT NULL,
-  `last_name` varchar(50) DEFAULT NULL,
+  `full_name` varchar(100) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `profile_image` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
@@ -45,8 +44,8 @@ CREATE TABLE `admins` (
 -- Dumping data for table `admins`
 --
 
-INSERT INTO `admins` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `profile_image`, `is_active`, `created_at`, `updated_at`) VALUES
-(4, 'admin', '', '$2y$10$WqS4wckzX8YBNJlKNGtXyukb8nfDzIWgVRgQ15lVak4KOezHyy076', NULL, NULL, NULL, NULL, 1, '2025-04-25 08:31:00', '2025-04-25 08:31:00');
+INSERT INTO `admins` (`id`, `username`, `email`, `password`, `full_name`, `phone`, `profile_image`, `is_active`, `created_at`, `updated_at`) VALUES
+(4, 'admin', '', '$2y$10$WqS4wckzX8YBNJlKNGtXyukb8nfDzIWgVRgQ15lVak4KOezHyy076', NULL, NULL, NULL, 1, '2025-04-25 08:31:00', '2025-04-25 08:31:00');
 
 -- --------------------------------------------------------
 
@@ -64,6 +63,20 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `description`, `parent_id`, `image`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Fruits', 'Fresh fruits and berries', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(2, 'Vegetables', 'Fresh vegetables and greens', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(3, 'Meat & Fish', 'Fresh meat and seafood', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(4, 'Dairy & Eggs', 'Dairy products and eggs', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(5, 'Grains & Cereals', 'Rice, bread, and cereals', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(6, 'Beverages', 'Drinks and beverages', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(7, 'Snacks', 'Snacks and treats', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00'),
+(8, 'Others', 'Other miscellaneous items', NULL, NULL, 1, '2025-01-21 00:00:00', '2025-01-21 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -96,43 +109,21 @@ CREATE TABLE `products` (
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `stock_quantity` int(11) NOT NULL DEFAULT 0,
-  `sku` varchar(50) DEFAULT NULL,
-  `weight` decimal(10,2) DEFAULT NULL,
-  `dimensions` varchar(50) DEFAULT NULL,
-  `is_featured` tinyint(1) DEFAULT 0,
+  `unit` varchar(20) DEFAULT NULL,
+  `status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `image` blob NOT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
-
 --
--- Table structure for table `product_attributes`
+-- Dumping data for table `products`
 --
 
-CREATE TABLE `product_attributes` (
-  `id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
-  `attribute_name` varchar(100) NOT NULL,
-  `attribute_value` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `product_images`
---
-
-CREATE TABLE `product_images` (
-  `id` int(11) NOT NULL,
-  `product_id` int(11) NOT NULL,
-  `image_path` varchar(255) NOT NULL,
-  `is_primary` tinyint(1) DEFAULT 0,
-  `display_order` int(11) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `stock_quantity`, `unit`, `status`, `image`, `is_active`, `created_at`, `updated_at`) VALUES
+(2, 1, 3, 'Matang Baka', 'Hello', 180.00, 0, 'kilogram', 'approved', '', 1, '2025-08-01 06:46:41', '2025-08-01 06:50:47'),
+(3, 1, 3, 'Bangus', 'Lab-as', 230.00, 0, 'kilogram', 'approved', '', 1, '2025-08-01 06:53:48', '2025-08-01 06:54:28');
 
 -- --------------------------------------------------------
 
@@ -149,6 +140,9 @@ CREATE TABLE `sellers` (
   `last_name` varchar(50) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `address` text DEFAULT NULL,
+  `shop_name` varchar(255) DEFAULT NULL,
+  `owner_name` varchar(100) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
   `profile_image` varchar(255) DEFAULT NULL,
   `facebook_url` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
@@ -160,8 +154,8 @@ CREATE TABLE `sellers` (
 -- Dumping data for table `sellers`
 --
 
-INSERT INTO `sellers` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `address`, `profile_image`, `facebook_url`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'seller', 'adrenalinepop301@gmail.com', '$2y$10$gZyvlOsdCVMX4EGDABjkhOhfh6DkxLH9u.sXsSaCRsJu93pcdHm1e', 'Mike', 'Will', '0912345678', NULL, NULL, '', 1, '2025-04-25 06:29:15', '2025-04-25 06:29:15');
+INSERT INTO `sellers` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `address`, `shop_name`, `owner_name`, `status`, `profile_image`, `facebook_url`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'seller', 'adrenalinepop301@gmail.com', '$2y$10$gZyvlOsdCVMX4EGDABjkhOhfh6DkxLH9u.sXsSaCRsJu93pcdHm1e', 'Mike', 'Will', '0912345678', NULL, 'Fish Fish', 'Mike Will', 'active', NULL, '', 1, '2025-04-25 06:29:15', '2025-08-01 06:50:17');
 
 -- --------------------------------------------------------
 
@@ -172,10 +166,15 @@ INSERT INTO `sellers` (`id`, `username`, `email`, `password`, `first_name`, `las
 CREATE TABLE `seller_applications` (
   `id` int(11) NOT NULL,
   `seller_id` int(11) NOT NULL,
-  `business_name` varchar(255) NOT NULL,
-  `business_address` text NOT NULL,
-  `business_phone` varchar(20) NOT NULL,
-  `business_email` varchar(255) NOT NULL,
+  `shop_name` varchar(255) NOT NULL,
+  `owner_name` varchar(100) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `contact_number` varchar(20) NOT NULL,
+  `address` text NOT NULL,
+  `business_name` varchar(255) DEFAULT NULL,
+  `business_address` text DEFAULT NULL,
+  `business_phone` varchar(20) DEFAULT NULL,
+  `business_email` varchar(255) DEFAULT NULL,
   `tax_id` varchar(50) DEFAULT NULL,
   `business_registration_number` varchar(100) DEFAULT NULL,
   `bank_account_name` varchar(255) DEFAULT NULL,
@@ -192,8 +191,8 @@ CREATE TABLE `seller_applications` (
 -- Dumping data for table `seller_applications`
 --
 
-INSERT INTO `seller_applications` (`id`, `seller_id`, `business_name`, `business_address`, `business_phone`, `business_email`, `tax_id`, `business_registration_number`, `bank_account_name`, `bank_account_number`, `bank_name`, `documents_submitted`, `status`, `admin_notes`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Fish Fish', 'Oroquieta Market', '0912345678', 'adrenalinepop301@gmail.com', '123456789', '987654321', 'Mike', '123456789', 'BPI', '[\"uploads\\/seller_documents\\/680b2bbbb6ef7.jpg\"]', 'pending', NULL, '2025-04-25 06:29:15', '2025-04-25 06:29:15');
+INSERT INTO `seller_applications` (`id`, `seller_id`, `shop_name`, `owner_name`, `email`, `contact_number`, `address`, `business_name`, `business_address`, `business_phone`, `business_email`, `tax_id`, `business_registration_number`, `bank_account_name`, `bank_account_number`, `bank_name`, `documents_submitted`, `status`, `admin_notes`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Fish Fish', 'Mike Will', 'adrenalinepop301@gmail.com', '0912345678', 'Oroquieta Market', 'Fish Fish', 'Oroquieta Market', '0912345678', 'adrenalinepop301@gmail.com', '123456789', '987654321', 'Mike', '123456789', 'BPI', '[\"uploads\\/seller_documents\\/680b2bbbb6ef7.jpg\"]', 'approved', NULL, '2025-04-25 06:29:15', '2025-08-01 07:00:00');
 
 -- --------------------------------------------------------
 
@@ -266,23 +265,9 @@ ALTER TABLE `notifications`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sku` (`sku`),
   ADD KEY `idx_products_seller_id` (`seller_id`),
-  ADD KEY `idx_products_category_id` (`category_id`);
-
---
--- Indexes for table `product_attributes`
---
-ALTER TABLE `product_attributes`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `product_id` (`product_id`);
-
---
--- Indexes for table `product_images`
---
-ALTER TABLE `product_images`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `product_id` (`product_id`);
+  ADD KEY `idx_products_category_id` (`category_id`),
+  ADD KEY `idx_products_status` (`status`);
 
 --
 -- Indexes for table `sellers`
@@ -290,7 +275,8 @@ ALTER TABLE `product_images`
 ALTER TABLE `sellers`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
-  ADD UNIQUE KEY `email` (`email`);
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `idx_sellers_status` (`status`);
 
 --
 -- Indexes for table `seller_applications`
@@ -333,7 +319,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -345,19 +331,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `product_attributes`
---
-ALTER TABLE `product_attributes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `product_images`
---
-ALTER TABLE `product_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `sellers`
@@ -399,18 +373,6 @@ ALTER TABLE `categories`
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `products_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `product_attributes`
---
-ALTER TABLE `product_attributes`
-  ADD CONSTRAINT `product_attributes_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `product_images`
---
-ALTER TABLE `product_images`
-  ADD CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `seller_applications`

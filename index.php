@@ -58,7 +58,7 @@
         </div>
         <div class="container px-0">
             <nav class="navbar navbar-light bg-white navbar-expand-xl">
-                <a href="index.html" class="navbar-brand"><img src="assets/img/logo-removebg.png" alt="logo" width="100px"></a>
+                <a href="index.php" class="navbar-brand"><img src="assets/img/logo-removebg.png" alt="logo" width="100px"></a>
                 <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarCollapse">
                     <span class="fa fa-bars text-primary"></span>
@@ -212,7 +212,7 @@
                 <div class="row g-4">
                     <div class="col-lg-3">
                         <a href="#">
-                            <h1 class="text-primary mb-0">Fruitables</h1>
+                            <h1 class="text-primary mb-0">Oroquieta Marketplace</h1>
                             <p class="text-secondary mb-0">Fresh products</p>
                         </a>
                     </div>
@@ -290,8 +290,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site
-                            Name</a>, All right reserved.</span>
+                    <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Oroquieta Marketplace</a>, All right reserved.</span>
                 </div>
                 <div class="col-md-6 my-auto text-center text-md-end text-white">
                     <!--/*** This template is free as long as you keep the below author's credit link/attribution link/backlink. ***/-->
