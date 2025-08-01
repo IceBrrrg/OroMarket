@@ -56,6 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Business information
             $_SESSION['signup_data']['business_name'] = $_POST['business_name'] ?? '';
             $_SESSION['signup_data']['business_phone'] = $_POST['business_phone'] ?? '';
+            $_SESSION['signup_data']['tax_id'] = $_POST['tax_id'] ?? '';
             $_SESSION['signup_data']['facebook_url'] = $_POST['facebook_url'] ?? '';
 
 
@@ -63,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (
                 empty($_SESSION['signup_data']['business_name']) ||
                 empty($_SESSION['signup_data']['business_phone']) ||
+                empty($_SESSION['signup_data']['tax_id']) ||
                 empty($_SESSION['signup_data']['facebook_url'])
             ) {
                 $error = "All business fields are required.";
@@ -279,54 +281,285 @@ if ($step === 4) {
         <link rel="stylesheet" href="../assets/css/floorplan.css">
     <?php endif; ?>
     <style>
+        :root {
+            --primary-color: #ff6b35;
+            --secondary-color: #ff8c42;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-color: #fff5f2;
+            --dark-color: #2c1810;
+            --orange-light: #ffd4c2;
+            --orange-dark: #e55a2b;
+        }
+
+        body {
+            background: linear-gradient(135deg, #fff5f2 0%, #ffd4c2 100%);
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .main-container {
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+
+        .form-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            min-height: 80vh;
+        }
+
+        .form-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--orange-dark) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            position: relative;
+            overflow: hidden;
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .form-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        .form-header h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+            line-height: 1.2;
+        }
+
+        .form-header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .form-content {
+            width: 60%;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        /* Responsive design for mobile */
+        @media (max-width: 768px) {
+            .form-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .form-header {
+                width: 100%;
+                padding: 2rem 1rem;
+                text-align: center;
+                align-items: center;
+            }
+
+            .form-content {
+                width: 100%;
+                padding: 1.5rem;
+            }
+
+            .step-indicator {
+                flex-direction: row;
+                gap: 0.5rem;
+            }
+
+            .step {
+                flex: 1;
+                text-align: center;
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .step i {
+                display: block;
+                margin-bottom: 0.25rem;
+            }
+        }
+
         .step-indicator {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin: 2rem 0;
+            position: relative;
+            z-index: 1;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .step {
-            flex: 1;
+            flex: none;
             text-align: center;
-            padding: 10px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-            margin: 0 5px;
+            padding: 1rem 1.5rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            margin: 0;
             position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
         }
 
         .step.active {
-            background-color: #0d6efd;
-            color: white;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.2);
         }
 
         .step.completed {
-            background-color: #198754;
+            background: rgba(25, 135, 84, 0.9);
             color: white;
+            transform: translateY(-3px);
         }
 
         .step:not(:last-child):after {
             content: '';
             position: absolute;
-            top: 50%;
-            right: -15px;
-            width: 30px;
-            height: 2px;
-            background-color: #dee2e6;
-            z-index: -1;
+            bottom: -1rem;
+            left: 50%;
+            width: 2px;
+            height: 1rem;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-50%);
         }
 
         .step.completed:not(:last-child):after {
-            background-color: #198754;
+            background: var(--success-color);
         }
 
-        .form-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
+        .step i {
+            font-size: 1.2rem;
+            margin: 0;
+            display: inline;
+        }
+
+        .form-content {
+            padding: 2rem;
+        }
+
+        .form-section {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section h4 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 1.5rem;
+        }
+
+        .form-section h4 i {
+            margin-right: 0.75rem;
+            font-size: 1.8rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
             border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(255, 107, 53, 0.25);
+        }
+
+        .btn {
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--orange-dark) 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary-color);
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--orange-dark);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
         }
 
         .document-card {
@@ -377,9 +610,9 @@ if ($step === 4) {
         }
 
         .document-preview-item:hover {
-            border-color: #0d6efd;
+            border-color: var(--primary-color);
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 8px rgba(255, 107, 53, 0.2);
         }
 
         .document-preview-item img {
@@ -500,9 +733,9 @@ if ($step === 4) {
         }
 
         .status-required {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #ffe6e6;
+            color: #d63384;
+            border: 1px solid #ffb3b3;
         }
 
         /* Hide the default file input text */
@@ -513,9 +746,9 @@ if ($step === 4) {
         .custom-file-input::before {
             content: 'Upload File';
             display: inline-block;
-            background: #0d6efd;
+            background: var(--primary-color);
             color: white;
-            border: 1px solid #0d6efd;
+            border: 1px solid var(--primary-color);
             border-radius: .25rem;
             padding: .375rem .75rem;
             outline: none;
@@ -529,13 +762,13 @@ if ($step === 4) {
         }
 
         .custom-file-input:hover::before {
-            background-color: #0a58ca;
-            border-color: #0a53be;
+            background-color: var(--orange-dark);
+            border-color: var(--orange-dark);
         }
 
         .custom-file-input:active::before {
-            background-color: #0a53be;
-            border-color: #0a53be;
+            background-color: var(--orange-dark);
+            border-color: var(--orange-dark);
         }
 
         .custom-file-input {
@@ -563,11 +796,11 @@ if ($step === 4) {
         }
 
         .stall-selection-message {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: linear-gradient(135deg, #fff5f2 0%, #ffd4c2 100%);
+            border: 1px solid var(--primary-color);
+            color: var(--dark-color);
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 10px;
             margin-bottom: 20px;
             text-align: center;
         }
@@ -593,422 +826,471 @@ if ($step === 4) {
     </style>
 </head>
 
-<body class="bg-light">
-    <div class="container py-5">
+<body>
+    <div class="main-container">
         <div class="form-container">
-            <h2 class="text-center mb-4">Seller Registration</h2>
+            <div class="form-header">
+                <h2><i class="fas fa-store me-3"></i>Join Our Community</h2>
+                <p>Become a seller at Oroquieta Marketplace and connect with local customers</p>
 
-            <?php if ($error): ?>
-                <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-            <?php endif; ?>
-            <?php if ($success): ?>
-                <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
-            <?php endif; ?>
-
-            <div class="step-indicator">
-                <div class="step <?php echo $step === 1 ? 'active' : ($step > 1 ? 'completed' : ''); ?>">
-                    <i class="fas fa-user"></i> Basic Info
-                </div>
-                <div class="step <?php echo $step === 2 ? 'active' : ($step > 2 ? 'completed' : ''); ?>">
-                    <i class="fas fa-store"></i> Stall Info
-                </div>
-                <div class="step <?php echo $step === 3 ? 'active' : ($step > 3 ? 'completed' : ''); ?>">
-                    <i class="fas fa-file-alt"></i> Documents
-                </div>
-                <div class="step <?php echo $step === 4 ? 'active' : ''; ?>">
-                    <i class="fas fa-map-marked-alt"></i> Stall Selection
+                <div class="step-indicator">
+                    <div class="step <?php echo $step === 1 ? 'active' : ($step > 1 ? 'completed' : ''); ?>">
+                        <i class="fas fa-user"></i> Basic Info
+                    </div>
+                    <div class="step <?php echo $step === 2 ? 'active' : ($step > 2 ? 'completed' : ''); ?>">
+                        <i class="fas fa-store"></i> Stall Info
+                    </div>
+                    <div class="step <?php echo $step === 3 ? 'active' : ($step > 3 ? 'completed' : ''); ?>">
+                        <i class="fas fa-file-alt"></i> Documents
+                    </div>
+                    <div class="step <?php echo $step === 4 ? 'active' : ''; ?>">
+                        <i class="fas fa-map-marked-alt"></i> Choose Stall
+                    </div>
                 </div>
             </div>
 
-            <form method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="step" value="<?php echo $step; ?>">
-
-                <?php if ($step === 1): ?>
-                    <h4 class="mb-3">Basic Information</h4>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="username" class="form-label">Username *</label>
-                            <input type="text" class="form-control" id="username" name="username"
-                                value="<?php echo htmlspecialchars($data['username'] ?? ''); ?>" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="email" class="form-label">Email *</label>
-                            <input type="email" class="form-control" id="email" name="email"
-                                value="<?php echo htmlspecialchars($data['email'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="password" class="form-label">Password *</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="confirm_password" class="form-label">Confirm Password *</label>
-                            <input type="password" class="form-control" id="confirm_password" name="confirm_password"
-                                required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="first_name" class="form-label">First Name</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name"
-                                value="<?php echo htmlspecialchars($data['first_name'] ?? ''); ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="last_name" class="form-label">Last Name</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name"
-                                value="<?php echo htmlspecialchars($data['last_name'] ?? ''); ?>">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Phone Number</label>
-                        <input type="text" class="form-control" id="phone" name="phone"
-                            value="<?php echo htmlspecialchars($data['phone'] ?? ''); ?>">
-                    </div>
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Next</button>
-                    </div>
-
-                <?php elseif ($step === 2): ?>
-                    <h4 class="mb-3">Stall Information</h4>
-                    <div class="mb-3">
-                        <label for="business_name" class="form-label">Store Name *</label>
-                        <input type="text" class="form-control" id="business_name" name="business_name"
-                            value="<?php echo htmlspecialchars($data['business_name'] ?? ''); ?>" required>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="business_phone" class="form-label">Business Phone Number *</label>
-                            <input type="text" class="form-control" id="business_phone" name="business_phone"
-                                value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="mb-3">
-                            <label for="facebook_url" class="form-label">Facebook Profile URL</label>
-                            <input type="url" class="form-control" id="facebook_url" name="facebook_url"
-                                value="<?php echo htmlspecialchars($data['facebook_url'] ?? ''); ?>"
-                                placeholder="https://facebook.com/yourprofile">
-                            <small class="text-muted">This will be used for customers to contact you directly.</small>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="signup.php?step=1" class="btn btn-secondary">Previous</a>
-                        <button type="submit" class="btn btn-primary">Next</button>
-                    </div>
-
-                <?php elseif ($step === 3): ?>
-
-                    <h4 class="mb-3 mt-4">Required Business Documents</h4>
-                    <p class="text-muted mb-4">Please upload all required business documents. Click on uploaded images to
-                        view them in full size.</p>
-
-                    <!-- DTI Certificate Card -->
-                    <div class="document-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5><i class="fas fa-certificate text-primary"></i> DTI Certificate</h5>
-                            <span
-                                class="document-status <?php echo isset($uploaded_document_paths['dti_document']) ? 'status-uploaded' : 'status-required'; ?>">
-                                <?php echo isset($uploaded_document_paths['dti_document']) ? 'Uploaded' : 'Required'; ?>
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">Upload your Department of Trade and Industry certificate (JPG, PNG, PDF).
-                        </p>
-                        <input type="file" class="form-control custom-file-input mb-3" id="dti_document" name="dti_document"
-                            accept="image/*,.pdf" required
-                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['dti_document'] ?? '')); ?>">
-                        <div id="dti-preview-container" class="document-preview-container">
-                            <?php if (isset($uploaded_document_paths['dti_document'])): ?>
-                                <?php
-                                $dti_path = '../' . $uploaded_document_paths['dti_document'];
-                                $dti_ext = strtolower(pathinfo($dti_path, PATHINFO_EXTENSION));
-                                ?>
-                                <div class="document-preview-item"
-                                    onclick="openDocumentModal('<?php echo htmlspecialchars($dti_path); ?>', '<?php echo htmlspecialchars(basename($dti_path)); ?>', '<?php echo $dti_ext; ?>')">
-                                    <?php if (in_array($dti_ext, ['jpg', 'jpeg', 'png'])): ?>
-                                        <img src="<?php echo htmlspecialchars($dti_path); ?>" alt="DTI Preview">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-pdf file-icon"></i>
-                                    <?php endif; ?>
-                                    <span class="file-name"><?php echo htmlspecialchars(basename($dti_path)); ?></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Business Permit Card -->
-                    <div class="document-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5><i class="fas fa-building text-success"></i> Business Permit</h5>
-                            <span
-                                class="document-status <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
-                                <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'Uploaded' : 'Required'; ?>
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">Upload your valid Business Permit (JPG, PNG, PDF).</p>
-                        <input type="file" class="form-control custom-file-input mb-3" id="business_permit_document"
-                            name="business_permit_document" accept="image/*,.pdf" required
-                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['business_permit_document'] ?? '')); ?>">
-                        <div id="business-permit-preview-container" class="document-preview-container">
-                            <?php if (isset($uploaded_document_paths['business_permit_document'])): ?>
-                                <?php
-                                $bp_path = '../' . $uploaded_document_paths['business_permit_document'];
-                                $bp_ext = strtolower(pathinfo($bp_path, PATHINFO_EXTENSION));
-                                ?>
-                                <div class="document-preview-item"
-                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bp_path); ?>', '<?php echo htmlspecialchars(basename($bp_path)); ?>', '<?php echo $bp_ext; ?>')">
-                                    <?php if (in_array($bp_ext, ['jpg', 'jpeg', 'png'])): ?>
-                                        <img src="<?php echo htmlspecialchars($bp_path); ?>" alt="Business Permit Preview">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-pdf file-icon"></i>
-                                    <?php endif; ?>
-                                    <span class="file-name"><?php echo htmlspecialchars(basename($bp_path)); ?></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Barangay Clearance Card -->
-                    <div class="document-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5><i class="fas fa-shield-alt text-warning"></i> Barangay Clearance</h5>
-                            <span
-                                class="document-status <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'status-uploaded' : 'status-required'; ?>">
-                                <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'Uploaded' : 'Required'; ?>
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">Upload your Barangay Clearance (JPG, PNG, PDF).</p>
-                        <input type="file" class="form-control custom-file-input mb-3" id="barangay_clearance_document"
-                            name="barangay_clearance_document" accept="image/*,.pdf" required
-                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['barangay_clearance_document'] ?? '')); ?>">
-                        <div id="barangay-clearance-preview-container" class="document-preview-container">
-                            <?php if (isset($uploaded_document_paths['barangay_clearance_document'])): ?>
-                                <?php
-                                $bc_path = '../' . $uploaded_document_paths['barangay_clearance_document'];
-                                $bc_ext = strtolower(pathinfo($bc_path, PATHINFO_EXTENSION));
-                                ?>
-                                <div class="document-preview-item"
-                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bc_path); ?>', '<?php echo htmlspecialchars(basename($bc_path)); ?>', '<?php echo $bc_ext; ?>')">
-                                    <?php if (in_array($bc_ext, ['jpg', 'jpeg', 'png'])): ?>
-                                        <img src="<?php echo htmlspecialchars($bc_path); ?>" alt="Barangay Clearance Preview">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-pdf file-icon"></i>
-                                    <?php endif; ?>
-                                    <span class="file-name"><?php echo htmlspecialchars(basename($bc_path)); ?></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- BIR (TIN) Document Card -->
-                    <div class="document-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5><i class="fas fa-file-invoice-dollar text-info"></i> BIR (TIN) Document</h5>
-                            <span
-                                class="document-status <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'status-uploaded' : 'status-required'; ?>">
-                                <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'Uploaded' : 'Required'; ?>
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">Upload your Bureau of Internal Revenue (TIN) document (JPG, PNG, PDF).
-                        </p>
-                        <input type="file" class="form-control custom-file-input mb-3" id="bir_tin_document"
-                            name="bir_tin_document" accept="image/*,.pdf" required
-                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['bir_tin_document'] ?? '')); ?>">
-                        <div id="bir-tin-preview-container" class="document-preview-container">
-                            <?php if (isset($uploaded_document_paths['bir_tin_document'])): ?>
-                                <?php
-                                $bir_path = '../' . $uploaded_document_paths['bir_tin_document'];
-                                $bir_ext = strtolower(pathinfo($bir_path, PATHINFO_EXTENSION));
-                                ?>
-                                <div class="document-preview-item"
-                                    onclick="openDocumentModal('<?php echo htmlspecialchars($bir_path); ?>', '<?php echo htmlspecialchars(basename($bir_path)); ?>', '<?php echo $bir_ext; ?>')">
-                                    <?php if (in_array($bir_ext, ['jpg', 'jpeg', 'png'])): ?>
-                                        <img src="<?php echo htmlspecialchars($bir_path); ?>" alt="BIR (TIN) Preview">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-pdf file-icon"></i>
-                                    <?php endif; ?>
-                                    <span class="file-name"><?php echo htmlspecialchars(basename($bir_path)); ?></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Sanitary Permit Card -->
-                    <div class="document-card">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h5><i class="fas fa-clipboard-check text-danger"></i> Sanitary Permit</h5>
-                            <span
-                                class="document-status <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
-                                <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'Uploaded' : 'Required'; ?>
-                            </span>
-                        </div>
-                        <p class="text-muted mb-3">Upload your Sanitary Permit (JPG, PNG, PDF).</p>
-                        <input type="file" class="form-control custom-file-input mb-3" id="sanitary_permit_document"
-                            name="sanitary_permit_document" accept="image/*,.pdf" required
-                            data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['sanitary_permit_document'] ?? '')); ?>">
-                        <div id="sanitary-permit-preview-container" class="document-preview-container">
-                            <?php if (isset($uploaded_document_paths['sanitary_permit_document'])): ?>
-                                <?php
-                                $sp_path = '../' . $uploaded_document_paths['sanitary_permit_document'];
-                                $sp_ext = strtolower(pathinfo($sp_path, PATHINFO_EXTENSION));
-                                ?>
-                                <div class="document-preview-item"
-                                    onclick="openDocumentModal('<?php echo htmlspecialchars($sp_path); ?>', '<?php echo htmlspecialchars(basename($sp_path)); ?>', '<?php echo $sp_ext; ?>')">
-                                    <?php if (in_array($sp_ext, ['jpg', 'jpeg', 'png'])): ?>
-                                        <img src="<?php echo htmlspecialchars($sp_path); ?>" alt="Sanitary Permit Preview">
-                                    <?php else: ?>
-                                        <i class="fas fa-file-pdf file-icon"></i>
-                                    <?php endif; ?>
-                                    <span class="file-name"><?php echo htmlspecialchars(basename($sp_path)); ?></span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <a href="signup.php?step=2" class="btn btn-secondary">Previous</a>
-                        <button type="submit" class="btn btn-primary">Next</button>
-                    </div>
-
-                <?php elseif ($step === 4): ?>
-                    <div class="floorplan-container">
-                        <h4 class="mb-3 text-center">Select Your Market Stall</h4>
-                        <p class="text-center text-muted">Click on any available stall to select your market spot</p>
-
-                        <?php if ($selected_stall): ?>
-                            <?php
-                            $vendor_type = '';
-                            if (strpos($selected_stall, 'F') === 0) {
-                                $vendor_type = ' (Fish Vendor)';
-                            } elseif (strpos($selected_stall, 'M') === 0) {
-                                $vendor_type = ' (Meat Vendor)';
-                            }
-                            ?>
-                            <div class="stall-selection-message">
-                                <strong>Selected Stall: <?php echo strtoupper($selected_stall) . $vendor_type; ?></strong>
-                                <br>Click 'Complete Registration' to confirm your market spot!
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="market-container">
-                            <!-- Top row stalls -->
-                            <?php for ($i = 1; $i <= 11; $i++):
-                                $stall_num = 'T' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall square-stall top-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Bottom row stalls -->
-                            <?php for ($i = 1; $i <= 11; $i++):
-                                $stall_num = 'B' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall square-stall bottom-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Left column stalls -->
-                            <?php for ($i = 1; $i <= 6; $i++):
-                                $stall_num = 'L' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall square-stall left-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Right column stalls -->
-                            <?php for ($i = 1; $i <= 6; $i++):
-                                $stall_num = 'R' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall square-stall right-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Fish Vendors (Left Section) - F1 to F16 -->
-                            <?php for ($i = 1; $i <= 16; $i++):
-                                $stall_num = 'F' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall fish-vendor fish-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Meat Vendors (Right Section) - M1 to M16 -->
-                            <?php for ($i = 1; $i <= 16; $i++):
-                                $stall_num = 'M' . $i;
-                                $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
-                                ?>
-                                <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
-                                    class="stall meat-vendor meat-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
-                                    <?php echo !$is_available ? 'disabled' : ''; ?>>
-                                    <?php echo $stall_num; ?>
-                                </button>
-                            <?php endfor; ?>
-
-                            <!-- Center Circle -->
-                            <div class="center-circle">
-                                Market<br>Center
-                            </div>
-                        </div>
-
-                        <div class="legend mt-4">
-                            <div class="legend-item">
-                                <div class="legend-color available"></div>
-                                <span>General Stalls</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #20b2aa; border-color: #1a9a91;"></div>
-                                <span>Fish Vendors</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #dc3545; border-color: #c82333;"></div>
-                                <span>Meat Vendors</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-color" style="background-color: #6c757d; border-color: #5a6268;"></div>
-                                <span>Unavailable</span>
-                            </div>
-                            <?php if ($selected_stall): ?>
-                                <div class="legend-item">
-                                    <div class="legend-color selected-legend"></div>
-                                    <span>Selected Stall</span>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="signup.php?step=3" class="btn btn-secondary">Previous</a>
-                            <?php if ($selected_stall): ?>
-                                <button type="submit" class="btn btn-success btn-lg">
-                                    <i class="fas fa-check-circle"></i> Complete Registration
-                                </button>
-                            <?php else: ?>
-                                <button type="button" class="btn btn-success btn-lg" disabled>
-                                    Select a stall first
-                                </button>
-                            <?php endif; ?>
-                        </div>
+            <div class="form-content">
+                <?php if ($error): ?>
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <?php echo htmlspecialchars($error); ?>
                     </div>
                 <?php endif; ?>
+                <?php if ($success): ?>
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <?php echo htmlspecialchars($success); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="step" value="<?php echo $step; ?>">
+
+                    <?php if ($step === 1): ?>
+                        <div class="form-section">
+                            <h4><i class="fas fa-user-circle"></i>Personal Information</h4>
+                            <p class="text-muted mb-4">Let's start with your basic information to create your account.</p>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="username" class="form-label">Username *</label>
+                                    <input type="text" class="form-control" id="username" name="username"
+                                        value="<?php echo htmlspecialchars($data['username'] ?? ''); ?>"
+                                        placeholder="Choose a unique username" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                        value="<?php echo htmlspecialchars($data['email'] ?? ''); ?>"
+                                        placeholder="your.email@example.com" required>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="password" class="form-label">Password *</label>
+                                    <input type="password" class="form-control" id="password" name="password"
+                                        placeholder="Minimum 6 characters" required>
+                                    <small class="text-muted">Password must be at least 6 characters long</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="confirm_password" class="form-label">Confirm Password *</label>
+                                    <input type="password" class="form-control" id="confirm_password"
+                                        name="confirm_password" placeholder="Re-enter your password" required>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name"
+                                        value="<?php echo htmlspecialchars($data['first_name'] ?? ''); ?>"
+                                        placeholder="Your first name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name"
+                                        value="<?php echo htmlspecialchars($data['last_name'] ?? ''); ?>"
+                                        placeholder="Your last name">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phone" name="phone"
+                                    value="<?php echo htmlspecialchars($data['phone'] ?? ''); ?>"
+                                    placeholder="+63 912 345 6789">
+                                <small class="text-muted">We'll use this to contact you about your application</small>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-arrow-right me-2"></i>Continue to Business Information
+                                </button>
+                            </div>
+                        </div>
+
+                    <?php elseif ($step === 2): ?>
+                        <h4 class="mb-3">Stall Information</h4>
+                        <div class="mb-3">
+                            <label for="business_name" class="form-label">Store Name *</label>
+                            <input type="text" class="form-control" id="business_name" name="business_name"
+                                value="<?php echo htmlspecialchars($data['business_name'] ?? ''); ?>" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="business_phone" class="form-label">Business Phone Number *</label>
+                                <input type="text" class="form-control" id="business_phone" name="business_phone"
+                                    value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="mb-3">
+                                <label for="facebook_url" class="form-label">Facebook Profile URL</label>
+                                <input type="url" class="form-control" id="facebook_url" name="facebook_url"
+                                    value="<?php echo htmlspecialchars($data['facebook_url'] ?? ''); ?>"
+                                    placeholder="https://facebook.com/yourprofile">
+                                <small class="text-muted">This will be used for customers to contact you directly.</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tax_id" class="form-label">Tax ID *</label>
+                                <input type="text" class="form-control" id="tax_id" name="tax_id"
+                                    value="<?php echo htmlspecialchars($data['tax_id'] ?? ''); ?>" required>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="signup.php?step=1" class="btn btn-secondary">Previous</a>
+                            <button type="submit" class="btn btn-primary">Next</button>
+                        </div>
+
+                    <?php elseif ($step === 3): ?>
+                        <div class="form-section">
+                            <h4><i class="fas fa-file-upload"></i>Required Business Documents</h4>
+                            <p class="text-muted mb-4">Please upload all required business documents. Click on uploaded
+                                images to view them in full size.</p>
+
+                            <!-- DTI Certificate Card -->
+                            <div class="document-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5><i class="fas fa-certificate text-primary"></i> DTI Certificate</h5>
+                                    <span
+                                        class="document-status <?php echo isset($uploaded_document_paths['dti_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                        <?php echo isset($uploaded_document_paths['dti_document']) ? 'Uploaded' : 'Required'; ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-3">Upload your Department of Trade and Industry certificate (JPG,
+                                    PNG,
+                                    PDF).
+                                </p>
+                                <input type="file" class="form-control custom-file-input mb-3" id="dti_document"
+                                    name="dti_document" accept="image/*,.pdf" required
+                                    data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['dti_document'] ?? '')); ?>">
+                                <div id="dti-preview-container" class="document-preview-container">
+                                    <?php if (isset($uploaded_document_paths['dti_document'])): ?>
+                                        <?php
+                                        $dti_path = '../' . $uploaded_document_paths['dti_document'];
+                                        $dti_ext = strtolower(pathinfo($dti_path, PATHINFO_EXTENSION));
+                                        ?>
+                                        <div class="document-preview-item"
+                                            onclick="openDocumentModal('<?php echo htmlspecialchars($dti_path); ?>', '<?php echo htmlspecialchars(basename($dti_path)); ?>', '<?php echo $dti_ext; ?>')">
+                                            <?php if (in_array($dti_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                                <img src="<?php echo htmlspecialchars($dti_path); ?>" alt="DTI Preview">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-pdf file-icon"></i>
+                                            <?php endif; ?>
+                                            <span class="file-name"><?php echo htmlspecialchars(basename($dti_path)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Business Permit Card -->
+                            <div class="document-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5><i class="fas fa-building text-success"></i> Business Permit</h5>
+                                    <span
+                                        class="document-status <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                        <?php echo isset($uploaded_document_paths['business_permit_document']) ? 'Uploaded' : 'Required'; ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-3">Upload your valid Business Permit (JPG, PNG, PDF).</p>
+                                <input type="file" class="form-control custom-file-input mb-3" id="business_permit_document"
+                                    name="business_permit_document" accept="image/*,.pdf" required
+                                    data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['business_permit_document'] ?? '')); ?>">
+                                <div id="business-permit-preview-container" class="document-preview-container">
+                                    <?php if (isset($uploaded_document_paths['business_permit_document'])): ?>
+                                        <?php
+                                        $bp_path = '../' . $uploaded_document_paths['business_permit_document'];
+                                        $bp_ext = strtolower(pathinfo($bp_path, PATHINFO_EXTENSION));
+                                        ?>
+                                        <div class="document-preview-item"
+                                            onclick="openDocumentModal('<?php echo htmlspecialchars($bp_path); ?>', '<?php echo htmlspecialchars(basename($bp_path)); ?>', '<?php echo $bp_ext; ?>')">
+                                            <?php if (in_array($bp_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                                <img src="<?php echo htmlspecialchars($bp_path); ?>" alt="Business Permit Preview">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-pdf file-icon"></i>
+                                            <?php endif; ?>
+                                            <span class="file-name"><?php echo htmlspecialchars(basename($bp_path)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Barangay Clearance Card -->
+                            <div class="document-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5><i class="fas fa-shield-alt text-warning"></i> Barangay Clearance</h5>
+                                    <span
+                                        class="document-status <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                        <?php echo isset($uploaded_document_paths['barangay_clearance_document']) ? 'Uploaded' : 'Required'; ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-3">Upload your Barangay Clearance (JPG, PNG, PDF).</p>
+                                <input type="file" class="form-control custom-file-input mb-3"
+                                    id="barangay_clearance_document" name="barangay_clearance_document"
+                                    accept="image/*,.pdf" required
+                                    data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['barangay_clearance_document'] ?? '')); ?>">
+                                <div id="barangay-clearance-preview-container" class="document-preview-container">
+                                    <?php if (isset($uploaded_document_paths['barangay_clearance_document'])): ?>
+                                        <?php
+                                        $bc_path = '../' . $uploaded_document_paths['barangay_clearance_document'];
+                                        $bc_ext = strtolower(pathinfo($bc_path, PATHINFO_EXTENSION));
+                                        ?>
+                                        <div class="document-preview-item"
+                                            onclick="openDocumentModal('<?php echo htmlspecialchars($bc_path); ?>', '<?php echo htmlspecialchars(basename($bc_path)); ?>', '<?php echo $bc_ext; ?>')">
+                                            <?php if (in_array($bc_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                                <img src="<?php echo htmlspecialchars($bc_path); ?>"
+                                                    alt="Barangay Clearance Preview">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-pdf file-icon"></i>
+                                            <?php endif; ?>
+                                            <span class="file-name"><?php echo htmlspecialchars(basename($bc_path)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- BIR (TIN) Document Card -->
+                            <div class="document-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5><i class="fas fa-file-invoice-dollar text-info"></i> BIR (TIN) Document</h5>
+                                    <span
+                                        class="document-status <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                        <?php echo isset($uploaded_document_paths['bir_tin_document']) ? 'Uploaded' : 'Required'; ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-3">Upload your Bureau of Internal Revenue (TIN) document (JPG, PNG,
+                                    PDF).
+                                </p>
+                                <input type="file" class="form-control custom-file-input mb-3" id="bir_tin_document"
+                                    name="bir_tin_document" accept="image/*,.pdf" required
+                                    data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['bir_tin_document'] ?? '')); ?>">
+                                <div id="bir-tin-preview-container" class="document-preview-container">
+                                    <?php if (isset($uploaded_document_paths['bir_tin_document'])): ?>
+                                        <?php
+                                        $bir_path = '../' . $uploaded_document_paths['bir_tin_document'];
+                                        $bir_ext = strtolower(pathinfo($bir_path, PATHINFO_EXTENSION));
+                                        ?>
+                                        <div class="document-preview-item"
+                                            onclick="openDocumentModal('<?php echo htmlspecialchars($bir_path); ?>', '<?php echo htmlspecialchars(basename($bir_path)); ?>', '<?php echo $bir_ext; ?>')">
+                                            <?php if (in_array($bir_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                                <img src="<?php echo htmlspecialchars($bir_path); ?>" alt="BIR (TIN) Preview">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-pdf file-icon"></i>
+                                            <?php endif; ?>
+                                            <span class="file-name"><?php echo htmlspecialchars(basename($bir_path)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <!-- Sanitary Permit Card -->
+                            <div class="document-card">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5><i class="fas fa-clipboard-check text-danger"></i> Sanitary Permit</h5>
+                                    <span
+                                        class="document-status <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'status-uploaded' : 'status-required'; ?>">
+                                        <?php echo isset($uploaded_document_paths['sanitary_permit_document']) ? 'Uploaded' : 'Required'; ?>
+                                    </span>
+                                </div>
+                                <p class="text-muted mb-3">Upload your Sanitary Permit (JPG, PNG, PDF).</p>
+                                <input type="file" class="form-control custom-file-input mb-3" id="sanitary_permit_document"
+                                    name="sanitary_permit_document" accept="image/*,.pdf" required
+                                    data-filename="<?php echo htmlspecialchars(basename($uploaded_document_paths['sanitary_permit_document'] ?? '')); ?>">
+                                <div id="sanitary-permit-preview-container" class="document-preview-container">
+                                    <?php if (isset($uploaded_document_paths['sanitary_permit_document'])): ?>
+                                        <?php
+                                        $sp_path = '../' . $uploaded_document_paths['sanitary_permit_document'];
+                                        $sp_ext = strtolower(pathinfo($sp_path, PATHINFO_EXTENSION));
+                                        ?>
+                                        <div class="document-preview-item"
+                                            onclick="openDocumentModal('<?php echo htmlspecialchars($sp_path); ?>', '<?php echo htmlspecialchars(basename($sp_path)); ?>', '<?php echo $sp_ext; ?>')">
+                                            <?php if (in_array($sp_ext, ['jpg', 'jpeg', 'png'])): ?>
+                                                <img src="<?php echo htmlspecialchars($sp_path); ?>" alt="Sanitary Permit Preview">
+                                            <?php else: ?>
+                                                <i class="fas fa-file-pdf file-icon"></i>
+                                            <?php endif; ?>
+                                            <span class="file-name"><?php echo htmlspecialchars(basename($sp_path)); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <a href="signup.php?step=2" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right me-2"></i>Continue to Stall Selection
+                                </button>
+                            </div>
+                        </div>
+
+                    <?php elseif ($step === 4): ?>
+                        <div class="form-section">
+                            <h4><i class="fas fa-map-marker-alt"></i>Select Your Market Stall</h4>
+                            <p class="text-muted mb-4">Click on any available stall to select your market spot</p>
+
+                            <?php if ($selected_stall): ?>
+                                <?php
+                                $vendor_type = '';
+                                if (strpos($selected_stall, 'F') === 0) {
+                                    $vendor_type = ' (Fish Vendor)';
+                                } elseif (strpos($selected_stall, 'M') === 0) {
+                                    $vendor_type = ' (Meat Vendor)';
+                                }
+                                ?>
+                                <div class="stall-selection-message">
+                                    <strong>Selected Stall: <?php echo strtoupper($selected_stall) . $vendor_type; ?></strong>
+                                    <br>Click 'Complete Registration' to confirm your market spot!
+                                </div>
+                            <?php endif; ?>
+
+                            <div class="market-container">
+                                <!-- Top row stalls -->
+                                <?php for ($i = 1; $i <= 11; $i++):
+                                    $stall_num = 'T' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall square-stall top-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Bottom row stalls -->
+                                <?php for ($i = 1; $i <= 11; $i++):
+                                    $stall_num = 'B' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall square-stall bottom-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Left column stalls -->
+                                <?php for ($i = 1; $i <= 6; $i++):
+                                    $stall_num = 'L' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall square-stall left-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Right column stalls -->
+                                <?php for ($i = 1; $i <= 6; $i++):
+                                    $stall_num = 'R' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall square-stall right-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Fish Vendors (Left Section) - F1 to F16 -->
+                                <?php for ($i = 1; $i <= 16; $i++):
+                                    $stall_num = 'F' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall fish-vendor fish-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Meat Vendors (Right Section) - M1 to M16 -->
+                                <?php for ($i = 1; $i <= 16; $i++):
+                                    $stall_num = 'M' . $i;
+                                    $is_available = in_array($stall_num, array_column($available_stalls, 'stall_number'));
+                                    ?>
+                                    <button type="submit" name="stall" value="<?php echo $stall_num; ?>"
+                                        class="stall meat-vendor meat-<?php echo $i; ?> <?php echo ($selected_stall == $stall_num) ? 'selected' : ''; ?>"
+                                        <?php echo !$is_available ? 'disabled' : ''; ?>>
+                                        <?php echo $stall_num; ?>
+                                    </button>
+                                <?php endfor; ?>
+
+                                <!-- Center Circle -->
+                                <div class="center-circle">
+                                    Market<br>Center
+                                </div>
+                            </div>
+
+                            <div class="legend mt-4">
+                                <div class="legend-item">
+                                    <div class="legend-color available"></div>
+                                    <span>General Stalls</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #20b2aa; border-color: #1a9a91;">
+                                    </div>
+                                    <span>Fish Vendors</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #dc3545; border-color: #c82333;">
+                                    </div>
+                                    <span>Meat Vendors</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background-color: #6c757d; border-color: #5a6268;">
+                                    </div>
+                                    <span>Unavailable</span>
+                                </div>
+                                <?php if ($selected_stall): ?>
+                                    <div class="legend-item">
+                                        <div class="legend-color selected-legend"></div>
+                                        <span>Selected Stall</span>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="signup.php?step=3" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back
+                                </a>
+                                <?php if ($selected_stall): ?>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-check-circle me-2"></i>Complete Registration
+                                    </button>
+                                <?php else: ?>
+                                    <button type="button" class="btn btn-secondary btn-lg" disabled>
+                                        <i class="fas fa-info-circle me-2"></i>Select a stall first
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                </div>
+            <?php endif; ?>
             </form>
         </div>
     </div>
