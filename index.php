@@ -58,7 +58,8 @@
         </div>
         <div class="container px-0">
             <nav class="navbar navbar-light bg-white navbar-expand-xl">
-                <a href="index.php" class="navbar-brand"><img src="assets/img/logo-removebg.png" alt="logo" width="100px"></a>
+                <a href="index.php" class="navbar-brand"><img src="assets/img/logo-removebg.png" alt="logo"
+                        width="100px"></a>
                 <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarCollapse">
                     <span class="fa fa-bars text-primary"></span>
@@ -108,13 +109,13 @@
         <div class="container py-5">
             <div class="row g-5 align-items-center">
                 <div class="col-md-12 col-lg-7">
-                    <h4 class="mb-3 text-secondary">100% Organic Foods</h4>
-                    <h1 class="mb-5 display-3 text-primary">Organic Veggies & Fruits Foods</h1>
+                    <h4 class="mb-3 text-secondary">100% Organic Produce</h4>
+                    <h1 class="mb-5 display-3 text-primary">Organic Produce of Oroquieta City</h1>
                     <div class="position-relative mx-auto">
                         <a href="customer/index.php" class="btn btn-primary py-3 px-4 rounded-pill">
-                        View Market
-                        <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
+                            View Market
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="col-md-12 col-lg-5">
@@ -123,7 +124,7 @@
                             <div class="carousel-item active rounded">
                                 <img src="assets/img/hero-img-1.png" class="img-fluid w-100 h-100 bg-secondary rounded"
                                     alt="First slide">
-                                <a href="#" class="btn px-4 py-2 text-white rounded">Fruits</a> 
+                                <a href="#" class="btn px-4 py-2 text-white rounded">Fruits</a>
                             </div>
                             <div class="carousel-item rounded">
                                 <img src="assets/img/hero-img-2.jpg" class="img-fluid w-100 h-100 rounded"
@@ -156,44 +157,44 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="featurs-item text-center rounded bg-light p-4">
                         <div class="featurs-icon btn-square rounded-circle bg-secondary mb-5 mx-auto">
-                            <i class="fas fa-car-side fa-3x text-white"></i>
+                            <i class="fas fa-solid fa-tag fa-3x text-white"></i>
                         </div>
                         <div class="featurs-content text-center">
-                            <h5>Free Shipping</h5>
-                            <p class="mb-0">Free on order over $300</p>
+                            <h5>Monitor Prices</h5>
+                            <p class="mb-0">Ready your budget</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="featurs-item text-center rounded bg-light p-4">
                         <div class="featurs-icon btn-square rounded-circle bg-secondary mb-5 mx-auto">
-                            <i class="fas fa-user-shield fa-3x text-white"></i>
+                            <i class="fas fa-solid fa-comment fa-3x text-white"></i>
                         </div>
                         <div class="featurs-content text-center">
-                            <h5>Security Payment</h5>
-                            <p class="mb-0">100% security payment</p>
+                            <h5>Connect to Sellers</h5>
+                            <p class="mb-0">Talk to local sellers</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="featurs-item text-center rounded bg-light p-4">
                         <div class="featurs-icon btn-square rounded-circle bg-secondary mb-5 mx-auto">
-                            <i class="fas fa-exchange-alt fa-3x text-white"></i>
+                            <i class="bi bi-people-fill fs-1 text-white"></i>
                         </div>
                         <div class="featurs-content text-center">
-                            <h5>30 Day Return</h5>
-                            <p class="mb-0">30 day money guarantee</p>
+                            <h5>Community-Powered</h5>
+                            <p class="mb-0">Community driven platform</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
                     <div class="featurs-item text-center rounded bg-light p-4">
                         <div class="featurs-icon btn-square rounded-circle bg-secondary mb-5 mx-auto">
-                            <i class="fa fa-phone-alt fa-3x text-white"></i>
+                            <i class="bi bi-search fs-1 text-white"></i>
                         </div>
                         <div class="featurs-content text-center">
-                            <h5>24/7 Support</h5>
-                            <p class="mb-0">Support every time fast</p>
+                            <h5>Easy to Use</h5>
+                            <p class="mb-0">Simple and free</p>
                         </div>
                     </div>
                 </div>
@@ -203,12 +204,12 @@
     <!-- Featurs Section End -->
 
 
-    
+
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
         <div class="container py-5">
-            <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
+            <!-- <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
                 <div class="row g-4">
                     <div class="col-lg-3">
                         <a href="#">
@@ -238,46 +239,41 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <div class="row g-5">
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
-                        <h4 class="text-light mb-3">Why People Like us!</h4>
-                        <p class="mb-4">typesetting, remaining essentially unchanged. It was
-                            popularised in the 1960s with the like Aldus PageMaker including of Lorem Ipsum.</p>
+                        <h4 class="text-light mb-3">About the Project</h4>
+                        <p class="mb-4">Oroquieta Marketplace is a free, community-driven capstone project with a mission to provide transparent and up-to-date market prices from the Oroquieta public market, helping local residents make informed decisions, manage their budget, and foster a more connected local economy.</p>
                         <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex flex-column text-start footer-item">
-                        <h4 class="text-light mb-3">Shop Info</h4>
+                        <h4 class="text-light mb-3">Information</h4>
                         <a class="btn-link" href="">About Us</a>
                         <a class="btn-link" href="">Contact Us</a>
                         <a class="btn-link" href="">Privacy Policy</a>
                         <a class="btn-link" href="">Terms & Condition</a>
-                        <a class="btn-link" href="">Return Policy</a>
                         <a class="btn-link" href="">FAQs & Help</a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="d-flex flex-column text-start footer-item">
-                        <h4 class="text-light mb-3">Account</h4>
-                        <a class="btn-link" href="">My Account</a>
-                        <a class="btn-link" href="">Shop details</a>
-                        <a class="btn-link" href="">Shopping Cart</a>
-                        <a class="btn-link" href="">Wishlist</a>
-                        <a class="btn-link" href="">Order History</a>
-                        <a class="btn-link" href="">International Orders</a>
+                        <h4 class="text-light mb-3">Quick Links</h4>
+                        <a class="btn-link" href="seller/signup.php">Become a Seller</a>
+                        <a class="btn-link" href="seller/login.php">Seller Login</a>
+                        <a class="btn-link" href="customer/index.php">View the Market</a>
+                        <a class="btn-link" href="#help">Help Center</a>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
-                        <h4 class="text-light mb-3">Contact</h4>
-                        <p>Address: 1429 Netus Rd, NY 48247</p>
-                        <p>Email: Example@gmail.com</p>
-                        <p>Phone: +0123 4567 8910</p>
-                        <p>Payment Accepted</p>
-                        <img src="assets/img/payment.png" class="img-fluid" alt="">
+                        <h4 class="text-light mb-3">Contact Info</h4>
+                        <p><i class="fas fa-map-marker-alt me-2"></i>Oroquieta City Public Market</p>
+                        <p><i class="fas fa-envelope me-2"></i>info@oroquieta-market.com</p>
+                        <p><i class="fas fa-phone me-2"></i>+63 912 345 6789</p>
+                        <p><i class="fas fa-clock me-2"></i>Open Daily: 6AM - 6PM</p>
                     </div>
                 </div>
             </div>
@@ -290,13 +286,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Oroquieta Marketplace</a>, All right reserved.</span>
+                    <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Oroquieta
+                            Marketplace</a>, All right reserved.</span>
                 </div>
                 <div class="col-md-6 my-auto text-center text-md-end text-white">
                     <!--/*** This template is free as long as you keep the below author's credit link/attribution link/backlink. ***/-->
                     <!--/*** If you'd like to use the template without the below author's credit link/attribution link/backlink, ***/-->
                     <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
-                    Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
+                    Special Thanks: Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
                         class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
                 </div>
             </div>
