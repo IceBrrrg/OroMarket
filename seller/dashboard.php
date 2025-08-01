@@ -12,19 +12,15 @@ require_once '../includes/db_connect.php';
 
 // Get seller information
 $seller_id = $_SESSION['user_id'];
-$stmt = mysqli_prepare($conn, "SELECT * FROM sellers WHERE id = ?");
-mysqli_stmt_bind_param($stmt, "i", $seller_id);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-$seller = mysqli_fetch_assoc($result);
+$stmt = $pdo->prepare("SELECT * FROM sellers WHERE id = ?");
+$stmt->execute([$seller_id]);
+$seller = $stmt->fetch();
 
 // Get total products
 $query = "SELECT COUNT(*) as total FROM products WHERE seller_id = ?";
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "i", $seller_id);
-mysqli_stmt_execute($stmt);
-$result = mysqli_stmt_get_result($stmt);
-$row = mysqli_fetch_assoc($result);
+$stmt = $pdo->prepare($query);
+$stmt->execute([$seller_id]);
+$row = $stmt->fetch();
 $total_products = $row['total'];
 
 ?>

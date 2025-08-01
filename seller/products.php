@@ -53,10 +53,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
         // Insert product into database
         $query = "INSERT INTO products (seller_id, name, price, category, status, unit, description, image_path, created_at) 
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "isdsisss", $seller_id, $product_name, $price, $category, $status, $unit, $description, $image_path);
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([$seller_id, $product_name, $price, $category, $status, $unit, $description, $image_path]);
 
-        if (mysqli_stmt_execute($stmt)) {
+        if ($stmt->rowCount() > 0) {
             $message = "Product added successfully!";
             $message_type = "success";
         } else {
@@ -68,10 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_product'])) {
 
 // Get seller's products
 $query = "SELECT * FROM products WHERE seller_id = ? ORDER BY created_at DESC";
-$stmt = mysqli_prepare($conn, $query);
-mysqli_stmt_bind_param($stmt, "i", $seller_id);
-mysqli_stmt_execute($stmt);
-$products_result = mysqli_stmt_get_result($stmt);
+$stmt = $pdo->prepare($query);
+$stmt->execute([$seller_id]);
+$products_result = $stmt;
 ?>
 
 <!DOCTYPE html>
@@ -244,8 +243,8 @@ $products_result = mysqli_stmt_get_result($stmt);
 
             <!-- Products Grid -->
             <div class="row">
-                <?php if (mysqli_num_rows($products_result) > 0): ?>
-                    <?php while ($product = mysqli_fetch_assoc($products_result)): ?>
+                <?php if ($products_result->rowCount() > 0): ?>
+                    <?php while ($product = $products_result->fetch()): ?>
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
                             <div class="card product-card">
                                 <div class="position-relative">

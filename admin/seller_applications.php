@@ -15,26 +15,31 @@ if (isset($_POST['action']) && isset($_POST['application_id'])) {
 
     if ($action == 'approve') {
         // Get application details
-        $sql = "SELECT * FROM seller_applications WHERE application_id = $application_id";
-        $result = mysqli_query($conn, $sql);
-        $application = mysqli_fetch_assoc($result);
+        $sql = "SELECT * FROM seller_applications WHERE application_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$application_id]);
+        $application = $stmt->fetch();
 
         // Insert into sellers table
         $insert_sql = "INSERT INTO sellers (shop_name, owner_name, email, contact_number, address, status) 
-                      VALUES ('" . $application['shop_name'] . "', 
-                              '" . $application['owner_name'] . "', 
-                              '" . $application['email'] . "', 
-                              '" . $application['contact_number'] . "', 
-                              '" . $application['address'] . "', 
-                              'active')";
-        mysqli_query($conn, $insert_sql);
+                      VALUES (?, ?, ?, ?, ?, 'active')";
+        $stmt = $pdo->prepare($insert_sql);
+        $stmt->execute([
+            $application['shop_name'],
+            $application['owner_name'],
+            $application['email'],
+            $application['contact_number'],
+            $application['address']
+        ]);
 
         // Update application status
-        $update_sql = "UPDATE seller_applications SET status = 'approved' WHERE application_id = $application_id";
-        mysqli_query($conn, $update_sql);
+        $update_sql = "UPDATE seller_applications SET status = 'approved' WHERE application_id = ?";
+        $stmt = $pdo->prepare($update_sql);
+        $stmt->execute([$application_id]);
     } elseif ($action == 'reject') {
-        $update_sql = "UPDATE seller_applications SET status = 'rejected' WHERE application_id = $application_id";
-        mysqli_query($conn, $update_sql);
+        $update_sql = "UPDATE seller_applications SET status = 'rejected' WHERE application_id = ?";
+        $stmt = $pdo->prepare($update_sql);
+        $stmt->execute([$application_id]);
     }
 }
 ?>
@@ -105,9 +110,9 @@ if (isset($_POST['action']) && isset($_POST['application_id'])) {
                             <tbody>
                                 <?php
                                 $sql = "SELECT * FROM seller_applications ORDER BY created_at DESC";
-                                $result = mysqli_query($conn, $sql);
+                                $stmt = $pdo->query($sql);
 
-                                while ($row = mysqli_fetch_assoc($result)) {
+                                while ($row = $stmt->fetch()) {
                                     $status_class =
                                         $row['status'] == 'pending' ? 'bg-warning' :
                                         ($row['status'] == 'approved' ? 'bg-success' : 'bg-danger');

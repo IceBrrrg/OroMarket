@@ -14,16 +14,19 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
     $action = $_POST['action'];
 
     if ($action == 'approve') {
-        $sql = "UPDATE products SET status = 'approved' WHERE product_id = $product_id";
-        mysqli_query($conn, $sql);
+        $sql = "UPDATE products SET status = 'approved' WHERE product_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$product_id]);
     } elseif ($action == 'reject') {
-        $sql = "UPDATE products SET status = 'rejected' WHERE product_id = $product_id";
-        mysqli_query($conn, $sql);
+        $sql = "UPDATE products SET status = 'rejected' WHERE product_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$product_id]);
     } elseif ($action == 'delete') {
         // Delete product images first
-        $img_sql = "SELECT product_image FROM products WHERE product_id = $product_id";
-        $img_result = mysqli_query($conn, $img_sql);
-        if ($img_row = mysqli_fetch_assoc($img_result)) {
+        $img_sql = "SELECT product_image FROM products WHERE product_id = ?";
+        $stmt = $pdo->prepare($img_sql);
+        $stmt->execute([$product_id]);
+        if ($img_row = $stmt->fetch()) {
             if ($img_row['product_image']) {
                 $image_path = "../uploads/products/" . $img_row['product_image'];
                 if (file_exists($image_path)) {
@@ -33,8 +36,9 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
         }
 
         // Then delete the product
-        $sql = "DELETE FROM products WHERE product_id = $product_id";
-        mysqli_query($conn, $sql);
+        $sql = "DELETE FROM products WHERE product_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$product_id]);
     }
 }
 ?>
@@ -115,9 +119,9 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                                        LEFT JOIN categories c ON p.category_id = c.category_id
                                        LEFT JOIN sellers s ON p.seller_id = s.seller_id 
                                        ORDER BY p.product_id DESC";
-                                $result = mysqli_query($conn, $sql);
+                                $stmt = $pdo->query($sql);
 
-                                while ($row = mysqli_fetch_assoc($result)) {
+                                while ($row = $stmt->fetch()) {
                                     $status_class = '';
                                     switch ($row['status']) {
                                         case 'approved':

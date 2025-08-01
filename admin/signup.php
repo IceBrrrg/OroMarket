@@ -57,11 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Password must be at least 8 characters long.";
     } else {
         // Check if username or email already exists
-        $stmt = mysqli_prepare($conn, "SELECT COUNT(*) FROM admins WHERE username = ? OR email = ?");
-        mysqli_stmt_bind_param($stmt, "ss", $username, $email);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $count = mysqli_fetch_row($result)[0];
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM admins WHERE username = ? OR email = ?");
+        $stmt->execute([$username, $email]);
+        $count = $stmt->fetchColumn();
 
         if ($count > 0) {
             $error = "Username or email already exists.";
@@ -70,12 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
             // Insert new admin user
-            $stmt = mysqli_prepare($conn, "
+            $stmt = $pdo->prepare("
                 INSERT INTO admins (username, password, email, full_name, is_active, created_at) 
                 VALUES (?, ?, ?, ?, TRUE, NOW())
             ");
-            mysqli_stmt_bind_param($stmt, "ssss", $username, $hashed_password, $email, $full_name);
-            mysqli_stmt_execute($stmt);
+            $stmt->execute([$username, $hashed_password, $email, $full_name]);
 
             $success = "Admin user created successfully!";
 

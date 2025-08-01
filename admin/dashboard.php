@@ -12,14 +12,14 @@ require_once '../includes/db_connect.php';
 
 // Get total sellers
 $query = "SELECT COUNT(*) as total FROM sellers";
-$result = mysqli_query($conn, $query);
-$row = mysqli_fetch_assoc($result);
+$stmt = $pdo->query($query);
+$row = $stmt->fetch();
 $total_sellers = $row['total'];
 
 // Get total products
 $query = "SELECT COUNT(*) as total FROM products";
-$result = mysqli_query($conn, $query);
-$row = mysqli_fetch_assoc($result);
+$stmt = $pdo->query($query);
+$row = $stmt->fetch();
 $total_products = $row['total'];
 
 

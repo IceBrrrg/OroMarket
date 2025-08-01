@@ -14,22 +14,26 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
     $action = $_POST['action'];
 
     if ($action == 'activate') {
-        $sql = "UPDATE sellers SET status = 'active' WHERE seller_id = $seller_id";
-        mysqli_query($conn, $sql);
+        $sql = "UPDATE sellers SET status = 'active' WHERE seller_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$seller_id]);
     } elseif ($action == 'deactivate') {
-        $sql = "UPDATE sellers SET status = 'inactive' WHERE seller_id = $seller_id";
-        mysqli_query($conn, $sql);
+        $sql = "UPDATE sellers SET status = 'inactive' WHERE seller_id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$seller_id]);
     } elseif ($action == 'delete') {
         // First check if seller has any products
-        $check_sql = "SELECT COUNT(*) as count FROM products WHERE seller_id = $seller_id";
-        $result = mysqli_query($conn, $check_sql);
-        $row = mysqli_fetch_assoc($result);
+        $check_sql = "SELECT COUNT(*) as count FROM products WHERE seller_id = ?";
+        $stmt = $pdo->prepare($check_sql);
+        $stmt->execute([$seller_id]);
+        $row = $stmt->fetch();
 
         if ($row['count'] > 0) {
             $error = "Cannot delete seller with existing products";
         } else {
-            $sql = "DELETE FROM sellers WHERE seller_id = $seller_id";
-            mysqli_query($conn, $sql);
+            $sql = "DELETE FROM sellers WHERE seller_id = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$seller_id]);
         }
     }
 }
@@ -108,9 +112,9 @@ if (isset($_POST['action']) && isset($_POST['seller_id'])) {
                                        LEFT JOIN products p ON s.seller_id = p.seller_id 
                                        GROUP BY s.seller_id 
                                        ORDER BY s.seller_id DESC";
-                                $result = mysqli_query($conn, $sql);
+                                $stmt = $pdo->query($sql);
 
-                                while ($row = mysqli_fetch_assoc($result)) {
+                                while ($row = $stmt->fetch()) {
                                     $status_class = $row['status'] == 'active' ? 'bg-success' : 'bg-danger';
 
                                     echo "<tr class='seller-row' data-status='{$row['status']}'>";

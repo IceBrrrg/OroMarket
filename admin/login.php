@@ -18,12 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($username) || empty($password)) {
         $error = "Please enter both username and password.";
     } else {
-        // Prepare and execute query
-        $stmt = mysqli_prepare($conn, "SELECT * FROM admins WHERE username = ? AND is_active = TRUE");
-        mysqli_stmt_bind_param($stmt, "s", $username);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $admin = mysqli_fetch_assoc($result);
+        // Prepare and execute query using PDO
+        $stmt = $pdo->prepare("SELECT * FROM admins WHERE username = ? AND is_active = TRUE");
+        $stmt->execute([$username]);
+        $admin = $stmt->fetch();
 
         if ($admin && password_verify($password, $admin['password'])) {
             // Set session variables
