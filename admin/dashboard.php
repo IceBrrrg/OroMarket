@@ -198,7 +198,7 @@ $total_products = $row['total'];
                             </div>
                             <div class="stat-number"><?php echo $total_products; ?></div>
                             <div class="stat-label">Total Products</div>
-                            <a href="manage_products.php" class="btn btn-success">View Details</a>
+                            <a href="manage_products.php" class="btn btn-success">View  Details</a>
                         </div>
                     </div>
                 </div>

@@ -933,7 +933,7 @@ if ($step === 4) {
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="business_phone" class="form-label">Business Phone Number *</label>
+                                <label for="business_phone" class="form-label">Business Phone Numberr *</label>
                                 <input type="text" class="form-control" id="business_phone" name="business_phone"
                                     value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
                             </div>

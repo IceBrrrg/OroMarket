@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-primary">Create Admin User</button>
-                                <a href="index.php" class="btn btn-secondary">Cancel</a>
+                                <a href="index.php" class="btn btn-secondary">Cancell</a>
                             </div>
                         </form>
                     </div>
