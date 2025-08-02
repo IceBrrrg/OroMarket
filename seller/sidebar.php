@@ -13,7 +13,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_seller']) || $_SESSION[
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
 
-<div class="sidebar bg-dark text-white">
+<div class="seller-sidebar bg-dark text-white">
     <div class="sidebar-header p-3 border-bottom border-secondary">
         <a href="dashboard.php">
             <img src="../assets/img/logo-removebg.png" alt="logo" width="100px">
@@ -46,7 +46,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
     </ul>
-    <div class="sidebar-footer p-3 border-top border-secondary mt-auto">
+    <div class="seller-sidebar-footer p-3 border-top border-secondary mt-auto">
         <div class="d-flex align-items-center">
             <div class="flex-shrink-0">
                 <i class="bi bi-person-circle fs-4"></i>
@@ -62,79 +62,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
 </div>
 
-<style>
-    .sidebar {
-        min-height: 100vh;
-        width: 250px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 100;
-        display: flex;
-        flex-direction: column;
-        padding-top: 0;
-        background-color: #343a40;
-    }
-
-    .sidebar .nav-link {
-        border-radius: 5px;
-        transition: all 0.3s;
-        padding: 0.5rem 1rem;
-        color: rgba(255, 255, 255, 0.8);
-    }
-
-    .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: #fff;
-    }
-
-    .sidebar .nav-link.active {
-        font-weight: bold;
-        color: #fff;
-    }
-
-    .sidebar-footer {
-        margin-top: auto;
-        background-color: rgba(0, 0, 0, 0.2);
-    }
-
-    /* Ensure main content doesn't overlap with sidebar */
-    .content {
-        margin-left: 250px;
-        padding: 20px;
-    }
-
-    @media (max-width: 768px) {
-        .sidebar {
-            width: 100%;
-            position: relative;
-            height: auto;
-        }
-
-        .content {
-            margin-left: 0;
-        }
-    }
-
-    /* Fix for the logo */
-    .sidebar-header img {
-        max-width: 100%;
-        height: auto;
-        margin-left: 50px;
-    }
-
-    /* Make links more visible */
-    .sidebar .nav-link.text-white {
-        color: rgba(255, 255, 255, 0.8) !important;
-    }
-
-    .sidebar .nav-link.active {
-        background-color: #0d6efd !important;
-        color: white !important;
-    }
-</style>
+<link rel="stylesheet" href="assets/styles.css">
 
 <!-- Add this right after the sidebar to wrap the main content -->
-<div class="content">
+<div class="seller-content">
     <!-- Your page content goes here -->
 </div>

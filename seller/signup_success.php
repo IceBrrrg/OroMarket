@@ -19,52 +19,7 @@ require_once '../includes/db_connect.php';
     <title>Application Submitted - ORO Market</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .success-container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 30px;
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
 
-        .success-icon {
-            font-size: 64px;
-            color: #198754;
-            margin-bottom: 20px;
-        }
-
-        .timeline {
-            text-align: left;
-            margin: 30px 0;
-            padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
-        }
-
-        .timeline-item {
-            margin-bottom: 15px;
-            padding-left: 25px;
-            position: relative;
-        }
-
-        .timeline-item:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 8px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #0d6efd;
-        }
-
-        .timeline-item:last-child {
-            margin-bottom: 0;
-        }
-    </style>
 </head>
 
 <body class="bg-light">

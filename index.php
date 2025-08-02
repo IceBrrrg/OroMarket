@@ -123,13 +123,25 @@
                         <div class="carousel-inner" role="listbox">
                             <div class="carousel-item active rounded">
                                 <img src="assets/img/hero-img-1.png" class="img-fluid w-100 h-100 bg-secondary rounded"
-                                    alt="First slide">
+                                    alt="Fresh Fruits">
                                 <a href="#" class="btn px-4 py-2 text-white rounded">Fruits</a>
                             </div>
                             <div class="carousel-item rounded">
                                 <img src="assets/img/hero-img-2.jpg" class="img-fluid w-100 h-100 rounded"
-                                    alt="Second slide">
+                                    alt="Fresh Vegetables">
                                 <a href="#" class="btn px-4 py-2 text-white rounded">Vegetables</a>
+                            </div>
+                            <div class="carousel-item rounded">
+                                <img src="assets/img/rice.jpg" class="img-fluid w-100 h-100 rounded" alt="Fresh Rice">
+                                <a href="#" class="btn px-4 py-2 text-white rounded">Rice</a>
+                            </div>
+                            <div class="carousel-item rounded">
+                                <img src="assets/img/meat.jpg" class="img-fluid w-100 h-100 rounded" alt="Fresh Meat">
+                                <a href="#" class="btn px-4 py-2 text-white rounded">Meat</a>
+                            </div>
+                            <div class="carousel-item rounded">
+                                <img src="assets/img/fish.jpg" class="img-fluid w-100 h-100 rounded" alt="Fresh Fish">
+                                <a href="#" class="btn px-4 py-2 text-white rounded">Fish</a>
                             </div>
                         </div>
                         <button class="carousel-control-prev" type="button" data-bs-target="#carouselId"
@@ -244,7 +256,10 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="footer-item">
                         <h4 class="text-light mb-3">About the Project</h4>
-                        <p class="mb-4">Oroquieta Marketplace is a free, community-driven capstone project with a mission to provide transparent and up-to-date market prices from the Oroquieta public market, helping local residents make informed decisions, manage their budget, and foster a more connected local economy.</p>
+                        <p class="mb-4">Oroquieta Marketplace is a free, community-driven capstone project with a
+                            mission to provide transparent and up-to-date market prices from the Oroquieta public
+                            market, helping local residents make informed decisions, manage their budget, and foster a
+                            more connected local economy.</p>
                         <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
                     </div>
                 </div>
@@ -293,8 +308,8 @@
                     <!--/*** This template is free as long as you keep the below author's credit link/attribution link/backlink. ***/-->
                     <!--/*** If you'd like to use the template without the below author's credit link/attribution link/backlink, ***/-->
                     <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
-                    Special Thanks: Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
-                        class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
+                    Special Thanks: Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a>
+                    Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
                 </div>
             </div>
         </div>
