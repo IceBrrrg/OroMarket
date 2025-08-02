@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
 }
 
 // Get seller ID from URL
-$seller_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$seller_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if (!$seller_id) {
     header('Location: manage_sellers.php');
@@ -53,12 +53,14 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Details - <?php echo htmlspecialchars($seller['username']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
@@ -140,10 +142,25 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
             text-transform: uppercase;
         }
 
-        .status-pending { background-color: rgba(243, 156, 18, 0.1); color: #f39c12; }
-        .status-approved { background-color: rgba(39, 174, 96, 0.1); color: #27ae60; }
-        .status-rejected { background-color: rgba(231, 76, 60, 0.1); color: #e74c3c; }
-        .status-suspended { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+        .status-pending {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .status-approved {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: #27ae60;
+        }
+
+        .status-rejected {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #e74c3c;
+        }
+
+        .status-suspended {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
 
         .product-card {
             background: white;
@@ -152,8 +169,27 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 1rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+
+        /* Ensure sidebar icons are always visible */
+        .sidebar .nav-link i,
+        .sidebar .dropdown-item i {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        /* Ensure sidebar has proper z-index */
+        .sidebar {
+            z-index: 1000 !important;
+        }
+
+        /* Prevent any CSS from hiding sidebar icons */
+        .sidebar * {
+            visibility: visible !important;
+        }
     </style>
 </head>
+
 <body>
     <?php include 'sidebar.php'; ?>
 
@@ -169,9 +205,9 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="seller-header">
             <div class="d-flex align-items-center">
                 <div class="seller-avatar">
-                    <?php 
-                    $initials = strtoupper(substr($seller['first_name'] ?: $seller['username'], 0, 1) . 
-                               substr($seller['last_name'] ?: '', 0, 1));
+                    <?php
+                    $initials = strtoupper(substr($seller['first_name'] ?: $seller['username'], 0, 1) .
+                        substr($seller['last_name'] ?: '', 0, 1));
                     echo $initials;
                     ?>
                 </div>
@@ -196,7 +232,9 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="info-grid">
                 <div class="info-item">
                     <div class="info-label">Full Name</div>
-                    <div class="info-value"><?php echo htmlspecialchars($seller['first_name'] . ' ' . $seller['last_name']); ?></div>
+                    <div class="info-value">
+                        <?php echo htmlspecialchars($seller['first_name'] . ' ' . $seller['last_name']); ?>
+                    </div>
                 </div>
                 <div class="info-item">
                     <div class="info-label">Username</div>
@@ -218,7 +256,8 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="info-label">Facebook</div>
                     <div class="info-value">
                         <?php if ($seller['facebook_url']): ?>
-                            <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank" class="text-primary">
+                            <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank"
+                                class="text-primary">
                                 <i class="fab fa-facebook me-1"></i>View Profile
                             </a>
                         <?php else: ?>
@@ -235,45 +274,48 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Business Information -->
         <?php if ($seller['business_name']): ?>
-        <div class="info-card">
-            <h4 class="mb-3"><i class="fas fa-building me-2"></i>Business Information</h4>
-            <div class="info-grid">
-                <div class="info-item">
-                    <div class="info-label">Business Name</div>
-                    <div class="info-value"><?php echo htmlspecialchars($seller['business_name']); ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Business Phone</div>
-                    <div class="info-value"><?php echo htmlspecialchars($seller['business_phone'] ?: 'N/A'); ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Tax ID</div>
-                    <div class="info-value"><?php echo htmlspecialchars($seller['tax_id'] ?: 'N/A'); ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Assigned Stall</div>
-                    <div class="info-value"><?php echo htmlspecialchars($seller['selected_stall'] ?: 'Not assigned'); ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Application Date</div>
-                    <div class="info-value"><?php echo $seller['application_date'] ? date('M j, Y', strtotime($seller['application_date'])) : 'N/A'; ?></div>
-                </div>
-                <div class="info-item">
-                    <div class="info-label">Application Status</div>
-                    <div class="info-value">
-                        <span class="status-badge status-<?php echo $seller['application_status']; ?>">
-                            <?php echo ucfirst($seller['application_status']); ?>
-                        </span>
+            <div class="info-card">
+                <h4 class="mb-3"><i class="fas fa-building me-2"></i>Business Information</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Business Name</div>
+                        <div class="info-value"><?php echo htmlspecialchars($seller['business_name']); ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Business Phone</div>
+                        <div class="info-value"><?php echo htmlspecialchars($seller['business_phone'] ?: 'N/A'); ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Tax ID</div>
+                        <div class="info-value"><?php echo htmlspecialchars($seller['tax_id'] ?: 'N/A'); ?></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Assigned Stall</div>
+                        <div class="info-value"><?php echo htmlspecialchars($seller['selected_stall'] ?: 'Not assigned'); ?>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Application Date</div>
+                        <div class="info-value">
+                            <?php echo $seller['application_date'] ? date('M j, Y', strtotime($seller['application_date'])) : 'N/A'; ?>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Application Status</div>
+                        <div class="info-value">
+                            <span class="status-badge status-<?php echo $seller['application_status']; ?>">
+                                <?php echo ucfirst($seller['application_status']); ?>
+                            </span>
+                        </div>
                     </div>
                 </div>
+                <?php if ($seller['admin_notes']): ?>
+                    <div class="mt-3">
+                        <div class="info-label">Admin Notes</div>
+                        <div class="info-value"><?php echo nl2br(htmlspecialchars($seller['admin_notes'])); ?></div>
+                    </div>
+                <?php endif; ?>
             </div>
-            <?php if ($seller['admin_notes']): ?>
-            <div class="mt-3">
-                <div class="info-label">Admin Notes</div>
-                <div class="info-value"><?php echo nl2br(htmlspecialchars($seller['admin_notes'])); ?></div>
-            </div>
-            <?php endif; ?>
-        </div>
         <?php endif; ?>
 
         <!-- Statistics -->
@@ -300,7 +342,8 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
                 <div class="col-md-3">
                     <div class="text-center p-3 bg-success text-white rounded">
-                        <h3><?php echo $seller['application_status'] ? ucfirst($seller['application_status']) : 'N/A'; ?></h3>
+                        <h3><?php echo $seller['application_status'] ? ucfirst($seller['application_status']) : 'N/A'; ?>
+                        </h3>
                         <small>Application Status</small>
                     </div>
                 </div>
@@ -309,25 +352,27 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <!-- Recent Products -->
         <?php if (!empty($products)): ?>
-        <div class="info-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4><i class="fas fa-box me-2"></i>Recent Products</h4>
-                <a href="manage_products.php?seller_id=<?php echo $seller['id']; ?>" class="btn btn-outline-primary btn-sm">
-                    View All Products
-                </a>
-            </div>
-            <div class="row">
-                <?php foreach (array_slice($products, 0, 6) as $product): ?>
-                <div class="col-md-4 mb-3">
-                    <div class="product-card">
-                        <h6 class="mb-2"><?php echo htmlspecialchars($product['name']); ?></h6>
-                        <p class="text-muted mb-2">₱<?php echo number_format($product['price'], 2); ?></p>
-                        <small class="text-muted">Added: <?php echo date('M j, Y', strtotime($product['created_at'])); ?></small>
-                    </div>
+            <div class="info-card">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4><i class="fas fa-box me-2"></i>Recent Products</h4>
+                    <a href="manage_products.php?seller_id=<?php echo $seller['id']; ?>"
+                        class="btn btn-outline-primary btn-sm">
+                        View All Products
+                    </a>
                 </div>
-                <?php endforeach; ?>
+                <div class="row">
+                    <?php foreach (array_slice($products, 0, 6) as $product): ?>
+                        <div class="col-md-4 mb-3">
+                            <div class="product-card">
+                                <h6 class="mb-2"><?php echo htmlspecialchars($product['name']); ?></h6>
+                                <p class="text-muted mb-2">₱<?php echo number_format($product['price'], 2); ?></p>
+                                <small class="text-muted">Added:
+                                    <?php echo date('M j, Y', strtotime($product['created_at'])); ?></small>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
-        </div>
         <?php endif; ?>
 
         <!-- Action Buttons -->
@@ -388,4 +433,5 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

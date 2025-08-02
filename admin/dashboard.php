@@ -42,26 +42,26 @@ $total_products = $row['total'];
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
         :root {
-            --primary: #0d6efd;
-            --secondary: #6c757d;
-            --success: #198754;
-            --info: #0dcaf0;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light: #f8f9fa;
-            --dark: #212529;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         body {
             font-family: 'Open Sans', sans-serif;
-            background-color: #f8f9fa;
+            background-color: var(--light-bg);
             min-height: 100vh;
         }
 
@@ -74,7 +74,7 @@ $total_products = $row['total'];
         .dashboard-card {
             border: none;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
             transition: all 0.3s;
             overflow: hidden;
         }
@@ -97,26 +97,26 @@ $total_products = $row['total'];
         }
 
         .card-icon.sellers {
-            background: linear-gradient(45deg, var(--primary), #0a58ca);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
         }
 
         .card-icon.products {
-            background: linear-gradient(45deg, var(--success), #157347);
+            background: linear-gradient(45deg, var(--success-color), #157347);
         }
 
         .card-icon.orders {
-            background: linear-gradient(45deg, var(--warning), #ffca2c);
+            background: linear-gradient(45deg, var(--warning-color), #ffca2c);
         }
 
         .stat-number {
             font-size: 2.5rem;
             font-weight: 700;
-            color: var(--dark);
+            color: var(--primary-color);
             margin-bottom: 10px;
         }
 
         .stat-label {
-            color: var(--secondary);
+            color: var(--secondary-color);
             font-size: 1rem;
             margin-bottom: 15px;
         }
@@ -125,21 +125,21 @@ $total_products = $row['total'];
             background: white;
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            box-shadow: var(--card-shadow);
         }
 
         .action-btn {
             padding: 15px;
             border-radius: 10px;
             text-align: center;
-            color: var(--dark);
+            color: var(--primary-color);
             text-decoration: none;
             transition: all 0.3s;
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         .action-btn:hover {
-            background-color: var(--light);
+            background-color: var(--light-bg);
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
@@ -147,15 +147,16 @@ $total_products = $row['total'];
         .action-icon {
             font-size: 24px;
             margin-bottom: 10px;
-            color: var(--primary);
+            color: var(--primary-color);
         }
 
         .welcome-header {
-            background: linear-gradient(45deg, var(--primary), #0a58ca);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
         }
 
         @media (max-width: 768px) {
@@ -198,7 +199,7 @@ $total_products = $row['total'];
                             </div>
                             <div class="stat-number"><?php echo $total_products; ?></div>
                             <div class="stat-label">Total Products</div>
-                            <a href="manage_products.php" class="btn btn-success">View  Details</a>
+                            <a href="manage_products.php" class="btn btn-success">View Details</a>
                         </div>
                     </div>
                 </div>

@@ -44,20 +44,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - ORO Market</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <title>Admin Login - Oroquieta Marketplace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         body {
-            background-color: #f8f9fa;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .login-container {
-            max-width: 400px;
+            max-width: 450px;
             width: 100%;
             margin: 20px;
         }
@@ -65,73 +77,200 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .login-card {
             background-color: white;
             border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
         }
 
         .login-header {
-            background-color: #0d6efd;
-            padding: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 2rem;
             text-align: center;
             color: white;
         }
 
         .login-header img {
-            max-width: 150px;
+            max-width: 120px;
             height: auto;
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
 
         .login-body {
-            padding: 30px;
+            padding: 2.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .back-link {
             position: absolute;
             top: 20px;
             left: 20px;
-            color: #6c757d;
+            color: white;
             text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
         .back-link:hover {
-            color: #0d6efd;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        .input-group-text {
+            background: transparent;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            color: #6c757d;
+        }
+
+        .input-group .form-control {
+            border-left: none;
+        }
+
+        .input-group .form-control:focus+.input-group-text {
+            border-color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                margin: 10px;
+            }
+
+            .login-body {
+                padding: 2rem;
+            }
         }
     </style>
 </head>
 
 <body>
     <a href="../authenticator.php" class="back-link">
-        <i class="bi bi-arrow-left"></i> Back to Role Selection
+        <i class="fas fa-arrow-left me-2"></i>Back to Role Selection
     </a>
 
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">
-                <img src="../assets/img/logo.png" alt="ORO Market Logo">
-                <h4 class="mb-0">Admin Login</h4>
+                <img src="../assets/img/logo-removebg.png" alt="Oroquieta Marketplace Logo">
+                <h4 class="mb-0"><i class="fas fa-user-shield me-2"></i>Admin Login</h4>
+                <p class="mb-0 mt-2 opacity-75">Access the marketplace administration panel</p>
             </div>
             <div class="login-body">
                 <?php if ($error): ?>
-                    <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i><?php echo htmlspecialchars($error); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 <?php endif; ?>
 
                 <form method="POST">
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" class="form-control" id="username" name="username"
+                                placeholder="Enter your username" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" class="form-control" id="password" name="password"
+                                placeholder="Enter your password" required>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Log in</button>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sign-in-alt me-2"></i>Log In
+                    </button>
                 </form>
+
+                <div class="text-center mt-4">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Secure admin access only
+                    </small>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+
+        // Add loading state to form submission
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Logging In...';
+
+            // Re-enable after 3 seconds (in case of errors)
+            setTimeout(() => {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }, 3000);
+        });
+    </script>
 </body>
 
 </html>

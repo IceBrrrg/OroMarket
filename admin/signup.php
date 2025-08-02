@@ -90,16 +90,159 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Admin User - ORO Market</title>
+    <title>Add New Admin - Oroquieta Marketplace</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+        }
+
         .profile-image-preview {
             max-width: 150px;
             max-height: 150px;
             object-fit: cover;
             border-radius: 50%;
             display: none;
+            border: 3px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        .required-field::after {
+            content: " *";
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #e9ecef;
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 1.5rem;
+            }
         }
     </style>
 </head>
@@ -107,82 +250,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <?php include 'sidebar.php'; ?>
 
-    <div class="container-fluid py-4">
-        <div class="row">
-            <div class="col-md-8 mx-auto">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Create New Admin User</h4>
-                    </div>
-                    <div class="card-body">
-                        <?php if ($success): ?>
-                            <div class="alert alert-success"><?php echo htmlspecialchars($success); ?></div>
-                        <?php endif; ?>
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-user-plus me-2"></i>Add New Admin</h1>
+                    <p class="mb-0">Create a new administrator account for the marketplace</p>
+                </div>
+                <div class="text-end">
+                    <h3 class="mb-0"><i class="fas fa-users-cog"></i></h3>
+                    <small>Admin Management</small>
+                </div>
+            </div>
+        </div>
 
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
-                        <?php endif; ?>
+        <!-- Form Card -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <?php if ($success): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
 
-                        <form method="POST" action="" enctype="multipart/form-data">
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="username" class="form-label">Username *</label>
-                                    <input type="text" class="form-control" id="username" name="username"
-                                        value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="email" class="form-label">Email *</label>
-                                    <input type="email" class="form-control" id="email" name="email"
-                                        value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
-                                </div>
+                    <?php if ($error): ?>
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-circle me-2"></i><?php echo htmlspecialchars($error); ?>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    <?php endif; ?>
+
+                    <form method="POST" action="" enctype="multipart/form-data">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="username" class="form-label required-field">Username</label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                    value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
+                                <div class="form-text">Choose a unique username for the admin account.</div>
                             </div>
-
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="password" class="form-label">Password *</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                    <div class="form-text">Password must be at least 8 characters long.</div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="confirm_password" class="form-label">Confirm Password *</label>
-                                    <input type="password" class="form-control" id="confirm_password"
-                                        name="confirm_password" required>
-                                </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label required-field">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
+                                <div class="form-text">Enter a valid email address for notifications.</div>
                             </div>
+                        </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="first_name" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="first_name" name="first_name"
-                                        value="<?php echo htmlspecialchars($first_name ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="last_name" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="last_name" name="last_name"
-                                        value="<?php echo htmlspecialchars($last_name ?? ''); ?>">
-                                </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label required-field">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                                <div class="form-text">Password must be at least 8 characters long.</div>
                             </div>
+                            <div class="col-md-6">
+                                <label for="confirm_password" class="form-label required-field">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirm_password"
+                                    name="confirm_password" required>
+                                <div class="form-text">Re-enter the password to confirm.</div>
+                            </div>
+                        </div>
 
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label for="phone" class="form-label">Phone</label>
-                                    <input type="text" class="form-control" id="phone" name="phone"
-                                        value="<?php echo htmlspecialchars($phone ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="profile_image" class="form-label">Profile Image</label>
-                                    <input type="file" class="form-control" id="profile_image" name="profile_image"
-                                        accept="image/*">
-                                    <img id="image_preview" class="profile-image-preview mt-2">
-                                </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                    value="<?php echo htmlspecialchars($first_name ?? ''); ?>">
+                                <div class="form-text">Enter the admin's first name.</div>
                             </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                    value="<?php echo htmlspecialchars($last_name ?? ''); ?>">
+                                <div class="form-text">Enter the admin's last name.</div>
+                            </div>
+                        </div>
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Create Admin User</button>
-                                <a href="index.php" class="btn btn-secondary">Cancell</a>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="text" class="form-control" id="phone" name="phone"
+                                    value="<?php echo htmlspecialchars($phone ?? ''); ?>">
+                                <div class="form-text">Enter contact phone number (optional).</div>
                             </div>
-                        </form>
-                    </div>
+                            <div class="col-md-6">
+                                <label for="profile_image" class="form-label">Profile Image</label>
+                                <div class="upload-area" onclick="document.getElementById('profile_image').click()">
+                                    <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0 text-muted">Click to upload or drag and drop</p>
+                                    <small class="text-muted">JPG, JPEG, PNG up to 5MB</small>
+                                </div>
+                                <input type="file" class="form-control d-none" id="profile_image" name="profile_image"
+                                    accept="image/*">
+                                <img id="image_preview" class="profile-image-preview mt-3 mx-auto d-block">
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i>Create Admin User
+                            </button>
+                            <a href="dashboard.php" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -204,6 +378,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 reader.readAsDataURL(file);
             } else {
                 preview.style.display = 'none';
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.getElementById('profile_image');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+
+        // Password confirmation validation
+        document.getElementById('confirm_password').addEventListener('input', function () {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+
+            if (password !== confirmPassword) {
+                this.setCustomValidity('Passwords do not match');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        document.getElementById('password').addEventListener('input', function () {
+            const confirmPassword = document.getElementById('confirm_password');
+            if (confirmPassword.value) {
+                confirmPassword.dispatchEvent(new Event('input'));
             }
         });
     </script>

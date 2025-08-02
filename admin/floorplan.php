@@ -19,7 +19,7 @@ $database = 'oroquieta_marketplace';
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$database", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
 
@@ -53,7 +53,7 @@ foreach ($stalls as $stall) {
 if (isset($_GET['ajax']) && $_GET['ajax'] == 'stall_details' && isset($_GET['stall'])) {
     $stall_number = $_GET['stall'];
     $stall = $stalls_data[$stall_number] ?? null;
-    
+
     if ($stall) {
         header('Content-Type: application/json');
         echo json_encode($stall);
@@ -66,83 +66,44 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Market Floorplan - Admin Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../assets/css/floorplan.css">
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         body {
-            background-color: #f8f9fa;
-        }
-        
-        .sidebar {
-            min-height: 100vh;
-            width: 250px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            padding-top: 0;
-            background-color: #343a40;
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .sidebar .nav-link {
-            border-radius: 5px;
-            transition: all 0.3s;
-            padding: 0.5rem 1rem;
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .sidebar .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .sidebar .nav-link.active {
-            font-weight: bold;
-            color: #fff;
-            background-color: #0d6efd !important;
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            background-color: rgba(0, 0, 0, 0.2);
-        }
-
-        .content {
+        .main-content {
             margin-left: 250px;
             padding: 20px;
+            transition: margin-left 0.3s ease;
         }
 
-        .sidebar-header img {
-            max-width: 100%;
-            height: auto;
-            margin-left: 50px;
-        }
-
-        .dropdown-menu {
-            background-color: #343a40;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .dropdown-item {
-            color: rgba(255, 255, 255, 0.8);
-            padding: 0.5rem 1rem;
-        }
-
-        .dropdown-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-        }
-
-        .dropdown-item.active {
-            background-color: #0d6efd !important;
-            color: white !important;
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
         }
 
         .stats-cards {
@@ -156,8 +117,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
             background: white;
             padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: var(--card-shadow);
             text-align: center;
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
         .stat-number {
@@ -168,19 +136,19 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
         /* Color-coded stat cards to match legend */
         .stat-card.total {
-            border-left: 5px solid #0d6efd;
+            border-left: 5px solid var(--primary-color);
         }
 
         .stat-card.available {
-            border-left: 5px solid #198754;
+            border-left: 5px solid var(--success-color);
         }
 
         .stat-card.occupied {
-            border-left: 5px solid #dc3545;
+            border-left: 5px solid var(--danger-color);
         }
 
         .stat-card.reserved {
-            border-left: 5px solid #ffc107;
+            border-left: 5px solid var(--warning-color);
         }
 
         .stat-card.maintenance {
@@ -195,7 +163,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .stall:hover {
             transform: scale(1.1);
             z-index: 10;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
         /* Status-based styling for existing stall classes */
@@ -216,103 +184,44 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
 
         @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-            }
-            .content {
+            .main-content {
                 margin-left: 0;
+                padding: 10px;
             }
         }
     </style>
 </head>
+
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar bg-dark text-white">
-        <div class="sidebar-header p-3 border-bottom border-secondary">
-            <a href="dashboard.php">
-                <img src="../assets/img/logo-removebg.png" alt="logo" width="100px">
-            </a>
-        </div>
-        <ul class="nav flex-column p-3">
-            <li class="nav-item mb-2">
-                <a class="nav-link <?php echo $current_page == 'dashboard.php' ? 'active' : 'text-white'; ?>" href="dashboard.php">
-                    <i class="bi bi-speedometer2 me-2"></i> Dashboard
-                </a>
-            </li>
-            <li class="nav-item mb-2">
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle text-white" href="#" role="button" id="sellerDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-people me-2"></i> Sellers
-                    </a>
-                    <ul class="dropdown-menu bg-dark" aria-labelledby="sellerDropdown">
-                        <li>
-                            <a class="dropdown-item text-white <?php echo $current_page == 'seller_applications.php' ? 'active' : ''; ?>" href="seller_applications.php">
-                                <i class="bi bi-file-earmark-text me-2"></i> Applications
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item text-white <?php echo $current_page == 'floorplan.php' ? 'active' : ''; ?>" href="floorplan.php">
-                                <i class="bi bi-grid me-2"></i> Floorplan
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item text-white <?php echo $current_page == 'manage_sellers.php' ? 'active' : ''; ?>" href="manage_sellers.php">
-                                <i class="bi bi-gear me-2"></i> Manage Sellers
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li class="nav-item mb-2">
-                <a class="nav-link <?php echo $current_page == 'manage_products.php' ? 'active' : 'text-white'; ?>" href="manage_products.php">
-                    <i class="bi bi-box-seam me-2"></i> Manage Products
-                </a>
-            </li>
-            <li class="nav-item mb-2">
-                <a class="nav-link <?php echo $current_page == 'signup.php' ? 'active' : 'text-white'; ?>" href="signup.php">
-                    <i class="bi bi-person-plus me-2"></i> Add New Admin
-                </a>
-            </li>
-            <li class="nav-item mb-2">
-                <a class="nav-link <?php echo $current_page == 'settings.php' ? 'active' : 'text-white'; ?>" href="settings.php">
-                    <i class="bi bi-gear me-2"></i> Settings
-                </a>
-            </li>
-        </ul>
-        <div class="sidebar-footer p-3 border-top border-secondary mt-auto">
-            <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                    <i class="bi bi-person-circle fs-4"></i>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                    <div class="fw-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-                    <small class="text-muted">Administrator</small>
-                </div>
-            </div>
-            <a href="../logout.php" class="btn btn-outline-light btn-sm w-100 mt-2">
-                <i class="bi bi-box-arrow-right me-2"></i> Logout
-            </a>
-        </div>
-    </div>
+    <?php include 'sidebar.php'; ?>
 
     <!-- Main Content -->
-    <div class="content">
+    <div class="main-content">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <h2 class="mb-4"><i class="bi bi-grid me-2"></i>Market Floorplan</h2>
-                    
+                    <!-- Page Header -->
+                    <div class="page-header">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="bi bi-grid-3x3-gap-fill" style="font-size: 2.5rem;"></i>
+                            </div>
+                            <div>
+                                <h1 class="mb-2">Market Floorplan</h1>
+                                <p class="mb-0">Manage and view stall assignments across the marketplace</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Market Floorplan -->
                     <div class="market-container">
                         <!-- Top row stalls -->
-                        <?php for ($i = 1; $i <= 11; $i++): 
+                        <?php for ($i = 1; $i <= 11; $i++):
                             $stall_num = "T$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall square-stall top-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -321,12 +230,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php endfor; ?>
 
                         <!-- Bottom row stalls -->
-                        <?php for ($i = 1; $i <= 11; $i++): 
+                        <?php for ($i = 1; $i <= 11; $i++):
                             $stall_num = "B$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall square-stall bottom-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -335,12 +244,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php endfor; ?>
 
                         <!-- Left column stalls -->
-                        <?php for ($i = 1; $i <= 6; $i++): 
+                        <?php for ($i = 1; $i <= 6; $i++):
                             $stall_num = "L$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall square-stall left-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -349,12 +258,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php endfor; ?>
 
                         <!-- Right column stalls -->
-                        <?php for ($i = 1; $i <= 6; $i++): 
+                        <?php for ($i = 1; $i <= 6; $i++):
                             $stall_num = "R$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall square-stall right-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -363,12 +272,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php endfor; ?>
 
                         <!-- Fish Vendors (Left Section) - F1 to F16 -->
-                        <?php for ($i = 1; $i <= 16; $i++): 
+                        <?php for ($i = 1; $i <= 16; $i++):
                             $stall_num = "F$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall fish-vendor fish-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -377,12 +286,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         <?php endfor; ?>
 
                         <!-- Meat Vendors (Right Section) - M1 to M16 -->
-                        <?php for ($i = 1; $i <= 16; $i++): 
+                        <?php for ($i = 1; $i <= 16; $i++):
                             $stall_num = "M$i";
                             $stall_data = $stalls_data[$stall_num] ?? null;
                             $status_class = $stall_data ? $stall_data['status'] : 'available';
-                        ?>
-                            <button type="button" 
+                            ?>
+                            <button type="button"
                                 class="stall meat-vendor meat-<?php echo $i; ?> <?php echo $status_class; ?>"
                                 data-stall="<?php echo $stall_num; ?>"
                                 onclick="showStallDetails('<?php echo $stall_num; ?>')">
@@ -424,7 +333,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </div>
                     </div>
 
-                    <!-- Statistics Cards (Moved Below Floorplan) -->
+                    <!-- Statistics Cards -->
                     <div class="stats-cards">
                         <div class="stat-card total">
                             <div class="stat-number text-primary"><?php echo $stats['total']; ?></div>
@@ -453,7 +362,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
 
     <!-- Stall Details Modal -->
-    <div class="modal fade" id="stallDetailsModal" tabindex="-1" aria-labelledby="stallDetailsModalLabel" aria-hidden="true">
+    <div class="modal fade" id="stallDetailsModal" tabindex="-1" aria-labelledby="stallDetailsModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -475,11 +385,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
         function showStallDetails(stallNumber) {
             // Show loading state
             document.getElementById('stallDetailsContent').innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-            
+
             // Show modal
             const modal = new bootstrap.Modal(document.getElementById('stallDetailsModal'));
             modal.show();
-            
+
             // Fetch stall details
             fetch(`?ajax=stall_details&stall=${stallNumber}`)
                 .then(response => response.json())
@@ -499,7 +409,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <div class="col-md-6">
                                 <h6><i class="bi bi-person me-2"></i>Occupant Information</h6>
                     `;
-                    
+
                     if (data.current_seller_id && data.first_name) {
                         content += `
                             <table class="table table-sm">
@@ -518,12 +428,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             </div>
                         `;
                     }
-                    
+
                     content += `
                             </div>
                         </div>
                     `;
-                    
+
                     if (data.description) {
                         content += `
                             <div class="row mt-3">
@@ -534,7 +444,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             </div>
                         `;
                     }
-                    
+
                     document.getElementById('stallDetailsContent').innerHTML = content;
                     document.getElementById('stallDetailsModalLabel').innerHTML = `<i class="bi bi-building me-2"></i>Stall ${stallNumber} Details`;
                 })
@@ -543,9 +453,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     document.getElementById('stallDetailsContent').innerHTML = '<div class="alert alert-danger">Error loading stall details.</div>';
                 });
         }
-        
+
         function getStatusColor(status) {
-            switch(status) {
+            switch (status) {
                 case 'available': return 'success';
                 case 'occupied': return 'danger';
                 case 'reserved': return 'warning';
@@ -553,17 +463,17 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 default: return 'primary';
             }
         }
-        
+
         // Add hover effect for better UX
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const stalls = document.querySelectorAll('.stall');
             stalls.forEach(stall => {
-                stall.addEventListener('mouseenter', function() {
+                stall.addEventListener('mouseenter', function () {
                     this.style.transform = 'scale(1.1)';
                     this.style.zIndex = '10';
                 });
-                
-                stall.addEventListener('mouseleave', function() {
+
+                stall.addEventListener('mouseleave', function () {
                     this.style.transform = 'scale(1)';
                     this.style.zIndex = '1';
                 });
@@ -571,4 +481,5 @@ $current_page = basename($_SERVER['PHP_SELF']);
         });
     </script>
 </body>
+
 </html>

@@ -10,42 +10,42 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
 
 // Handle status updates
 if ($_POST && isset($_POST['action'])) {
-    $seller_id = (int)$_POST['seller_id'];
+    $seller_id = (int) $_POST['seller_id'];
     $action = $_POST['action'];
-    
+
     try {
         if ($action === 'approve') {
             $stmt = $pdo->prepare("UPDATE sellers SET status = 'approved' WHERE id = ?");
             $stmt->execute([$seller_id]);
-            
+
             // Add notification
             $notification_stmt = $pdo->prepare("INSERT INTO notifications (recipient_type, recipient_id, title, message, link) VALUES ('seller', ?, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php')");
             $notification_stmt->execute([$seller_id]);
-            
+
             $success_message = "Seller approved successfully!";
         } elseif ($action === 'reject') {
             $stmt = $pdo->prepare("UPDATE sellers SET status = 'rejected' WHERE id = ?");
             $stmt->execute([$seller_id]);
-            
+
             // Add notification
             $notification_stmt = $pdo->prepare("INSERT INTO notifications (recipient_type, recipient_id, title, message, link) VALUES ('seller', ?, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php')");
             $notification_stmt->execute([$seller_id]);
-            
+
             $success_message = "Seller rejected successfully!";
         } elseif ($action === 'suspend') {
             $stmt = $pdo->prepare("UPDATE sellers SET status = 'suspended', is_active = 0 WHERE id = ?");
             $stmt->execute([$seller_id]);
-            
+
             $success_message = "Seller suspended successfully!";
         } elseif ($action === 'activate') {
             $stmt = $pdo->prepare("UPDATE sellers SET is_active = 1 WHERE id = ?");
             $stmt->execute([$seller_id]);
-            
+
             $success_message = "Seller activated successfully!";
         } elseif ($action === 'deactivate') {
             $stmt = $pdo->prepare("UPDATE sellers SET is_active = 0 WHERE id = ?");
             $stmt->execute([$seller_id]);
-            
+
             $success_message = "Seller deactivated successfully!";
         }
     } catch (PDOException $e) {
@@ -117,12 +117,14 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Sellers - Oroquieta Marketplace</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #2c3e50;
@@ -180,11 +182,25 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
 
-        .stat-card.pending { border-left-color: var(--warning-color); }
-        .stat-card.approved { border-left-color: var(--success-color); }
-        .stat-card.rejected { border-left-color: var(--danger-color); }
-        .stat-card.suspended { border-left-color: #6c757d; }
-        .stat-card.active { border-left-color: var(--info-color); }
+        .stat-card.pending {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.approved {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.rejected {
+            border-left-color: var(--danger-color);
+        }
+
+        .stat-card.suspended {
+            border-left-color: #6c757d;
+        }
+
+        .stat-card.active {
+            border-left-color: var(--info-color);
+        }
 
         .filters-card {
             background: white;
@@ -209,10 +225,21 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .seller-card.pending { border-left-color: var(--warning-color); }
-        .seller-card.approved { border-left-color: var(--success-color); }
-        .seller-card.rejected { border-left-color: var(--danger-color); }
-        .seller-card.suspended { border-left-color: #6c757d; }
+        .seller-card.pending {
+            border-left-color: var(--warning-color);
+        }
+
+        .seller-card.approved {
+            border-left-color: var(--success-color);
+        }
+
+        .seller-card.rejected {
+            border-left-color: var(--danger-color);
+        }
+
+        .seller-card.suspended {
+            border-left-color: #6c757d;
+        }
 
         .seller-header {
             display: flex;
@@ -262,10 +289,25 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
             letter-spacing: 0.5px;
         }
 
-        .status-pending { background-color: rgba(243, 156, 18, 0.1); color: var(--warning-color); }
-        .status-approved { background-color: rgba(39, 174, 96, 0.1); color: var(--success-color); }
-        .status-rejected { background-color: rgba(231, 76, 60, 0.1); color: var(--danger-color); }
-        .status-suspended { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+        .status-pending {
+            background-color: rgba(243, 156, 18, 0.1);
+            color: var(--warning-color);
+        }
+
+        .status-approved {
+            background-color: rgba(39, 174, 96, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-rejected {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-suspended {
+            background-color: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+        }
 
         .seller-details {
             display: grid;
@@ -416,8 +458,42 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                 justify-content: center;
             }
         }
+
+        /* Ensure sidebar icons are always visible */
+        .sidebar .nav-link i,
+        .sidebar .dropdown-item i {
+            display: inline-block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            font-family: "bootstrap-icons" !important;
+        }
+
+        /* Ensure sidebar has proper z-index */
+        .sidebar {
+            z-index: 1000 !important;
+        }
+
+        /* Prevent any CSS from hiding sidebar icons */
+        .sidebar * {
+            visibility: visible !important;
+        }
+
+        /* Force icon display */
+        .bi {
+            display: inline-block !important;
+            font-family: "bootstrap-icons" !important;
+            font-style: normal;
+            font-weight: normal !important;
+            font-variant: normal;
+            text-transform: none;
+            line-height: 1;
+            vertical-align: middle;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
     </style>
 </head>
+
 <body>
     <?php include 'sidebar.php'; ?>
 
@@ -526,24 +602,31 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                 <div class="col-md-4">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" class="form-control" name="search" 
-                               placeholder="Search sellers..." value="<?php echo htmlspecialchars($search_query); ?>">
+                        <input type="text" class="form-control" name="search" placeholder="Search sellers..."
+                            value="<?php echo htmlspecialchars($search_query); ?>">
                     </div>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" name="status">
                         <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Status</option>
-                        <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                        <option value="approved" <?php echo $status_filter === 'approved' ? 'selected' : ''; ?>>Approved</option>
-                        <option value="rejected" <?php echo $status_filter === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
-                        <option value="suspended" <?php echo $status_filter === 'suspended' ? 'selected' : ''; ?>>Suspended</option>
+                        <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending
+                        </option>
+                        <option value="approved" <?php echo $status_filter === 'approved' ? 'selected' : ''; ?>>Approved
+                        </option>
+                        <option value="rejected" <?php echo $status_filter === 'rejected' ? 'selected' : ''; ?>>Rejected
+                        </option>
+                        <option value="suspended" <?php echo $status_filter === 'suspended' ? 'selected' : ''; ?>>
+                            Suspended</option>
                     </select>
                 </div>
                 <div class="col-md-2">
                     <select class="form-select" name="sort">
-                        <option value="created_at" <?php echo $sort_by === 'created_at' ? 'selected' : ''; ?>>Date Created</option>
-                        <option value="username" <?php echo $sort_by === 'username' ? 'selected' : ''; ?>>Username</option>
-                        <option value="first_name" <?php echo $sort_by === 'first_name' ? 'selected' : ''; ?>>First Name</option>
+                        <option value="created_at" <?php echo $sort_by === 'created_at' ? 'selected' : ''; ?>>Date Created
+                        </option>
+                        <option value="username" <?php echo $sort_by === 'username' ? 'selected' : ''; ?>>Username
+                        </option>
+                        <option value="first_name" <?php echo $sort_by === 'first_name' ? 'selected' : ''; ?>>First Name
+                        </option>
                         <option value="status" <?php echo $sort_by === 'status' ? 'selected' : ''; ?>>Status</option>
                     </select>
                 </div>
@@ -575,9 +658,9 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                         <div class="seller-header">
                             <div class="d-flex align-items-center flex-grow-1">
                                 <div class="seller-avatar">
-                                    <?php 
-                                    $initials = strtoupper(substr($seller['first_name'] ?: $seller['username'], 0, 1) . 
-                                               substr($seller['last_name'] ?: '', 0, 1));
+                                    <?php
+                                    $initials = strtoupper(substr($seller['first_name'] ?: $seller['username'], 0, 1) .
+                                        substr($seller['last_name'] ?: '', 0, 1));
                                     echo $initials;
                                     ?>
                                 </div>
@@ -605,7 +688,8 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Business Name</span>
-                                <span class="detail-value"><?php echo htmlspecialchars($seller['business_name'] ?: 'N/A'); ?></span>
+                                <span
+                                    class="detail-value"><?php echo htmlspecialchars($seller['business_name'] ?: 'N/A'); ?></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Phone</span>
@@ -613,11 +697,13 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Business Phone</span>
-                                <span class="detail-value"><?php echo htmlspecialchars($seller['business_phone'] ?: 'N/A'); ?></span>
+                                <span
+                                    class="detail-value"><?php echo htmlspecialchars($seller['business_phone'] ?: 'N/A'); ?></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Stall</span>
-                                <span class="detail-value"><?php echo htmlspecialchars($seller['selected_stall'] ?: 'Not assigned'); ?></span>
+                                <span
+                                    class="detail-value"><?php echo htmlspecialchars($seller['selected_stall'] ?: 'Not assigned'); ?></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Products</span>
@@ -625,13 +711,15 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Joined</span>
-                                <span class="detail-value"><?php echo date('M j, Y', strtotime($seller['created_at'])); ?></span>
+                                <span
+                                    class="detail-value"><?php echo date('M j, Y', strtotime($seller['created_at'])); ?></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Facebook</span>
                                 <span class="detail-value">
                                     <?php if ($seller['facebook_url']): ?>
-                                        <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank" class="text-primary">
+                                        <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank"
+                                            class="text-primary">
                                             <i class="fab fa-facebook me-1"></i>View Profile
                                         </a>
                                     <?php else: ?>
@@ -643,58 +731,194 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
                         <div class="action-buttons">
                             <?php if ($seller['status'] === 'pending'): ?>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
-                                    <input type="hidden" name="action" value="approve">
-                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Approve this seller?')">
-                                        <i class="fas fa-check"></i>Approve
-                                    </button>
-                                </form>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
-                                    <input type="hidden" name="action" value="reject">
-                                    <button type="submit" class="btn-action btn-reject" onclick="return confirm('Reject this seller?')">
-                                        <i class="fas fa-times"></i>Reject
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-action btn-approve"
+                                    onclick="showApproveModal(<?php echo $seller['id']; ?>)">
+                                    <i class="fas fa-check"></i>Approve
+                                </button>
+                                <button type="button" class="btn-action btn-reject"
+                                    onclick="showRejectModal(<?php echo $seller['id']; ?>)">
+                                    <i class="fas fa-times"></i>Reject
+                                </button>
                             <?php endif; ?>
 
                             <?php if ($seller['status'] === 'approved'): ?>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
-                                    <input type="hidden" name="action" value="suspend">
-                                    <button type="submit" class="btn-action btn-suspend" onclick="return confirm('Suspend this seller?')">
-                                        <i class="fas fa-ban"></i>Suspend
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-action btn-suspend"
+                                    onclick="showSuspendModal(<?php echo $seller['id']; ?>)">
+                                    <i class="fas fa-ban"></i>Suspend
+                                </button>
                             <?php endif; ?>
 
                             <?php if ($seller['is_active']): ?>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
-                                    <input type="hidden" name="action" value="deactivate">
-                                    <button type="submit" class="btn-action btn-suspend" onclick="return confirm('Deactivate this seller?')">
-                                        <i class="fas fa-user-slash"></i>Deactivate
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-action btn-suspend"
+                                    onclick="showDeactivateModal(<?php echo $seller['id']; ?>)">
+                                    <i class="fas fa-user-slash"></i>Deactivate
+                                </button>
                             <?php else: ?>
-                                <form method="POST" style="display: inline;">
-                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
-                                    <input type="hidden" name="action" value="activate">
-                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Activate this seller?')">
-                                        <i class="fas fa-user-check"></i>Activate
-                                    </button>
-                                </form>
+                                <button type="button" class="btn-action btn-approve"
+                                    onclick="showActivateModal(<?php echo $seller['id']; ?>)">
+                                    <i class="fas fa-user-check"></i>Activate
+                                </button>
                             <?php endif; ?>
 
                             <!-- FIXED: Changed from seller_details.php to view_seller.php and add proper onclick handler -->
-                            <button type="button" class="btn-action btn-view" onclick="viewSellerDetails(<?php echo $seller['id']; ?>)">
+                            <button type="button" class="btn-action btn-view"
+                                onclick="viewSellerDetails(<?php echo $seller['id']; ?>)">
                                 <i class="fas fa-eye"></i>View Details
                             </button>
                         </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- Action Modals -->
+    <!-- Approve Modal -->
+    <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="approveModalLabel">
+                        <i class="fas fa-check-circle me-2"></i>Approve Seller
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to approve this seller?</p>
+                    <p class="text-muted mb-0">This will allow the seller to start listing products on the marketplace.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="approveForm" style="display: inline;">
+                        <input type="hidden" name="seller_id" id="approveSellerId">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-1"></i>Approve Seller
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="rejectModalLabel">
+                        <i class="fas fa-times-circle me-2"></i>Reject Seller
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to reject this seller?</p>
+                    <p class="text-muted mb-0">This will reject their application and they will be notified.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="rejectForm" style="display: inline;">
+                        <input type="hidden" name="seller_id" id="rejectSellerId">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i>Reject Seller
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suspend Modal -->
+    <div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title" id="suspendModalLabel">
+                        <i class="fas fa-ban me-2"></i>Suspend Seller
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to suspend this seller?</p>
+                    <p class="text-muted mb-0">This will temporarily disable their account and prevent them from listing
+                        products.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="suspendForm" style="display: inline;">
+                        <input type="hidden" name="seller_id" id="suspendSellerId">
+                        <input type="hidden" name="action" value="suspend">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-ban me-1"></i>Suspend Seller
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate Modal -->
+    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title" id="deactivateModalLabel">
+                        <i class="fas fa-user-slash me-2"></i>Deactivate Seller
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to deactivate this seller?</p>
+                    <p class="text-muted mb-0">This will disable their account and they won't be able to access the
+                        marketplace.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="deactivateForm" style="display: inline;">
+                        <input type="hidden" name="seller_id" id="deactivateSellerId">
+                        <input type="hidden" name="action" value="deactivate">
+                        <button type="submit" class="btn btn-secondary">
+                            <i class="fas fa-user-slash me-1"></i>Deactivate Seller
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Modal -->
+    <div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="activateModalLabel">
+                        <i class="fas fa-user-check me-2"></i>Activate Seller
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to activate this seller?</p>
+                    <p class="text-muted mb-0">This will re-enable their account and allow them to access the
+                        marketplace.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="POST" id="activateForm" style="display: inline;">
+                        <input type="hidden" name="seller_id" id="activateSellerId">
+                        <input type="hidden" name="action" value="activate">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-user-check me-1"></i>Activate Seller
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -705,19 +929,50 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
             // You can either:
             // 1. Redirect to a seller details page
             window.location.href = 'view_seller.php?id=' + sellerId;
-            
+
             // 2. Or open in a new tab
             // window.open('view_seller.php?id=' + sellerId, '_blank');
-            
+
             // 3. Or show a modal with seller details (if you prefer)
             // showSellerModal(sellerId);
         }
 
+        // Modal functions for different actions
+        function showApproveModal(sellerId) {
+            document.getElementById('approveSellerId').value = sellerId;
+            const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+            modal.show();
+        }
+
+        function showRejectModal(sellerId) {
+            document.getElementById('rejectSellerId').value = sellerId;
+            const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+            modal.show();
+        }
+
+        function showSuspendModal(sellerId) {
+            document.getElementById('suspendSellerId').value = sellerId;
+            const modal = new bootstrap.Modal(document.getElementById('suspendModal'));
+            modal.show();
+        }
+
+        function showDeactivateModal(sellerId) {
+            document.getElementById('deactivateSellerId').value = sellerId;
+            const modal = new bootstrap.Modal(document.getElementById('deactivateModal'));
+            modal.show();
+        }
+
+        function showActivateModal(sellerId) {
+            document.getElementById('activateSellerId').value = sellerId;
+            const modal = new bootstrap.Modal(document.getElementById('activateModal'));
+            modal.show();
+        }
+
         // Auto-hide alerts after 5 seconds
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const alerts = document.querySelectorAll('.alert');
-            alerts.forEach(function(alert) {
-                setTimeout(function() {
+            alerts.forEach(function (alert) {
+                setTimeout(function () {
                     const bsAlert = new bootstrap.Alert(alert);
                     bsAlert.close();
                 }, 5000);
@@ -726,13 +981,13 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
         // Add loading state to action buttons
         document.querySelectorAll('form').forEach(form => {
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', function (e) {
                 const button = this.querySelector('button[type="submit"]');
                 if (button) {
                     button.disabled = true;
                     const originalText = button.innerHTML;
                     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
-                    
+
                     // Re-enable after 3 seconds (in case of errors)
                     setTimeout(() => {
                         button.disabled = false;
@@ -746,7 +1001,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
         let searchTimeout;
         const searchInput = document.querySelector('input[name="search"]');
         if (searchInput) {
-            searchInput.addEventListener('input', function() {
+            searchInput.addEventListener('input', function () {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     this.form.submit();
@@ -756,13 +1011,13 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
         // Filter change auto-submit
         document.querySelectorAll('select[name="status"], select[name="sort"], select[name="order"]').forEach(select => {
-            select.addEventListener('change', function() {
+            select.addEventListener('change', function () {
                 this.form.submit();
             });
         });
 
         // FIXED: Prevent default form submission on enter key in search
-        document.querySelector('input[name="search"]').addEventListener('keypress', function(e) {
+        document.querySelector('input[name="search"]').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 this.form.submit();
@@ -770,4 +1025,5 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
         });
     </script>
 </body>
+
 </html>
