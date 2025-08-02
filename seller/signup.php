@@ -159,26 +159,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $pdo->beginTransaction();
 
                             // Insert into sellers table
-                          
-// In your signup.php file, modify the seller creation part (step 4):
 
-// Around line 178, modify the seller insertion:
-$stmt = $pdo->prepare("
+                            // In your signup.php file, modify the seller creation part (step 4):
+
+                            // Around line 178, modify the seller insertion:
+                            $stmt = $pdo->prepare("
     INSERT INTO sellers (username, email, password, first_name, last_name, phone, facebook_url, status)
     VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
 ");
 
-$hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
+                            $hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
 
-$stmt->execute([
-    $_SESSION['signup_data']['username'],
-    $_SESSION['signup_data']['email'],
-    $hashed_password,
-    $_SESSION['signup_data']['first_name'],
-    $_SESSION['signup_data']['last_name'],
-    $_SESSION['signup_data']['phone'],
-    $_SESSION['signup_data']['facebook_url']
-]);
+                            $stmt->execute([
+                                $_SESSION['signup_data']['username'],
+                                $_SESSION['signup_data']['email'],
+                                $hashed_password,
+                                $_SESSION['signup_data']['first_name'],
+                                $_SESSION['signup_data']['last_name'],
+                                $_SESSION['signup_data']['phone'],
+                                $_SESSION['signup_data']['facebook_url']
+                            ]);
 
 
                             $seller_id = $pdo->lastInsertId();
@@ -195,14 +195,14 @@ $stmt->execute([
                             // Encode all uploaded document paths into a single JSON string
                             $documents_json = !empty($_SESSION['signup_data']['uploaded_documents']) ? json_encode($_SESSION['signup_data']['uploaded_documents']) : null;
 
-                 $stmt->execute([
-    $seller_id,
-    $_SESSION['signup_data']['business_name'],
-    $_SESSION['signup_data']['business_phone'],
-    $_SESSION['signup_data']['tax_id'],
-    $documents_json,
-    $_SESSION['signup_data']['selected_stall']
-]);
+                            $stmt->execute([
+                                $seller_id,
+                                $_SESSION['signup_data']['business_name'],
+                                $_SESSION['signup_data']['business_phone'],
+                                $_SESSION['signup_data']['tax_id'],
+                                $documents_json,
+                                $_SESSION['signup_data']['selected_stall']
+                            ]);
 
                             // Create stall application
                             $stmt = $pdo->prepare("
@@ -373,7 +373,10 @@ if ($step === 4) {
                                     placeholder="+63 912 345 6789">
                                 <small class="text-muted">We'll use this to contact you about your application</small>
                             </div>
-                            <div class="d-grid">
+                            <div class="d-flex justify-content-between">
+                                <a href="../authenticator.php" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Login
+                                </a>
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-arrow-right me-2"></i>Continue to Business Information
                                 </button>
