@@ -23,25 +23,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$username, $username]);
             $seller = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($seller && password_verify($password, $seller['password'])) {
-                // Check if account is approved
-                if ($seller['status'] !== 'approved') {
-                    $status_messages = [
-                        'pending' => 'Your account is pending approval. Please wait for admin review.',
-                        'rejected' => 'Your account application has been rejected. Please contact support.',
-                        'suspended' => 'Your account has been suspended. Please contact support.'
-                    ];
-                    $error = $status_messages[$seller['status']] ?? 'Your account is not active.';
-                } else {
-                    // Login successful - use consistent session variable names
-                    $_SESSION['seller_id'] = $seller['id'];
-                    $_SESSION['seller_username'] = $seller['username'];
-                    $_SESSION['seller_email'] = $seller['email'];
-                    
-                    header("Location: dashboard.php");
-                    exit();
-                }
-            } else {
+          if ($seller && password_verify($password, $seller['password'])) {
+    // Check if account is approved
+    if ($seller['status'] !== 'approved') {
+        $status_messages = [
+            'pending' => 'Your account is pending approval. Please wait for admin review.',
+            'rejected' => 'Your account application has been rejected. Please contact support.',
+            'suspended' => 'Your account has been suspended. Please contact support.'
+        ];
+        $error = $status_messages[$seller['status']] ?? 'Your account is not active.';
+    } else {
+        // ✅ Login successful — set all required session variables
+        $_SESSION['user_id'] = $seller['id'];
+        $_SESSION['is_seller'] = true;
+
+        $_SESSION['seller_id'] = $seller['id'];
+        $_SESSION['seller_username'] = $seller['username'];
+        $_SESSION['seller_email'] = $seller['email'];
+
+        header("Location: dashboard.php");
+        exit();
+    }
+}
+ else {
                 $error = "Invalid username or password.";
             }
         } catch (PDOException $e) {

@@ -2,644 +2,772 @@
 session_start();
 require_once '../includes/db_connect.php';
 
-// Check if user is logged in and is an admin
+// Check if admin is logged in - FIXED: Use same session variables as sidebar
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    header("Location: login.php");
+    header('Location: ../authenticator.php');
     exit();
 }
 
-// Admin approval process functions
-function approveSeller($seller_id, $pdo) {
-    try {
-        $pdo->beginTransaction();
-        
-        // Update seller status to approved
-        $stmt = $pdo->prepare("UPDATE sellers SET status = 'approved', is_active = 1 WHERE id = ?");
-        $stmt->execute([$seller_id]);
-        
-        // Update seller application status
-        $stmt = $pdo->prepare("UPDATE seller_applications SET status = 'approved' WHERE seller_id = ?");
-        $stmt->execute([$seller_id]);
-        
-        // Get stall application and approve it
-        $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ? AND status = 'pending'");
-        $stmt->execute([$seller_id]);
-        $stall_application = $stmt->fetch();
-        
-        if ($stall_application) {
-            // Update stall application status
-            $stmt = $pdo->prepare("UPDATE stall_applications SET status = 'approved' WHERE seller_id = ?");
-            $stmt->execute([$seller_id]);
-            
-            // Assign stall to seller
-            $stmt = $pdo->prepare("UPDATE stalls SET status = 'occupied', current_seller_id = ? WHERE id = ?");
-            $stmt->execute([$seller_id, $stall_application['stall_id']]);
-        }
-        
-        // Send notification to seller
-        $stmt = $pdo->prepare("
-            INSERT INTO notifications (recipient_type, recipient_id, title, message, link) 
-            VALUES ('seller', ?, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php')
-        ");
-        $stmt->execute([$seller_id]);
-        
-        $pdo->commit();
-        return true;
-        
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        error_log("Error approving seller: " . $e->getMessage());
-        return false;
-    }
-}
-
-// When admin rejects a seller application:
-function rejectSeller($seller_id, $pdo, $reason = '') {
-    try {
-        $pdo->beginTransaction();
-        
-        // Update seller status to rejected
-        $stmt = $pdo->prepare("UPDATE sellers SET status = 'rejected', is_active = 0 WHERE id = ?");
-        $stmt->execute([$seller_id]);
-        
-        // Update seller application status
-        $stmt = $pdo->prepare("UPDATE seller_applications SET status = 'rejected', admin_notes = ? WHERE seller_id = ?");
-        $stmt->execute([$reason, $seller_id]);
-        
-        // Free up the reserved stall
-        $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ? AND status = 'pending'");
-        $stmt->execute([$seller_id]);
-        $stall_application = $stmt->fetch();
-        
-        if ($stall_application) {
-            $stmt = $pdo->prepare("UPDATE stall_applications SET status = 'rejected' WHERE seller_id = ?");
-            $stmt->execute([$seller_id]);
-            
-            $stmt = $pdo->prepare("UPDATE stalls SET status = 'available', current_seller_id = NULL WHERE id = ?");
-            $stmt->execute([$stall_application['stall_id']]);
-        }
-        
-        // Send notification to seller
-        $message = "Your seller application has been reviewed. " . ($reason ? "Reason: $reason" : "Please check for more details.");
-        $stmt = $pdo->prepare("
-            INSERT INTO notifications (recipient_type, recipient_id, title, message, link) 
-            VALUES ('seller', ?, 'Application Status Update', ?, 'application_status.php')
-        ");
-        $stmt->execute([$seller_id, $message]);
-        
-        $pdo->commit();
-        return true;
-        
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        error_log("Error rejecting seller: " . $e->getMessage());
-        return false;
-    }
-}
-
-// Handle application approval/rejection via AJAX
-if (isset($_POST['ajax_action']) && isset($_POST['application_id'])) {
-    $application_id = $_POST['application_id'];
-    $action = $_POST['ajax_action'];
-    $admin_notes = $_POST['admin_notes'] ?? '';
-
-    if ($action == 'approve') {
-        // Get application details
-        $sql = "SELECT * FROM seller_applications WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$application_id]);
-        $application = $stmt->fetch();
-
-        if ($application) {
-            // Use the new approval function
-            if (approveSeller($application['seller_id'], $pdo)) {
-                // Update admin notes if provided
-                if ($admin_notes) {
-                    $update_sql = "UPDATE seller_applications SET admin_notes = ? WHERE id = ?";
-                    $stmt = $pdo->prepare($update_sql);
-                    $stmt->execute([$admin_notes, $application_id]);
-                }
-                echo json_encode(['success' => true, 'message' => 'Application approved successfully!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error approving application. Please try again.']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Application not found.']);
-        }
-    } elseif ($action == 'reject') {
-        // Get application details
-        $sql = "SELECT seller_id FROM seller_applications WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$application_id]);
-        $application = $stmt->fetch();
-        
-        if ($application) {
-            // Use the new rejection function
-            if (rejectSeller($application['seller_id'], $pdo, $admin_notes)) {
-                echo json_encode(['success' => true, 'message' => 'Application rejected successfully!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error rejecting application. Please try again.']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Application not found.']);
-        }
-    }
-    exit();
-}
-
-// Get application details for modal
-if (isset($_GET['get_application']) && isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
-                   st.stall_number, st.section, st.floor_number, st.monthly_rent
-            FROM seller_applications sa 
-            LEFT JOIN sellers s ON sa.seller_id = s.id 
-            LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
-            LEFT JOIN stalls st ON sta.stall_id = st.id
-            WHERE sa.id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$id]);
-    $application = $stmt->fetch(PDO::FETCH_ASSOC);
+// Handle status updates
+if ($_POST && isset($_POST['action'])) {
+    $seller_id = (int)$_POST['seller_id'];
+    $action = $_POST['action'];
     
-    if ($application) {
-        // Parse documents if they exist
-        if ($application['documents_submitted']) {
-            $documents = json_decode($application['documents_submitted'], true);
+    try {
+        if ($action === 'approve') {
+            $stmt = $pdo->prepare("UPDATE sellers SET status = 'approved' WHERE id = ?");
+            $stmt->execute([$seller_id]);
             
-            // Log for debugging
-            error_log("Raw documents: " . $application['documents_submitted']);
-            error_log("Decoded documents: " . print_r($documents, true));
+            // Add notification
+            $notification_stmt = $pdo->prepare("INSERT INTO notifications (recipient_type, recipient_id, title, message, link) VALUES ('seller', ?, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php')");
+            $notification_stmt->execute([$seller_id]);
             
-            if (json_last_error() === JSON_ERROR_NONE && $documents) {
-                $application['documents'] = $documents;
-            } else {
-                error_log("JSON decode error: " . json_last_error_msg());
-                $application['documents'] = [];
-            }
-        } else {
-            $application['documents'] = [];
+            $success_message = "Seller approved successfully!";
+        } elseif ($action === 'reject') {
+            $stmt = $pdo->prepare("UPDATE sellers SET status = 'rejected' WHERE id = ?");
+            $stmt->execute([$seller_id]);
+            
+            // Add notification
+            $notification_stmt = $pdo->prepare("INSERT INTO notifications (recipient_type, recipient_id, title, message, link) VALUES ('seller', ?, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php')");
+            $notification_stmt->execute([$seller_id]);
+            
+            $success_message = "Seller rejected successfully!";
+        } elseif ($action === 'suspend') {
+            $stmt = $pdo->prepare("UPDATE sellers SET status = 'suspended', is_active = 0 WHERE id = ?");
+            $stmt->execute([$seller_id]);
+            
+            $success_message = "Seller suspended successfully!";
+        } elseif ($action === 'activate') {
+            $stmt = $pdo->prepare("UPDATE sellers SET is_active = 1 WHERE id = ?");
+            $stmt->execute([$seller_id]);
+            
+            $success_message = "Seller activated successfully!";
+        } elseif ($action === 'deactivate') {
+            $stmt = $pdo->prepare("UPDATE sellers SET is_active = 0 WHERE id = ?");
+            $stmt->execute([$seller_id]);
+            
+            $success_message = "Seller deactivated successfully!";
         }
-        
-        echo json_encode($application);
-    } else {
-        echo json_encode(['error' => 'Application not found']);
+    } catch (PDOException $e) {
+        $error_message = "Error updating seller: " . $e->getMessage();
     }
-    exit();
 }
 
-// Count pending applications for notification badge
-$pending_count_sql = "SELECT COUNT(*) FROM seller_applications WHERE status = 'pending'";
-$pending_count = $pdo->query($pending_count_sql)->fetchColumn();
+// Get filter parameters
+$status_filter = $_GET['status'] ?? 'all';
+$search_query = $_GET['search'] ?? '';
+$sort_by = $_GET['sort'] ?? 'created_at';
+$sort_order = $_GET['order'] ?? 'DESC';
+
+// Build the query
+$where_conditions = [];
+$params = [];
+
+if ($status_filter !== 'all') {
+    $where_conditions[] = "s.status = ?";
+    $params[] = $status_filter;
+}
+
+if (!empty($search_query)) {
+    $where_conditions[] = "(s.username LIKE ? OR s.email LIKE ? OR s.first_name LIKE ? OR s.last_name LIKE ? OR sa.business_name LIKE ?)";
+    $search_param = "%{$search_query}%";
+    $params = array_merge($params, [$search_param, $search_param, $search_param, $search_param, $search_param]);
+}
+
+$where_clause = !empty($where_conditions) ? 'WHERE ' . implode(' AND ', $where_conditions) : '';
+
+// Valid sort columns
+$valid_sorts = ['created_at', 'username', 'status', 'first_name', 'last_name'];
+$sort_by = in_array($sort_by, $valid_sorts) ? $sort_by : 'created_at';
+$sort_order = in_array(strtoupper($sort_order), ['ASC', 'DESC']) ? strtoupper($sort_order) : 'DESC';
+
+$query = "
+    SELECT 
+        s.*,
+        sa.business_name,
+        sa.business_phone,
+        sa.selected_stall,
+        st.stall_number,
+        (SELECT COUNT(*) FROM products p WHERE p.seller_id = s.id) as product_count
+    FROM sellers s
+    LEFT JOIN seller_applications sa ON s.id = sa.seller_id
+    LEFT JOIN stalls st ON sa.selected_stall = st.stall_number
+    {$where_clause}
+    ORDER BY s.{$sort_by} {$sort_order}
+";
+
+$stmt = $pdo->prepare($query);
+$stmt->execute($params);
+$sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get statistics
+$stats_query = "
+    SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
+        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended,
+        SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
+    FROM sellers
+";
+$stats_stmt = $pdo->query($stats_query);
+$stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seller Applications - Admin Dashboard</title>
+    <title>Manage Sellers - Oroquieta Marketplace</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../assets/css/seller_applications.css">
-</head>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
 
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 10px;
+            }
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stats-row {
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.pending { border-left-color: var(--warning-color); }
+        .stat-card.approved { border-left-color: var(--success-color); }
+        .stat-card.rejected { border-left-color: var(--danger-color); }
+        .stat-card.suspended { border-left-color: #6c757d; }
+        .stat-card.active { border-left-color: var(--info-color); }
+
+        .filters-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .seller-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border-left: 4px solid #dee2e6;
+        }
+
+        .seller-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .seller-card.pending { border-left-color: var(--warning-color); }
+        .seller-card.approved { border-left-color: var(--success-color); }
+        .seller-card.rejected { border-left-color: var(--danger-color); }
+        .seller-card.suspended { border-left-color: #6c757d; }
+
+        .seller-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .seller-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .seller-info {
+            flex: 1;
+            margin-left: 1rem;
+        }
+
+        .seller-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .seller-email {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending { background-color: rgba(243, 156, 18, 0.1); color: var(--warning-color); }
+        .status-approved { background-color: rgba(39, 174, 96, 0.1); color: var(--success-color); }
+        .status-rejected { background-color: rgba(231, 76, 60, 0.1); color: var(--danger-color); }
+        .status-suspended { background-color: rgba(108, 117, 125, 0.1); color: #6c757d; }
+
+        .seller-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-approve {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            background-color: #219a52;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .btn-reject {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            background-color: #c0392b;
+            transform: translateY(-1px);
+        }
+
+        .btn-suspend {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-suspend:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-view {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: #138496;
+            transform: translateY(-1px);
+            color: white;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box .form-control {
+            padding-left: 2.5rem;
+            border-radius: 25px;
+            border: 2px solid #e9ecef;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            box-shadow: var(--card-shadow);
+        }
+
+        @media (max-width: 768px) {
+            .seller-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .seller-info {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+
+            .seller-details {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
 <body>
     <?php include 'sidebar.php'; ?>
 
     <div class="main-content">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center">
-                    <h1 class="h2 me-3">Seller Applications</h1>
-                    <?php if ($pending_count > 0): ?>
-                        <span class="notification-count"><?php echo $pending_count; ?></span>
-                    <?php endif; ?>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-users me-2"></i>Manage Sellers</h1>
+                    <p class="mb-0">Monitor and manage seller accounts and applications</p>
                 </div>
-            </div>
-
-            <div class="inbox-container">
-                <div class="inbox-header">
-                    <div class="inbox-filters">
-                        <button class="btn active" onclick="filterApplications('all', this)">
-                            <i class="bi bi-inbox"></i> All
-                        </button>
-                        <button class="btn" onclick="filterApplications('pending', this)">
-                            <i class="bi bi-clock"></i> Pending
-                            <?php if ($pending_count > 0): ?>
-                                <span class="notification-count"><?php echo $pending_count; ?></span>
-                            <?php endif; ?>
-                        </button>
-                        <button class="btn" onclick="filterApplications('approved', this)">
-                            <i class="bi bi-check-circle"></i> Approved
-                        </button>
-                        <button class="btn" onclick="filterApplications('rejected', this)">
-                            <i class="bi bi-x-circle"></i> Rejected
-                        </button>
-                    </div>
-                </div>
-
-                <div class="inbox-list" id="inboxList">
-                    <?php
-                    // Get all applications with seller status
-                    $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
-                                   st.stall_number, st.section, st.floor_number
-                            FROM seller_applications sa 
-                            LEFT JOIN sellers s ON sa.seller_id = s.id 
-                            LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
-                            LEFT JOIN stalls st ON sta.stall_id = st.id
-                            ORDER BY sa.created_at DESC";
-                    $stmt = $pdo->query($sql);
-
-                    if ($stmt->rowCount() > 0) {
-                        while ($row = $stmt->fetch()) {
-                            $is_new = (strtotime($row['created_at']) > strtotime('-24 hours'));
-                            $read_status = ($row['status'] == 'pending') ? 'unread' : 'read';
-                            
-                            $business_name = $row['business_name'] ?? $row['username'] ?? 'N/A';
-                            $owner_name = $row['bank_account_name'] ?? trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')) ?: $row['username'] ?? 'N/A';
-                            $email = $row['business_email'] ?? $row['seller_email'] ?? 'N/A';
-                            $phone = $row['business_phone'] ?? $row['phone'] ?? 'N/A';
-                            
-                            // Create preview text with seller status
-                            $preview_parts = [];
-                            if ($row['stall_number']) {
-                                $preview_parts[] = "Stall: {$row['stall_number']} ({$row['section']})";
-                            }
-                            $preview_parts[] = "Phone: {$phone}";
-                            if ($row['tax_id']) {
-                                $preview_parts[] = "Tax ID: {$row['tax_id']}";
-                            }
-                            if ($row['seller_status']) {
-                                $preview_parts[] = "Seller Status: " . ucfirst($row['seller_status']);
-                            }
-                            $preview_text = implode(' • ', $preview_parts);
-                            
-                            // Format timestamp
-                            $timestamp = date('M d', strtotime($row['created_at']));
-                            if (date('Y-m-d') == date('Y-m-d', strtotime($row['created_at']))) {
-                                $timestamp = date('g:i A', strtotime($row['created_at']));
-                            }
-                            
-                            echo "<div class='inbox-item {$read_status}' data-status='{$row['status']}' onclick='viewApplication({$row['id']})'>";
-                            echo "  <div class='status-dot {$row['status']}'></div>";
-                            echo "  <div class='sender-info'>";
-                            echo "    <div class='sender-name'>{$owner_name}";
-                            if ($is_new && $row['status'] == 'pending') {
-                                echo "<span class='new-badge'>NEW</span>";
-                            }
-                            echo "    </div>";
-                            echo "    <div class='sender-email'>{$email}</div>";
-                            echo "  </div>";
-                            echo "  <div class='subject-preview'>";
-                            echo "    <div class='subject'>Seller Application: {$business_name}</div>";
-                            echo "    <div class='preview-text'>{$preview_text}</div>";
-                            echo "  </div>";
-                            echo "  <div class='timestamp'>{$timestamp}</div>";
-                            echo "</div>";
-                        }
-                    } else {
-                        echo "<div class='empty-inbox'>";
-                        echo "  <i class='bi bi-inbox'></i>";
-                        echo "  <h4>No applications yet</h4>";
-                        echo "  <p>Seller applications will appear here when submitted.</p>";
-                        echo "</div>";
-                    }
-                    ?>
+                <div class="text-end">
+                    <h3 class="mb-0"><?php echo $stats['total']; ?></h3>
+                    <small>Total Sellers</small>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Application Details Modal -->
-    <div class="modal fade" id="applicationModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Application Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body" id="modalBody">
-                    <!-- Content will be loaded here -->
-                </div>
-                <div class="modal-footer" id="modalFooter">
-                    <!-- Action buttons will be loaded here -->
+        <?php if (isset($success_message)): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i><?php echo $success_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($error_message)): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i><?php echo $error_message; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Statistics Cards -->
+        <div class="row stats-row">
+            <div class="col-md-2">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['total']; ?></h3>
+                            <small class="text-muted">Total</small>
+                        </div>
+                        <i class="fas fa-users fa-2x text-primary"></i>
+                    </div>
                 </div>
             </div>
+            <div class="col-md-2">
+                <div class="stat-card pending">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['pending']; ?></h3>
+                            <small class="text-muted">Pending</small>
+                        </div>
+                        <i class="fas fa-clock fa-2x" style="color: var(--warning-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card approved">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['approved']; ?></h3>
+                            <small class="text-muted">Approved</small>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x" style="color: var(--success-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card rejected">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['rejected']; ?></h3>
+                            <small class="text-muted">Rejected</small>
+                        </div>
+                        <i class="fas fa-times-circle fa-2x" style="color: var(--danger-color);"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card suspended">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['suspended']; ?></h3>
+                            <small class="text-muted">Suspended</small>
+                        </div>
+                        <i class="fas fa-ban fa-2x text-secondary"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card active">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-0"><?php echo $stats['active']; ?></h3>
+                            <small class="text-muted">Active</small>
+                        </div>
+                        <i class="fas fa-user-check fa-2x" style="color: var(--info-color);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-card">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" name="search" 
+                               placeholder="Search sellers..." value="<?php echo htmlspecialchars($search_query); ?>">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="status">
+                        <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Status</option>
+                        <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="approved" <?php echo $status_filter === 'approved' ? 'selected' : ''; ?>>Approved</option>
+                        <option value="rejected" <?php echo $status_filter === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
+                        <option value="suspended" <?php echo $status_filter === 'suspended' ? 'selected' : ''; ?>>Suspended</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="sort">
+                        <option value="created_at" <?php echo $sort_by === 'created_at' ? 'selected' : ''; ?>>Date Created</option>
+                        <option value="username" <?php echo $sort_by === 'username' ? 'selected' : ''; ?>>Username</option>
+                        <option value="first_name" <?php echo $sort_by === 'first_name' ? 'selected' : ''; ?>>First Name</option>
+                        <option value="status" <?php echo $sort_by === 'status' ? 'selected' : ''; ?>>Status</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="order">
+                        <option value="DESC" <?php echo $sort_order === 'DESC' ? 'selected' : ''; ?>>Descending</option>
+                        <option value="ASC" <?php echo $sort_order === 'ASC' ? 'selected' : ''; ?>>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sellers List -->
+        <div class="sellers-container">
+            <?php if (empty($sellers)): ?>
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h3>No sellers found</h3>
+                    <p>No sellers match your current filters.</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($sellers as $seller): ?>
+                    <div class="seller-card <?php echo $seller['status']; ?>">
+                        <div class="seller-header">
+                            <div class="d-flex align-items-center flex-grow-1">
+                                <div class="seller-avatar">
+                                    <?php 
+                                    $initials = strtoupper(substr($seller['first_name'] ?: $seller['username'], 0, 1) . 
+                                               substr($seller['last_name'] ?: '', 0, 1));
+                                    echo $initials;
+                                    ?>
+                                </div>
+                                <div class="seller-info">
+                                    <h5 class="seller-name">
+                                        <?php echo htmlspecialchars($seller['first_name'] . ' ' . $seller['last_name']) ?: htmlspecialchars($seller['username']); ?>
+                                    </h5>
+                                    <p class="seller-email"><?php echo htmlspecialchars($seller['email']); ?></p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <?php if (!$seller['is_active']): ?>
+                                    <span class="badge bg-secondary">Inactive</span>
+                                <?php endif; ?>
+                                <span class="status-badge status-<?php echo $seller['status']; ?>">
+                                    <?php echo ucfirst($seller['status']); ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="seller-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Username</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($seller['username']); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Business Name</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($seller['business_name'] ?: 'N/A'); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Phone</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($seller['phone'] ?: 'N/A'); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Business Phone</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($seller['business_phone'] ?: 'N/A'); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Stall</span>
+                                <span class="detail-value"><?php echo htmlspecialchars($seller['selected_stall'] ?: 'Not assigned'); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Products</span>
+                                <span class="detail-value"><?php echo $seller['product_count']; ?> products</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Joined</span>
+                                <span class="detail-value"><?php echo date('M j, Y', strtotime($seller['created_at'])); ?></span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Facebook</span>
+                                <span class="detail-value">
+                                    <?php if ($seller['facebook_url']): ?>
+                                        <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank" class="text-primary">
+                                            <i class="fab fa-facebook me-1"></i>View Profile
+                                        </a>
+                                    <?php else: ?>
+                                        N/A
+                                    <?php endif; ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <?php if ($seller['status'] === 'pending'): ?>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Approve this seller?')">
+                                        <i class="fas fa-check"></i>Approve
+                                    </button>
+                                </form>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button type="submit" class="btn-action btn-reject" onclick="return confirm('Reject this seller?')">
+                                        <i class="fas fa-times"></i>Reject
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+
+                            <?php if ($seller['status'] === 'approved'): ?>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
+                                    <input type="hidden" name="action" value="suspend">
+                                    <button type="submit" class="btn-action btn-suspend" onclick="return confirm('Suspend this seller?')">
+                                        <i class="fas fa-ban"></i>Suspend
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+
+                            <?php if ($seller['is_active']): ?>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
+                                    <input type="hidden" name="action" value="deactivate">
+                                    <button type="submit" class="btn-action btn-suspend" onclick="return confirm('Deactivate this seller?')">
+                                        <i class="fas fa-user-slash"></i>Deactivate
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
+                                    <input type="hidden" name="action" value="activate">
+                                    <button type="submit" class="btn-action btn-approve" onclick="return confirm('Activate this seller?')">
+                                        <i class="fas fa-user-check"></i>Activate
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+
+                            <!-- FIXED: Changed from seller_details.php to view_seller.php and add proper onclick handler -->
+                            <button type="button" class="btn-action btn-view" onclick="viewSellerDetails(<?php echo $seller['id']; ?>)">
+                                <i class="fas fa-eye"></i>View Details
+                            </button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function filterApplications(status, buttonElement) {
-            const items = document.querySelectorAll('.inbox-item');
-            items.forEach(item => {
-                const itemStatus = item.dataset.status;
-                if (status === 'all' || itemStatus === status) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
+        // FIXED: Function to handle view seller details
+        function viewSellerDetails(sellerId) {
+            // You can either:
+            // 1. Redirect to a seller details page
+            window.location.href = 'view_seller.php?id=' + sellerId;
             
-            // Update active button state
-            document.querySelectorAll('.inbox-filters .btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            buttonElement.classList.add('active');
+            // 2. Or open in a new tab
+            // window.open('view_seller.php?id=' + sellerId, '_blank');
+            
+            // 3. Or show a modal with seller details (if you prefer)
+            // showSellerModal(sellerId);
         }
 
-        function viewApplication(id) {
-            const modalBody = document.getElementById('modalBody');
-            const modalFooter = document.getElementById('modalFooter');
-            
-            // Show loading state
-            modalBody.innerHTML = `
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading application details...</p>
-                </div>
-            `;
-            modalFooter.innerHTML = '';
-            
-            const modal = new bootstrap.Modal(document.getElementById('applicationModal'));
-            modal.show();
-            
-            // Fetch application details
-            fetch(`?get_application=1&id=${id}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Application data received:', data);
-                    
-                    if (data.error) {
-                        modalBody.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
-                        return;
-                    }
-                    
-                    // Build documents HTML
-                    let documentsHtml = '';
-                    
-                    // Check if documents exist and process them
-                    if (data.documents) {
-                        let hasDocuments = false;
-                        
-                        if (Array.isArray(data.documents)) {
-                            hasDocuments = data.documents.length > 0;
-                        } else if (typeof data.documents === 'object') {
-                            hasDocuments = Object.keys(data.documents).length > 0;
-                        }
-                        
-                        if (hasDocuments) {
-                            documentsHtml = '<div class="document-preview">';
-                            
-                            if (Array.isArray(data.documents)) {
-                                // Handle array format (old format)
-                                data.documents.forEach(doc => {
-                                    if (doc && doc.trim() !== '') {
-                                        const filename = doc.split('/').pop();
-                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-                                        
-                                        documentsHtml += `
-                                            <div class="document-item">
-                                                ${isImage ? 
-                                                    `<img src="../${doc}" alt="Document" class="img-thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                                     <i class="bi bi-file-earmark-text fs-1 text-muted" style="display:none;"></i>` : 
-                                                    `<i class="bi bi-file-earmark-text fs-1 text-muted"></i>`
-                                                }
-                                                <div class="flex-grow-1">
-                                                    <strong>${filename}</strong><br>
-                                                    <a href="../${doc}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                        <i class="bi bi-eye"></i> View Document
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }
-                                });
-                            } else {
-                                // Handle object format (new format)
-                                Object.entries(data.documents).forEach(([docType, docPath]) => {
-                                    if (docPath && docPath.trim() !== '') {
-                                        const filename = docPath.split('/').pop();
-                                        const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
-                                        
-                                        // Clean up document type name
-                                        let docLabel = docType.replace(/_/g, ' ').replace(/document/g, '').trim();
-                                        docLabel = docLabel.charAt(0).toUpperCase() + docLabel.slice(1);
-                                        if (docLabel === '') docLabel = 'Document';
-                                        
-                                        documentsHtml += `
-                                            <div class="document-item">
-                                                ${isImage ? 
-                                                    `<img src="../${docPath}" alt="Document" class="img-thumbnail" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                                                     <i class="bi bi-file-earmark-text fs-1 text-muted" style="display:none;"></i>` : 
-                                                    `<i class="bi bi-file-earmark-text fs-1 text-muted"></i>`
-                                                }
-                                                <div class="flex-grow-1">
-                                                    <strong>${docLabel}</strong><br>
-                                                    <small class="text-muted">${filename}</small><br>
-                                                    <a href="../${docPath}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                        <i class="bi bi-eye"></i> View Document
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }
-                                });
-                            }
-                            documentsHtml += '</div>';
-                        } else {
-                            documentsHtml = '<p class="text-muted">No documents submitted</p>';
-                        }
-                    } else {
-                        documentsHtml = '<p class="text-muted">No documents submitted</p>';
-                    }
-                    
-                    // Stall information
-                    let stallInfo = '';
-                    if (data.stall_number) {
-                        stallInfo = `
-                            <div class="stall-info">
-                                <h6><i class="bi bi-shop"></i> Requested Stall</h6>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>Stall Number:</strong> ${data.stall_number}</p>
-                                        <p><strong>Section:</strong> ${data.section}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Floor:</strong> ${data.floor_number}</p>
-                                        <p><strong>Monthly Rent:</strong> ₱${parseFloat(data.monthly_rent).toLocaleString()}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
-                    // Seller status badge
-                    const getStatusBadge = (status) => {
-                        const statusClasses = {
-                            'pending': 'bg-warning',
-                            'approved': 'bg-success',
-                            'rejected': 'bg-danger'
-                        };
-                        return `<span class="badge ${statusClasses[status] || 'bg-secondary'}">${status ? status.toUpperCase() : 'UNKNOWN'}</span>`;
-                    };
-                    
-                    modalBody.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Business Information</h6>
-                                <p><strong>Business Name:</strong> ${data.business_name || 'N/A'}</p>
-                                <p><strong>Business Address:</strong> ${data.business_address || 'N/A'}</p>
-                                <p><strong>Business Email:</strong> ${data.business_email || 'N/A'}</p>
-                                <p><strong>Business Phone:</strong> ${data.business_phone || 'N/A'}</p>
-                                <p><strong>Tax ID:</strong> ${data.tax_id || 'N/A'}</p>
-                                <p><strong>Registration Number:</strong> ${data.business_registration_number || 'N/A'}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Banking Information</h6>
-                                <p><strong>Account Name:</strong> ${data.bank_account_name || 'N/A'}</p>
-                                <p><strong>Account Number:</strong> ${data.bank_account_number || 'N/A'}</p>
-                                <p><strong>Bank Name:</strong> ${data.bank_name || 'N/A'}</p>
-                                
-                                <h6 class="mt-3">Seller Information</h6>
-                                <p><strong>Username:</strong> ${data.username || 'N/A'}</p>
-                                <p><strong>Name:</strong> ${(data.first_name || '') + ' ' + (data.last_name || '') || 'N/A'}</p>
-                                <p><strong>Email:</strong> ${data.seller_email || 'N/A'}</p>
-                                <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
-                                <p><strong>Account Status:</strong> ${getStatusBadge(data.seller_status)}</p>
-                            </div>
-                        </div>
-                        
-                        ${stallInfo}
-                        
-                        <div class="mt-3">
-                            <h6>Submitted Documents</h6>
-                            ${documentsHtml}
-                        </div>
-                        
-                        ${data.admin_notes ? `
-                            <div class="mt-3">
-                                <h6>Admin Notes</h6>
-                                <div class="alert alert-info">${data.admin_notes}</div>
-                            </div>
-                        ` : ''}
-                        
-                        <div class="mt-3">
-                            <small class="text-muted">
-                                <strong>Applied:</strong> ${new Date(data.created_at).toLocaleString()}<br>
-                                <strong>Application Status:</strong> ${getStatusBadge(data.status)}
-                            </small>
-                        </div>
-                    `;
-                    
-                    // Add action buttons for pending applications
-                    if (data.status === 'pending') {
-                        modalFooter.innerHTML = `
-                            <div class="w-100">
-                                <div class="mb-3">
-                                    <label for="adminNotes" class="form-label">Admin Notes (Optional)</label>
-                                    <textarea class="form-control" id="adminNotes" rows="2" placeholder="Add any notes about this decision..."></textarea>
-                                </div>
-                                <div class="d-flex justify-content-end gap-2">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-danger" onclick="processApplication(${id}, 'reject')">
-                                        <i class="bi bi-x-lg"></i> Reject
-                                    </button>
-                                    <button type="button" class="btn btn-success" onclick="processApplication(${id}, 'approve')">
-                                        <i class="bi bi-check-lg"></i> Approve
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        modalFooter.innerHTML = `
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        `;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    modalBody.innerHTML = '<div class="alert alert-danger">Error loading application details.</div>';
-                });
-        }
+        // Auto-hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
 
-        function processApplication(id, action) {
-            const adminNotes = document.getElementById('adminNotes')?.value || '';
-            const actionText = action === 'approve' ? 'approve' : 'reject';
-            
-            if (!confirm(`Are you sure you want to ${actionText} this application?`)) {
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('ajax_action', action);
-            formData.append('application_id', id);
-            formData.append('admin_notes', adminNotes);
-            
-            fetch('', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Close modal
-                    bootstrap.Modal.getInstance(document.getElementById('applicationModal')).hide();
+        // Add loading state to action buttons
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const button = this.querySelector('button[type="submit"]');
+                if (button) {
+                    button.disabled = true;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
                     
-                    // Show success message
-                    showToast(data.message, 'success');
-                    
-                    // Reload page to reflect changes
+                    // Re-enable after 3 seconds (in case of errors)
                     setTimeout(() => {
-                        location.reload();
-                    }, 1500);
-                } else {
-                    showToast(data.message || 'Error processing application', 'error');
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }, 3000);
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Error processing application', 'error');
+            });
+        });
+
+        // Search functionality with debounce
+        let searchTimeout;
+        const searchInput = document.querySelector('input[name="search"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    this.form.submit();
+                }, 500);
             });
         }
 
-        function showToast(message, type) {
-            // Create toast element
-            const toastHtml = `
-                <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="d-flex">
-                        <div class="toast-body">${message}</div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            `;
-            
-            // Add to toast container (create if doesn't exist)
-            let toastContainer = document.getElementById('toast-container');
-            if (!toastContainer) {
-                toastContainer = document.createElement('div');
-                toastContainer.id = 'toast-container';
-                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-                toastContainer.style.zIndex = '9999';
-                document.body.appendChild(toastContainer);
-            }
-            
-            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
-            
-            // Show toast element
-            const toastElement = toastContainer.lastElementChild;
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
-            
-            // Remove toast element after it's hidden
-            toastElement.addEventListener('hidden.bs.toast', () => {
-                toastElement.remove();
+        // Filter change auto-submit
+        document.querySelectorAll('select[name="status"], select[name="sort"], select[name="order"]').forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
             });
-        }
+        });
+
+        // FIXED: Prevent default form submission on enter key in search
+        document.querySelector('input[name="search"]').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
     </script>
 </body>
-
 </html>
