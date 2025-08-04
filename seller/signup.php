@@ -374,7 +374,7 @@ if ($step === 4) {
                                 <small class="text-muted">We'll use this to contact you about your application</small>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <a href="../authenticator.php" class="btn btn-secondary">
+                                <a href="login.php" class="btn btn-secondary">
                                     <i class="fas fa-arrow-left me-2"></i>Back to Login
                                 </a>
                                 <button type="submit" class="btn btn-primary btn-lg">
