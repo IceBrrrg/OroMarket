@@ -112,7 +112,8 @@ try {
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -123,17 +124,17 @@ try {
 
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
+            --primary: #ff6b35;
+            --primary-dark: #f7931e;
             --secondary: #64748b;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #06b6d4;
-            --light: #f8fafc;
-            --dark: #0f172a;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #2d3436;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
             --border: #e2e8f0;
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -148,77 +149,13 @@ try {
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #fff5f2 0%, #ffd4c2 100%);
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 280px;
-            background: linear-gradient(180deg, var(--dark) 0%, #1e293b 100%);
-            padding: 2rem 0;
-            z-index: 1000;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.3s ease;
-        }
 
-        .sidebar-brand {
-            padding: 0 2rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-brand h2 {
-            color: white;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            padding: 0 1rem;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .nav-link.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .nav-link i {
-            margin-right: 1rem;
-            font-size: 1.1rem;
-            width: 20px;
-        }
 
         /* Main Content */
         .main-content {
@@ -239,7 +176,7 @@ try {
             padding: 3rem 2rem;
             border-radius: var(--border-radius);
             margin-bottom: 2rem;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.2);
             position: relative;
             overflow: hidden;
         }
@@ -309,9 +246,17 @@ try {
             color: white;
         }
 
-        .card-icon.products { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); }
-        .card-icon.orders { background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%); }
-        .card-icon.revenue { background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%); }
+        .card-icon.products {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .card-icon.orders {
+            background: linear-gradient(135deg, var(--success) 0%, #219653 100%);
+        }
+
+        .card-icon.revenue {
+            background: linear-gradient(135deg, var(--warning) 0%, #f7931e 100%);
+        }
 
         .stat-number {
             font-size: 2.5rem;
@@ -327,7 +272,8 @@ try {
         }
 
         /* Quick Actions */
-        .quick-actions, .recent-activity {
+        .quick-actions,
+        .recent-activity {
             background: white;
             border-radius: var(--border-radius);
             padding: 2rem;
@@ -335,7 +281,8 @@ try {
             border: 1px solid var(--border);
         }
 
-        .quick-actions h4, .recent-activity h4 {
+        .quick-actions h4,
+        .recent-activity h4 {
             color: var(--text-primary);
             font-weight: 600;
             margin-bottom: 1.5rem;
@@ -437,7 +384,8 @@ try {
             margin-bottom: 0.5rem;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid var(--border);
             border-radius: var(--border-radius);
             padding: 0.75rem 1rem;
@@ -445,7 +393,8 @@ try {
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
         }
@@ -464,8 +413,15 @@ try {
 
         /* Animations */
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         @keyframes fadeInUp {
@@ -473,6 +429,7 @@ try {
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -483,8 +440,13 @@ try {
             animation: fadeInUp 0.6s ease-out;
         }
 
-        .dashboard-card:nth-child(2) { animation-delay: 0.1s; }
-        .dashboard-card:nth-child(3) { animation-delay: 0.2s; }
+        .dashboard-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .dashboard-card:nth-child(3) {
+            animation-delay: 0.2s;
+        }
 
         /* Success Message */
         .alert-success {
@@ -507,7 +469,9 @@ try {
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* Responsive */
@@ -534,63 +498,8 @@ try {
 </head>
 
 <body>
-    <!-- Modern Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <h2><i class="bi bi-shop"></i>ORO Market</h2>
-        </div>
-        
-        <ul class="sidebar-nav">
-            <li class="nav-item">
-                <a href="#" class="nav-link active">
-                    <i class="bi bi-grid-1x2"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Products</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" onclick="openAddProductModal()">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Product</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-cart-check"></i>
-                    <span>Orders</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-graph-up"></i>
-                    <span>Revenue</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-person"></i>
-                    <span>Profile</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
-                </a>
-            </li>
-            <li class="nav-item" style="margin-top: 2rem;">
-                <a href="#" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </div>
+    <?php include 'sidebar.php'; ?>
+    <?php include 'header.php'; ?>
 
     <div class="main-content">
         <div class="container-fluid">
@@ -617,35 +526,6 @@ try {
                     </div>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon orders">
-                                <i class="bi bi-cart"></i>
-                            </div>
-                            <div class="stat-number">0</div>
-                            <div class="stat-label">Total Orders</div>
-                            <a href="orders.php" class="btn btn-success">
-                                <i class="bi bi-eye me-2"></i>View Orders
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon revenue">
-                                <i class="bi bi-currency-dollar"></i>
-                            </div>
-                            <div class="stat-number">₱0.00</div>
-                            <div class="stat-label">Total Revenue</div>
-                            <a href="revenue.php" class="btn btn-warning">
-                                <i class="bi bi-graph-up me-2"></i>View Details
-                            </a>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Quick Actions & Recent Activity -->
@@ -672,15 +552,7 @@ try {
                                     <p class="text-muted mb-0">Edit, update, or remove your existing products</p>
                                 </a>
                             </div>
-                            <div class="col-md-6">
-                                <a href="#" class="action-btn">
-                                    <div class="action-icon">
-                                        <i class="bi bi-cart-check"></i>
-                                    </div>
-                                    <h5>Process Orders</h5>
-                                    <p class="text-muted mb-0">Review and fulfill customer orders efficiently</p>
-                                </a>
-                            </div>
+
                             <div class="col-md-6">
                                 <a href="#" class="action-btn">
                                     <div class="action-icon">
@@ -697,12 +569,13 @@ try {
                 <div class="col-lg-4">
                     <div class="recent-activity">
                         <h4><i class="bi bi-clock-history me-2"></i>Recent Activity</h4>
-                        
+
                         <div class="text-center py-4">
-                                <i class="bi bi-inbox" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                                <p class="text-muted mt-2">No recent activity</p>
-                                <p class="text-muted small">Start by adding some products!</p>
-                            </div>
+                            <i class="bi bi-inbox"
+                                style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                            <p class="text-muted mt-2">No recent activity</p>
+                            <p class="text-muted small">Start by adding some products!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -719,7 +592,8 @@ try {
                                         <i class="bi bi-camera"></i>
                                     </div>
                                     <h5>High-Quality Photos</h5>
-                                    <p class="text-muted mb-0">Use clear, well-lit images to showcase your products effectively</p>
+                                    <p class="text-muted mb-0">Use clear, well-lit images to showcase your products
+                                        effectively</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -728,7 +602,8 @@ try {
                                         <i class="bi bi-star"></i>
                                     </div>
                                     <h5>Detailed Descriptions</h5>
-                                    <p class="text-muted mb-0">Write comprehensive product descriptions to help customers decide</p>
+                                    <p class="text-muted mb-0">Write comprehensive product descriptions to help
+                                        customers decide</p>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -737,7 +612,8 @@ try {
                                         <i class="bi bi-lightning"></i>
                                     </div>
                                     <h5>Quick Response</h5>
-                                    <p class="text-muted mb-0">Respond to orders and inquiries promptly to build trust</p>
+                                    <p class="text-muted mb-0">Respond to orders and inquiries promptly to build trust
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -748,7 +624,8 @@ try {
     </div>
 
     <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -764,42 +641,50 @@ try {
                                 <label for="productName" class="form-label">Product Name *</label>
                                 <input type="text" class="form-control" id="productName" name="name" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productPrice" class="form-label">Price (₱) *</label>
-                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01"
+                                    min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productStock" class="form-label">Stock Quantity *</label>
-                                <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" required>
+                                <input type="number" class="form-control" id="productStock" name="stock_quantity"
+                                    min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="productSKU" name="sku" placeholder="e.g., PROD-001">
+                                <input type="text" class="form-control" id="productSKU" name="sku"
+                                    placeholder="e.g., PROD-001">
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productWeight" class="form-label">Weight (kg)</label>
-                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01" min="0">
+                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01"
+                                    min="0">
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label for="productDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
+                                <textarea class="form-control" id="productDescription" name="description" rows="4"
+                                    placeholder="Describe your product..."></textarea>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label for="productImages" class="form-label">Product Images</label>
-                                <input type="file" class="form-control" id="productImages" name="images[]" multiple accept="image/*">
-                                <small class="text-muted">You can select multiple images. First image will be the main product image.</small>
+                                <input type="file" class="form-control" id="productImages" name="images[]" multiple
+                                    accept="image/*">
+                                <small class="text-muted">You can select multiple images. First image will be the main
+                                    product image.</small>
                                 <div id="imagePreview" class="image-preview mt-2"></div>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="productFeatured" name="is_featured">
+                                    <input class="form-check-input" type="checkbox" id="productFeatured"
+                                        name="is_featured">
                                     <label class="form-check-label" for="productFeatured">
                                         Mark as Featured Product
                                     </label>
@@ -821,7 +706,7 @@ try {
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Global variables
         let products = [];
@@ -830,7 +715,7 @@ try {
         let totalRevenue = 0;
 
         // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             initializeDashboard();
             setupImagePreview();
         });
@@ -838,10 +723,10 @@ try {
         function initializeDashboard() {
             // Animate counter numbers
             animateCounters();
-            
+
             // Add hover effects to dashboard cards
             addCardHoverEffects();
-            
+
             // Setup notification system
             setupNotifications();
         }
@@ -852,7 +737,7 @@ try {
                 const target = parseInt(counter.innerText.replace(/[^\d]/g, '')) || 0;
                 const increment = target / 100;
                 let current = 0;
-                
+
                 if (target > 0) {
                     const timer = setInterval(() => {
                         current += increment;
@@ -860,7 +745,7 @@ try {
                             current = target;
                             clearInterval(timer);
                         }
-                        
+
                         if (counter.innerText.includes('₱')) {
                             counter.innerText = '₱' + Math.floor(current).toLocaleString() + '.00';
                         } else {
@@ -874,11 +759,11 @@ try {
         function addCardHoverEffects() {
             const dashboardCards = document.querySelectorAll('.dashboard-card');
             dashboardCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
+                card.addEventListener('mouseenter', function () {
                     this.style.transform = 'translateY(-8px) scale(1.02)';
                 });
-                
-                card.addEventListener('mouseleave', function() {
+
+                card.addEventListener('mouseleave', function () {
                     this.style.transform = 'translateY(0) scale(1)';
                 });
             });
@@ -886,7 +771,7 @@ try {
 
         function setupNotifications() {
             // Notification system for success messages
-            window.showNotification = function(message, type = 'success') {
+            window.showNotification = function (message, type = 'success') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
                 notification.style.cssText = `
@@ -902,9 +787,9 @@ try {
                     ${message}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 `;
-                
+
                 document.body.appendChild(notification);
-                
+
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.remove();
@@ -923,17 +808,17 @@ try {
             const imageInput = document.getElementById('productImages');
             const previewContainer = document.getElementById('imagePreview');
 
-            imageInput.addEventListener('change', function(e) {
+            imageInput.addEventListener('change', function (e) {
                 previewContainer.innerHTML = '';
                 const files = e.target.files;
 
                 if (files.length > 0) {
                     previewContainer.style.display = 'block';
-                    
+
                     Array.from(files).forEach((file, index) => {
                         if (file.type.startsWith('image/')) {
                             const reader = new FileReader();
-                            reader.onload = function(e) {
+                            reader.onload = function (e) {
                                 const imageContainer = document.createElement('div');
                                 imageContainer.className = 'col-md-3 mb-2';
                                 imageContainer.innerHTML = `
@@ -945,7 +830,7 @@ try {
                                         </button>
                                     </div>
                                 `;
-                                
+
                                 if (previewContainer.children.length === 0) {
                                     previewContainer.innerHTML = '<div class="row g-2"></div>';
                                 }
@@ -963,7 +848,7 @@ try {
         function removeImage(index) {
             const imageInput = document.getElementById('productImages');
             const files = Array.from(imageInput.files);
-            
+
             // Create new FileList without the removed file
             const dt = new DataTransfer();
             files.forEach((file, i) => {
@@ -971,7 +856,7 @@ try {
                     dt.items.add(file);
                 }
             });
-            
+
             imageInput.files = dt.files;
             imageInput.dispatchEvent(new Event('change'));
         }
@@ -981,11 +866,11 @@ try {
             const submitBtn = document.querySelector('.modal-footer .btn-primary');
             const spinner = submitBtn.querySelector('.loading-spinner');
             const btnText = submitBtn.querySelector('i');
-            
+
             // Validate required fields
             const requiredFields = form.querySelectorAll('[required]');
             let isValid = true;
-            
+
             requiredFields.forEach(field => {
                 if (!field.value.trim()) {
                     field.classList.add('is-invalid');
@@ -994,89 +879,89 @@ try {
                     field.classList.remove('is-invalid');
                 }
             });
-            
+
             // Additional validation
             const price = parseFloat(document.getElementById('productPrice').value);
             const stock = parseInt(document.getElementById('productStock').value);
-            
+
             if (price <= 0) {
                 document.getElementById('productPrice').classList.add('is-invalid');
                 isValid = false;
             }
-            
+
             if (stock < 0) {
                 document.getElementById('productStock').classList.add('is-invalid');
                 isValid = false;
             }
-            
+
             if (!isValid) {
                 showNotification('Please fill in all required fields with valid values.', 'danger');
                 return;
             }
-            
+
             // Show loading state
             spinner.style.display = 'inline-block';
             btnText.style.display = 'none';
             submitBtn.disabled = true;
-            
+
             // Prepare form data for submission
             const formData = new FormData(form);
-            
+
             // Make actual API call to save to database
             fetch('add_product_api.php', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Add to local products array
-                    products.push(data.product);
-                    
-                    // Update dashboard stats
-                    updateDashboardStats();
-                    
-                    // Close modal and reset form
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-                    modal.hide();
-                    form.reset();
-                    document.getElementById('imagePreview').style.display = 'none';
-                    
-                    // Show success message
-                    showNotification(data.message, 'success');
-                    
-                    // Add to recent activity
-                    addRecentActivity('product', data.product.name);
-                    
-                    // Optionally refresh the page to show updated data
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
-                    
-                } else {
-                    throw new Error(data.message || 'Failed to add product');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Error: ' + error.message, 'danger');
-            })
-            .finally(() => {
-                // Reset loading state
-                spinner.style.display = 'none';
-                btnText.style.display = 'inline';
-                submitBtn.disabled = false;
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Add to local products array
+                        products.push(data.product);
+
+                        // Update dashboard stats
+                        updateDashboardStats();
+
+                        // Close modal and reset form
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                        modal.hide();
+                        form.reset();
+                        document.getElementById('imagePreview').style.display = 'none';
+
+                        // Show success message
+                        showNotification(data.message, 'success');
+
+                        // Add to recent activity
+                        addRecentActivity('product', data.product.name);
+
+                        // Optionally refresh the page to show updated data
+                        setTimeout(() => {
+                            location.reload();
+                        }, 2000);
+
+                    } else {
+                        throw new Error(data.message || 'Failed to add product');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error: ' + error.message, 'danger');
+                })
+                .finally(() => {
+                    // Reset loading state
+                    spinner.style.display = 'none';
+                    btnText.style.display = 'inline';
+                    submitBtn.disabled = false;
+                });
         }
 
         function updateDashboardStats() {
             totalProducts = products.length;
-            
+
             // Update product count
             const productCounter = document.querySelector('.dashboard-card .stat-number');
             if (productCounter) {
@@ -1088,7 +973,7 @@ try {
             const current = parseInt(element.innerText) || 0;
             const increment = (target - current) / 20;
             let step = current;
-            
+
             const timer = setInterval(() => {
                 step += increment;
                 if ((increment > 0 && step >= target) || (increment < 0 && step <= target)) {
@@ -1102,11 +987,11 @@ try {
         function addRecentActivity(type, title) {
             const activityContainer = document.querySelector('.recent-activity');
             const emptyState = activityContainer.querySelector('.text-center');
-            
+
             if (emptyState) {
                 emptyState.remove();
             }
-            
+
             const activityItem = document.createElement('div');
             activityItem.className = 'activity-item';
             activityItem.innerHTML = `
@@ -1119,18 +1004,18 @@ try {
                             ${type === 'order' ? 'New Order: ' : 'Product Added: '}${title}
                         </h6>
                         <p class="text-muted mb-0">
-                            ${new Date().toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric',
-                                hour: 'numeric',
-                                minute: '2-digit'
-                            })}
+                            ${new Date().toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+            })}
                         </p>
                     </div>
                 </div>
             `;
-            
+
             // Insert at the beginning
             const firstActivity = activityContainer.querySelector('.activity-item');
             if (firstActivity) {
@@ -1138,7 +1023,7 @@ try {
             } else {
                 activityContainer.appendChild(activityItem);
             }
-            
+
             // Keep only the last 5 activities
             const activities = activityContainer.querySelectorAll('.activity-item');
             if (activities.length > 5) {
@@ -1235,7 +1120,7 @@ try {
         document.head.appendChild(style);
 
         // Auto-generate SKU based on product name
-        document.getElementById('productName').addEventListener('input', function(e) {
+        document.getElementById('productName').addEventListener('input', function (e) {
             const skuField = document.getElementById('productSKU');
             if (!skuField.value && e.target.value) {
                 const sku = e.target.value
@@ -1247,7 +1132,7 @@ try {
         });
 
         // Price formatting
-        document.getElementById('productPrice').addEventListener('blur', function(e) {
+        document.getElementById('productPrice').addEventListener('blur', function (e) {
             if (e.target.value) {
                 e.target.value = parseFloat(e.target.value).toFixed(2);
             }
@@ -1255,14 +1140,14 @@ try {
 
         // Add click effects to buttons
         document.querySelectorAll('.btn, .action-btn[href]').forEach(btn => {
-            btn.addEventListener('click', function(e) {
+            btn.addEventListener('click', function (e) {
                 // Create ripple effect
                 const ripple = document.createElement('span');
                 const rect = this.getBoundingClientRect();
                 const size = Math.max(rect.width, rect.height);
                 const x = e.clientX - rect.left - size / 2;
                 const y = e.clientY - rect.top - size / 2;
-                
+
                 ripple.style.cssText = `
                     position: absolute;
                     border-radius: 50%;
@@ -1275,11 +1160,11 @@ try {
                     top: ${y}px;
                     pointer-events: none;
                 `;
-                
+
                 this.style.position = 'relative';
                 this.style.overflow = 'hidden';
                 this.appendChild(ripple);
-                
+
                 setTimeout(() => {
                     if (ripple.parentNode) {
                         ripple.remove();
@@ -1289,13 +1174,13 @@ try {
         });
 
         // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             // Alt + N to open add product modal
             if (e.altKey && e.key === 'n') {
                 e.preventDefault();
                 openAddProductModal();
             }
-            
+
             // Escape to close modal
             if (e.key === 'Escape') {
                 const modal = document.querySelector('.modal.show');

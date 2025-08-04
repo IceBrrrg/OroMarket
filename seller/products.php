@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($result) {
                 $product_id = $pdo->lastInsertId();
-                
+
                 // Handle multiple image uploads
                 if (isset($_FILES['images']) && !empty($_FILES['images']['name'][0])) {
                     $upload_dir = '../uploads/products/';
@@ -65,12 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if ($_FILES['images']['error'][$i] == 0) {
                             $file_type = $_FILES['images']['type'][$i];
                             $file_size = $_FILES['images']['size'][$i];
-                            
+
                             if (in_array($file_type, $allowed_types) && $file_size <= $max_size) {
                                 $file_ext = pathinfo($_FILES['images']['name'][$i], PATHINFO_EXTENSION);
                                 $filename = 'product_' . $product_id . '_' . ($i + 1) . '_' . time() . '.' . $file_ext;
                                 $file_path = $upload_dir . $filename;
-                                
+
                                 if (move_uploaded_file($_FILES['images']['tmp_name'][$i], $file_path)) {
                                     // Insert image record
                                     $img_query = "INSERT INTO product_images (product_id, image_path, is_primary, display_order) VALUES (?, ?, ?, ?)";
@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Toggle Product Status
     elseif (isset($_POST['toggle_status'])) {
         $product_id = intval($_POST['product_id']);
-        
+
         // Verify product belongs to this seller and get current status
         $check_query = "SELECT is_active FROM products WHERE id = ? AND seller_id = ?";
         $check_stmt = $pdo->prepare($check_query);
@@ -240,7 +240,8 @@ $categories = $cat_stmt->fetchAll();
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
@@ -251,17 +252,17 @@ $categories = $cat_stmt->fetchAll();
 
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
+            --primary: #ff6b35;
+            --primary-dark: #f7931e;
             --secondary: #64748b;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #06b6d4;
-            --light: #f8fafc;
-            --dark: #0f172a;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #2d3436;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
             --border: #e2e8f0;
             --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -276,77 +277,13 @@ $categories = $cat_stmt->fetchAll();
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            background: linear-gradient(135deg, #fff5f2 0%, #ffd4c2 100%);
             color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 280px;
-            background: linear-gradient(180deg, var(--dark) 0%, #1e293b 100%);
-            padding: 2rem 0;
-            z-index: 1000;
-            box-shadow: var(--shadow-lg);
-            transition: all 0.3s ease;
-        }
 
-        .sidebar-brand {
-            padding: 0 2rem 2rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-brand h2 {
-            color: white;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            padding: 0 1rem;
-        }
-
-        .nav-item {
-            margin-bottom: 0.5rem;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.5rem;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            border-radius: var(--border-radius);
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        .nav-link.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
-        }
-
-        .nav-link i {
-            margin-right: 1rem;
-            font-size: 1.1rem;
-            width: 20px;
-        }
 
         /* Main Content */
         .main-content {
@@ -360,7 +297,7 @@ $categories = $cat_stmt->fetchAll();
             max-width: 1400px;
         }
 
-        /* Header */
+        /* Page Header */
         .page-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: white;
@@ -594,7 +531,8 @@ $categories = $cat_stmt->fetchAll();
             margin-bottom: 0.5rem;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid var(--border);
             border-radius: var(--border-radius);
             padding: 0.75rem 1rem;
@@ -602,7 +540,8 @@ $categories = $cat_stmt->fetchAll();
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
         }
@@ -663,8 +602,15 @@ $categories = $cat_stmt->fetchAll();
 
         /* Animations */
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         @keyframes fadeInUp {
@@ -672,6 +618,7 @@ $categories = $cat_stmt->fetchAll();
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -730,11 +677,6 @@ $categories = $cat_stmt->fetchAll();
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 260px;
-            }
-
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
@@ -748,63 +690,8 @@ $categories = $cat_stmt->fetchAll();
 </head>
 
 <body>
-    <!-- Modern Sidebar -->
-    <div class="sidebar">
-        <div class="sidebar-brand">
-            <h2><i class="bi bi-shop"></i>ORO Market</h2>
-        </div>
-        
-        <ul class="sidebar-nav">
-            <li class="nav-item">
-                <a href="dashboard.php" class="nav-link">
-                    <i class="bi bi-grid-1x2"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="products.php" class="nav-link active">
-                    <i class="bi bi-box-seam"></i>
-                    <span>Products</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link" onclick="openAddProductModal()">
-                    <i class="bi bi-plus-circle"></i>
-                    <span>Add Product</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="orders.php" class="nav-link">
-                    <i class="bi bi-cart-check"></i>
-                    <span>Orders</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="revenue.php" class="nav-link">
-                    <i class="bi bi-graph-up"></i>
-                    <span>Revenue</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="profile.php" class="nav-link">
-                    <i class="bi bi-person"></i>
-                    <span>Profile</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="settings.php" class="nav-link">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
-                </a>
-            </li>
-            <li class="nav-item" style="margin-top: 2rem;">
-                <a href="../logout.php" class="nav-link">
-                    <i class="bi bi-box-arrow-right"></i>
-                    <span>Logout</span>
-                </a>
-            </li>
-        </ul>
-    </div>
+    <?php include 'sidebar.php'; ?>
+    <?php include 'header.php'; ?>
 
     <div class="main-content">
         <div class="container-fluid">
@@ -813,7 +700,9 @@ $categories = $cat_stmt->fetchAll();
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h1><i class="bi bi-box-seam me-2"></i>Product Management</h1>
-                        <p>Manage your product inventory and listings for <?php echo htmlspecialchars($business_name); ?></p>
+                        <p>Manage your product inventory and listings for
+                            <?php echo htmlspecialchars($business_name); ?>
+                        </p>
                     </div>
                     <button class="btn btn-light btn-lg" onclick="openAddProductModal()">
                         <i class="bi bi-plus-circle me-2"></i>Add New Product
@@ -845,7 +734,11 @@ $categories = $cat_stmt->fetchAll();
                         <div class="stats-icon" style="background: var(--success);">
                             <i class="bi bi-check-circle"></i>
                         </div>
-                        <div class="stats-number"><?php echo count(array_filter($products, function($p) { return $p['is_active']; })); ?></div>
+                        <div class="stats-number">
+                            <?php echo count(array_filter($products, function ($p) {
+                                return $p['is_active'];
+                            })); ?>
+                        </div>
                         <div class="stats-label">Active Products</div>
                     </div>
                 </div>
@@ -854,7 +747,11 @@ $categories = $cat_stmt->fetchAll();
                         <div class="stats-icon" style="background: var(--warning);">
                             <i class="bi bi-star"></i>
                         </div>
-                        <div class="stats-number"><?php echo count(array_filter($products, function($p) { return $p['is_featured']; })); ?></div>
+                        <div class="stats-number">
+                            <?php echo count(array_filter($products, function ($p) {
+                                return $p['is_featured'];
+                            })); ?>
+                        </div>
                         <div class="stats-label">Featured Products</div>
                     </div>
                 </div>
@@ -880,8 +777,9 @@ $categories = $cat_stmt->fetchAll();
                                         <i class="bi bi-star-fill me-1"></i>Featured
                                     </div>
                                 <?php endif; ?>
-                                
-                                <div class="status-badge <?php echo $product['is_active'] ? 'badge-active' : 'badge-inactive'; ?>">
+
+                                <div
+                                    class="status-badge <?php echo $product['is_active'] ? 'badge-active' : 'badge-inactive'; ?>">
                                     <?php echo $product['is_active'] ? 'Active' : 'Inactive'; ?>
                                 </div>
 
@@ -898,9 +796,12 @@ $categories = $cat_stmt->fetchAll();
 
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
-                                    
+
                                     <?php if (!empty($product['description'])): ?>
-                                        <p class="card-text"><?php echo htmlspecialchars(substr($product['description'], 0, 100)); ?><?php echo strlen($product['description']) > 100 ? '...' : ''; ?></p>
+                                        <p class="card-text">
+                                            <?php echo htmlspecialchars(substr($product['description'], 0, 100)); ?>
+                                            <?php echo strlen($product['description']) > 100 ? '...' : ''; ?>
+                                        </p>
                                     <?php endif; ?>
 
                                     <div class="price-info">
@@ -917,13 +818,17 @@ $categories = $cat_stmt->fetchAll();
                                     </div>
 
                                     <div class="action-buttons">
-                                        <button class="btn-action btn-edit" onclick="editProduct(<?php echo $product['id']; ?>)">
+                                        <button class="btn-action btn-edit"
+                                            onclick="editProduct(<?php echo $product['id']; ?>)">
                                             <i class="bi bi-pencil me-1"></i>Edit
                                         </button>
-                                        <button class="btn-action btn-toggle" onclick="toggleProductStatus(<?php echo $product['id']; ?>, <?php echo $product['is_active'] ? 'false' : 'true'; ?>)">
-                                            <i class="bi bi-<?php echo $product['is_active'] ? 'eye-slash' : 'eye'; ?> me-1"></i><?php echo $product['is_active'] ? 'Hide' : 'Show'; ?>
+                                        <button class="btn-action btn-toggle"
+                                            onclick="toggleProductStatus(<?php echo $product['id']; ?>, <?php echo $product['is_active'] ? 'false' : 'true'; ?>)">
+                                            <i
+                                                class="bi bi-<?php echo $product['is_active'] ? 'eye-slash' : 'eye'; ?> me-1"></i><?php echo $product['is_active'] ? 'Hide' : 'Show'; ?>
                                         </button>
-                                        <button class="btn-action btn-delete" onclick="deleteProduct(<?php echo $product['id']; ?>, '<?php echo htmlspecialchars($product['name']); ?>')">
+                                        <button class="btn-action btn-delete"
+                                            onclick="deleteProduct(<?php echo $product['id']; ?>, '<?php echo htmlspecialchars($product['name']); ?>')">
                                             <i class="bi bi-trash me-1"></i>Delete
                                         </button>
                                     </div>
@@ -948,7 +853,8 @@ $categories = $cat_stmt->fetchAll();
     </div>
 
     <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -964,42 +870,50 @@ $categories = $cat_stmt->fetchAll();
                                 <label for="productName" class="form-label">Product Name *</label>
                                 <input type="text" class="form-control" id="productName" name="name" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productPrice" class="form-label">Price (₱) *</label>
-                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01"
+                                    min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productStock" class="form-label">Stock Quantity *</label>
-                                <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" required>
+                                <input type="number" class="form-control" id="productStock" name="stock_quantity"
+                                    min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="productSKU" name="sku" placeholder="e.g., PROD-001">
+                                <input type="text" class="form-control" id="productSKU" name="sku"
+                                    placeholder="e.g., PROD-001">
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="productWeight" class="form-label">Weight (kg)</label>
-                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01" min="0">
+                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01"
+                                    min="0">
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label for="productDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
+                                <textarea class="form-control" id="productDescription" name="description" rows="4"
+                                    placeholder="Describe your product..."></textarea>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label for="productImages" class="form-label">Product Images</label>
-                                <input type="file" class="form-control" id="productImages" name="images[]" multiple accept="image/*" onchange="previewImages(this)">
-                                <small class="text-muted">You can select multiple images. First image will be the main product image.</small>
+                                <input type="file" class="form-control" id="productImages" name="images[]" multiple
+                                    accept="image/*" onchange="previewImages(this)">
+                                <small class="text-muted">You can select multiple images. First image will be the main
+                                    product image.</small>
                                 <div id="imagePreview" class="image-preview mt-2"></div>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="productFeatured" name="is_featured">
+                                    <input class="form-check-input" type="checkbox" id="productFeatured"
+                                        name="is_featured">
                                     <label class="form-check-label" for="productFeatured">
                                         Mark as Featured Product
                                     </label>
@@ -1019,7 +933,8 @@ $categories = $cat_stmt->fetchAll();
     </div>
 
     <!-- Edit Product Modal -->
-    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1036,43 +951,50 @@ $categories = $cat_stmt->fetchAll();
                                 <label for="edit_productName" class="form-label">Product Name *</label>
                                 <input type="text" class="form-control" id="edit_productName" name="name" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="edit_productPrice" class="form-label">Price (₱) *</label>
-                                <input type="number" class="form-control" id="edit_productPrice" name="price" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="edit_productPrice" name="price"
+                                    step="0.01" min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="edit_productStock" class="form-label">Stock Quantity *</label>
-                                <input type="number" class="form-control" id="edit_productStock" name="stock_quantity" min="0" required>
+                                <input type="number" class="form-control" id="edit_productStock" name="stock_quantity"
+                                    min="0" required>
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="edit_productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="edit_productSKU" name="sku" placeholder="e.g., PROD-001">
+                                <input type="text" class="form-control" id="edit_productSKU" name="sku"
+                                    placeholder="e.g., PROD-001">
                             </div>
-                            
+
                             <div class="col-md-6">
                                 <label for="edit_productWeight" class="form-label">Weight (kg)</label>
-                                <input type="number" class="form-control" id="edit_productWeight" name="weight" step="0.01" min="0">
+                                <input type="number" class="form-control" id="edit_productWeight" name="weight"
+                                    step="0.01" min="0">
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label for="edit_productDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="edit_productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
+                                <textarea class="form-control" id="edit_productDescription" name="description" rows="4"
+                                    placeholder="Describe your product..."></textarea>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <label class="form-label">Current Images</label>
                                 <div id="currentImages" class="mb-2"></div>
                                 <label for="edit_productImages" class="form-label">Add New Images</label>
-                                <input type="file" class="form-control" id="edit_productImages" name="images[]" multiple accept="image/*">
+                                <input type="file" class="form-control" id="edit_productImages" name="images[]" multiple
+                                    accept="image/*">
                                 <small class="text-muted">Select new images to add to this product.</small>
                             </div>
-                            
+
                             <div class="col-md-12">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="edit_productFeatured" name="is_featured">
+                                    <input class="form-check-input" type="checkbox" id="edit_productFeatured"
+                                        name="is_featured">
                                     <label class="form-check-label" for="edit_productFeatured">
                                         Mark as Featured Product
                                     </label>
@@ -1104,7 +1026,7 @@ $categories = $cat_stmt->fetchAll();
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Modal Functions
         function openAddProductModal() {
@@ -1115,15 +1037,15 @@ $categories = $cat_stmt->fetchAll();
         function previewImages(input) {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = '';
-            
+
             if (input.files && input.files.length > 0) {
                 preview.style.display = 'block';
-                
+
                 for (let i = 0; i < input.files.length; i++) {
                     const file = input.files[i];
                     if (file.type.startsWith('image/')) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
+                        reader.onload = function (e) {
                             const div = document.createElement('div');
                             div.className = 'd-inline-block me-2 mb-2 position-relative';
                             div.innerHTML = `
@@ -1145,14 +1067,14 @@ $categories = $cat_stmt->fetchAll();
             const productCard = document.querySelector(`[onclick*="${productId}"]`).closest('.product-card');
             const productName = productCard.querySelector('.card-title').textContent;
             const productPrice = productCard.querySelector('.price').textContent.replace('₱', '').replace(',', '');
-            
+
             // For now, we'll use a simple approach - in a real app you'd fetch from server
             fetch(`get_product.php?id=${productId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         const product = data.product;
-                        
+
                         // Populate edit form
                         document.getElementById('edit_product_id').value = product.id;
                         document.getElementById('edit_productName').value = product.name;
@@ -1162,7 +1084,7 @@ $categories = $cat_stmt->fetchAll();
                         document.getElementById('edit_productWeight').value = product.weight || '';
                         document.getElementById('edit_productDescription').value = product.description || '';
                         document.getElementById('edit_productFeatured').checked = product.is_featured == 1;
-                        
+
                         // Show current images
                         const currentImagesDiv = document.getElementById('currentImages');
                         if (data.images && data.images.length > 0) {
@@ -1175,7 +1097,7 @@ $categories = $cat_stmt->fetchAll();
                         } else {
                             currentImagesDiv.innerHTML = '<p class="text-muted">No images uploaded</p>';
                         }
-                        
+
                         // Show modal
                         const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
                         modal.show();
@@ -1205,7 +1127,7 @@ $categories = $cat_stmt->fetchAll();
         }
 
         // Auto-generate SKU based on product name
-        document.getElementById('productName').addEventListener('input', function(e) {
+        document.getElementById('productName').addEventListener('input', function (e) {
             const skuField = document.getElementById('productSKU');
             if (!skuField.value && e.target.value) {
                 const sku = e.target.value
@@ -1217,26 +1139,26 @@ $categories = $cat_stmt->fetchAll();
         });
 
         // Price formatting
-        document.getElementById('productPrice').addEventListener('blur', function(e) {
+        document.getElementById('productPrice').addEventListener('blur', function (e) {
             if (e.target.value) {
                 e.target.value = parseFloat(e.target.value).toFixed(2);
             }
         });
 
-        document.getElementById('edit_productPrice').addEventListener('blur', function(e) {
+        document.getElementById('edit_productPrice').addEventListener('blur', function (e) {
             if (e.target.value) {
                 e.target.value = parseFloat(e.target.value).toFixed(2);
             }
         });
 
         // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             // Alt + N to open add product modal
             if (e.altKey && e.key === 'n') {
                 e.preventDefault();
                 openAddProductModal();
             }
-            
+
             // Escape to close modal
             if (e.key === 'Escape') {
                 const modal = document.querySelector('.modal.show');
@@ -1250,7 +1172,7 @@ $categories = $cat_stmt->fetchAll();
         });
 
         // Initialize tooltips and animations
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Animate product cards on load
             const cards = document.querySelectorAll('.product-card');
             cards.forEach((card, index) => {
