@@ -380,47 +380,47 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
             <h4 class="mb-3"><i class="fas fa-cogs me-2"></i>Actions</h4>
             <div class="d-flex gap-2 flex-wrap">
                 <?php if ($seller['status'] === 'pending'): ?>
-                    <form method="POST" action="manage_sellers.php" style="display: inline;">
+                    <form method="POST" action="manage_sellers.php" style="display: inline;" class="action-form">
                         <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
                         <input type="hidden" name="action" value="approve">
-                        <button type="submit" class="btn btn-success" onclick="return confirm('Approve this seller?')">
-                            <i class="fas fa-check me-1"></i>Approve Seller
-                        </button>
+                        <button type="button" class="btn btn-success action-confirm-btn" data-action="approve"
+                            data-label="Approve Seller" data-message="Are you sure you want to approve this seller?"> <i
+                                class="fas fa-check me-1"></i>Approve Seller </button>
                     </form>
-                    <form method="POST" action="manage_sellers.php" style="display: inline;">
+                    <form method="POST" action="manage_sellers.php" style="display: inline;" class="action-form">
                         <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
                         <input type="hidden" name="action" value="reject">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Reject this seller?')">
-                            <i class="fas fa-times me-1"></i>Reject Seller
-                        </button>
+                        <button type="button" class="btn btn-danger action-confirm-btn" data-action="reject"
+                            data-label="Reject Seller" data-message="Are you sure you want to reject this seller?"> <i
+                                class="fas fa-times me-1"></i>Reject Seller </button>
                     </form>
                 <?php endif; ?>
 
                 <?php if ($seller['status'] === 'approved'): ?>
-                    <form method="POST" action="manage_sellers.php" style="display: inline;">
+                    <form method="POST" action="manage_sellers.php" style="display: inline;" class="action-form">
                         <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
                         <input type="hidden" name="action" value="suspend">
-                        <button type="submit" class="btn btn-warning" onclick="return confirm('Suspend this seller?')">
-                            <i class="fas fa-ban me-1"></i>Suspend Seller
-                        </button>
+                        <button type="button" class="btn btn-warning action-confirm-btn" data-action="suspend"
+                            data-label="Suspend Seller" data-message="Are you sure you want to suspend this seller?"> <i
+                                class="fas fa-ban me-1"></i>Suspend Seller </button>
                     </form>
                 <?php endif; ?>
 
                 <?php if ($seller['is_active']): ?>
-                    <form method="POST" action="manage_sellers.php" style="display: inline;">
+                    <form method="POST" action="manage_sellers.php" style="display: inline;" class="action-form">
                         <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
                         <input type="hidden" name="action" value="deactivate">
-                        <button type="submit" class="btn btn-secondary" onclick="return confirm('Deactivate this seller?')">
-                            <i class="fas fa-user-slash me-1"></i>Deactivate
-                        </button>
+                        <button type="button" class="btn btn-secondary action-confirm-btn" data-action="deactivate"
+                            data-label="Deactivate Seller" data-message="Are you sure you want to deactivate this seller?">
+                            <i class="fas fa-user-slash me-1"></i>Deactivate </button>
                     </form>
                 <?php else: ?>
-                    <form method="POST" action="manage_sellers.php" style="display: inline;">
+                    <form method="POST" action="manage_sellers.php" style="display: inline;" class="action-form">
                         <input type="hidden" name="seller_id" value="<?php echo $seller['id']; ?>">
                         <input type="hidden" name="action" value="activate">
-                        <button type="submit" class="btn btn-success" onclick="return confirm('Activate this seller?')">
-                            <i class="fas fa-user-check me-1"></i>Activate
-                        </button>
+                        <button type="button" class="btn btn-success action-confirm-btn" data-action="activate"
+                            data-label="Activate Seller" data-message="Are you sure you want to activate this seller?"> <i
+                                class="fas fa-user-check me-1"></i>Activate </button>
                     </form>
                 <?php endif; ?>
 
@@ -431,7 +431,82 @@ $products = $products_stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- Modal for Action Confirmation -->
+    <div class="modal fade" id="actionConfirmModal" tabindex="-1" aria-labelledby="actionConfirmModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header" id="modalHeader">
+                    <h5 class="modal-title" id="actionConfirmModalLabel">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="actionConfirmMessage">Are you sure?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn" id="actionConfirmBtn">Yes, Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let formToSubmit = null;
+        document.querySelectorAll('.action-confirm-btn').forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                const form = btn.closest('form');
+                formToSubmit = form;
+                const label = btn.getAttribute('data-label') || 'Confirm Action';
+                const message = btn.getAttribute('data-message') || 'Are you sure?';
+                const action = btn.getAttribute('data-action') || '';
+
+                // Set modal content
+                document.getElementById('actionConfirmModalLabel').textContent = label;
+                document.getElementById('actionConfirmMessage').textContent = message;
+
+                // Reset modal colors to default
+                const modalHeader = document.getElementById('modalHeader');
+                const confirmBtn = document.getElementById('actionConfirmBtn');
+
+                modalHeader.className = 'modal-header';
+                confirmBtn.className = 'btn';
+
+                // Set colors based on action
+                switch (action) {
+                    case 'approve':
+                    case 'activate':
+                        modalHeader.classList.add('bg-success', 'text-white');
+                        confirmBtn.classList.add('btn-success');
+                        break;
+                    case 'reject':
+                        modalHeader.classList.add('bg-danger', 'text-white');
+                        confirmBtn.classList.add('btn-danger');
+                        break;
+                    case 'suspend':
+                        modalHeader.classList.add('bg-warning', 'text-dark');
+                        confirmBtn.classList.add('btn-warning');
+                        break;
+                    case 'deactivate':
+                        modalHeader.classList.add('bg-secondary', 'text-white');
+                        confirmBtn.classList.add('btn-secondary');
+                        break;
+                    default:
+                        modalHeader.classList.add('bg-primary', 'text-white');
+                        confirmBtn.classList.add('btn-primary');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('actionConfirmModal'));
+                modal.show();
+            });
+        });
+        document.getElementById('actionConfirmBtn').addEventListener('click', function () {
+            if (formToSubmit) {
+                formToSubmit.submit();
+            }
+        });
+    </script>
 </body>
 
 </html>
