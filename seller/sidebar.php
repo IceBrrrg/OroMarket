@@ -60,11 +60,68 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         transition: all 0.3s ease;
     }
 
+    .sidebar.collapsed {
+        width: 80px;
+    }
+
+    .sidebar.collapsed .nav-link span,
+    .sidebar.collapsed .sidebar-footer {
+        display: none;
+    }
+
+    .sidebar.collapsed .nav-link {
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .sidebar.collapsed .nav-link i {
+        margin: 0;
+        font-size: 1.3rem;
+    }
+
+    .sidebar.collapsed .sidebar-brand {
+        padding: 1rem 0.5rem;
+    }
+
+    .sidebar.collapsed .sidebar-brand img {
+        max-width: 60px;
+        padding: 8px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-sidebar {
+        position: absolute;
+        top: 1rem;
+        right: -15px;
+        width: 30px;
+        height: 30px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        color: var(--primary);
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1001;
+        transition: all 0.3s ease;
+    }
+
+    .toggle-sidebar:hover {
+        background: var(--light);
+        transform: scale(1.1);
+    }
+
     .sidebar-brand {
         padding: 0 2rem 2rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         margin-bottom: 2rem;
         text-align: center;
+        transition: all 0.3s ease;
     }
 
     .sidebar-brand img {
@@ -72,9 +129,11 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         height: auto;
         filter: brightness(1.1) contrast(1.2);
         background: rgba(255, 255, 255, 0.1);
-        padding: 10px;
+        padding: 12px;
         border-radius: 10px;
         backdrop-filter: blur(5px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .sidebar-nav {
@@ -127,6 +186,10 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         transition: all 0.3s ease;
     }
 
+    .sidebar.collapsed+.main-content {
+        margin-left: 80px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
         .sidebar {
@@ -142,7 +205,10 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
 </style>
 
 <!-- Modern Sidebar -->
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
+    <button class="toggle-sidebar" onclick="toggleSidebar()" title="Toggle Sidebar">
+        <i class="bi bi-chevron-left"></i>
+    </button>
     <div class="sidebar-brand">
         <img src="../assets/img/logo.png" alt="ORO Market Logo">
     </div>
@@ -188,4 +254,37 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
             window.location.href = 'products.php';
         }
     }
+
+    // Sidebar toggle functionality
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = sidebar.querySelector('.toggle-sidebar i');
+        sidebar.classList.toggle('collapsed');
+        document.body.classList.toggle('sidebar-collapsed');
+
+        // Change arrow direction
+        if (sidebar.classList.contains('collapsed')) {
+            toggleBtn.classList.remove('bi-chevron-left');
+            toggleBtn.classList.add('bi-chevron-right');
+            localStorage.setItem('sidebarState', 'collapsed');
+        } else {
+            toggleBtn.classList.remove('bi-chevron-right');
+            toggleBtn.classList.add('bi-chevron-left');
+            localStorage.setItem('sidebarState', 'expanded');
+        }
+    }
+
+    // Restore sidebar state on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = sidebar.querySelector('.toggle-sidebar i');
+        const sidebarState = localStorage.getItem('sidebarState');
+
+        if (sidebarState === 'collapsed') {
+            sidebar.classList.add('collapsed');
+            document.body.classList.add('sidebar-collapsed');
+            toggleBtn.classList.remove('bi-chevron-left');
+            toggleBtn.classList.add('bi-chevron-right');
+        }
+    });
 </script>

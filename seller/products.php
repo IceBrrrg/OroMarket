@@ -293,8 +293,13 @@ $categories = $cat_stmt->fetchAll();
             transition: all 0.3s ease;
         }
 
+        body.sidebar-collapsed .main-content {
+            margin-left: 80px;
+        }
+
         .container-fluid {
             max-width: 1400px;
+            transition: all 0.3s ease;
         }
 
         /* Page Header */

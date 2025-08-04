@@ -165,8 +165,13 @@ try {
             transition: all 0.3s ease;
         }
 
+        body.sidebar-collapsed .main-content {
+            margin-left: 80px;
+        }
+
         .container-fluid {
             max-width: 1400px;
+            transition: all 0.3s ease;
         }
 
         /* Welcome Header */
@@ -476,18 +481,17 @@ try {
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                width: 260px;
-            }
-
             .main-content {
                 margin-left: 0;
                 padding: 1rem;
             }
 
-            .welcome-header h1 {
-                font-size: 1.8rem;
+            body.sidebar-collapsed .main-content {
+                margin-left: 0;
+            }
+
+            .welcome-header {
+                padding: 2rem 1rem;
             }
 
             .stat-number {

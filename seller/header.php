@@ -39,6 +39,12 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         justify-content: space-between;
         padding: 0 2rem;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    /* Adjust header when sidebar is collapsed */
+    body.sidebar-collapsed .top-header {
+        left: 80px;
     }
 
     .header-left {
@@ -128,6 +134,10 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         .top-header {
             left: 0;
             padding: 0 1rem;
+        }
+
+        body.sidebar-collapsed .top-header {
+            left: 0;
         }
     }
 </style>
