@@ -104,10 +104,6 @@ $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $stats_query = "
     SELECT 
         COUNT(*) as total,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-        SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved,
-        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected,
-        SUM(CASE WHEN status = 'suspended' THEN 1 ELSE 0 END) as suspended,
         SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active
     FROM sellers
 ";
@@ -539,50 +535,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                     </div>
                 </div>
             </div>
-            <div class="col-md-2">
-                <div class="stat-card pending">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0"><?php echo $stats['pending']; ?></h3>
-                            <small class="text-muted">Pending</small>
-                        </div>
-                        <i class="fas fa-clock fa-2x" style="color: var(--warning-color);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stat-card approved">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0"><?php echo $stats['approved']; ?></h3>
-                            <small class="text-muted">Approved</small>
-                        </div>
-                        <i class="fas fa-check-circle fa-2x" style="color: var(--success-color);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stat-card rejected">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0"><?php echo $stats['rejected']; ?></h3>
-                            <small class="text-muted">Rejected</small>
-                        </div>
-                        <i class="fas fa-times-circle fa-2x" style="color: var(--danger-color);"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <div class="stat-card suspended">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h3 class="mb-0"><?php echo $stats['suspended']; ?></h3>
-                            <small class="text-muted">Suspended</small>
-                        </div>
-                        <i class="fas fa-ban fa-2x text-secondary"></i>
-                    </div>
-                </div>
-            </div>
+          
             <div class="col-md-2">
                 <div class="stat-card active">
                     <div class="d-flex justify-content-between align-items-center">
@@ -606,19 +559,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
                             value="<?php echo htmlspecialchars($search_query); ?>">
                     </div>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="status">
-                        <option value="all" <?php echo $status_filter === 'all' ? 'selected' : ''; ?>>All Status</option>
-                        <option value="pending" <?php echo $status_filter === 'pending' ? 'selected' : ''; ?>>Pending
-                        </option>
-                        <option value="approved" <?php echo $status_filter === 'approved' ? 'selected' : ''; ?>>Approved
-                        </option>
-                        <option value="rejected" <?php echo $status_filter === 'rejected' ? 'selected' : ''; ?>>Rejected
-                        </option>
-                        <option value="suspended" <?php echo $status_filter === 'suspended' ? 'selected' : ''; ?>>
-                            Suspended</option>
-                    </select>
-                </div>
+
                 <div class="col-md-2">
                     <select class="form-select" name="sort">
                         <option value="created_at" <?php echo $sort_by === 'created_at' ? 'selected' : ''; ?>>Date Created
@@ -775,7 +716,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
     <!-- Action Modals -->
     <!-- Approve Modal -->
     <div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="approveModalLabel">
@@ -805,7 +746,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
     <!-- Reject Modal -->
     <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title" id="rejectModalLabel">
@@ -834,7 +775,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
     <!-- Suspend Modal -->
     <div class="modal fade" id="suspendModal" tabindex="-1" aria-labelledby="suspendModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-warning text-dark">
                     <h5 class="modal-title" id="suspendModalLabel">
@@ -864,7 +805,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
     <!-- Deactivate Modal -->
     <div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-secondary text-white">
                     <h5 class="modal-title" id="deactivateModalLabel">
@@ -894,7 +835,7 @@ $stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
 
     <!-- Activate Modal -->
     <div class="modal fade" id="activateModal" tabindex="-1" aria-labelledby="activateModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title" id="activateModalLabel">

@@ -1,3 +1,7 @@
+<!-- Google Fonts for Sidebar Font Consistency -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
 <?php
 // Check if session is not already started
 if (session_status() === PHP_SESSION_NONE) {
@@ -52,7 +56,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <i class="bi bi-grid me-2"></i> Floorplan
                         </a>
                     </li>
-                    
+
                 </ul>
             </div>
         </li>
@@ -78,7 +82,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="sidebar-footer p-3 border-top border-secondary mt-auto">
         <div class="d-flex align-items-center">
             <div class="flex-shrink-0">
-                <i class="bi bi-person-circle fs-4"></i>
+                <?php if (isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                    <img src="../<?php echo htmlspecialchars($_SESSION['profile_image']); ?>" alt="Admin Profile"
+                        class="admin-profile-img"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+
+                <?php else: ?>
+                    <i class="bi bi-person-circle fs-4"></i>
+                <?php endif; ?>
             </div>
             <div class="flex-grow-1 ms-3">
                 <div class="fw-bold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
@@ -104,6 +115,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         padding-top: 0;
         background-color: #343a40;
         overflow-y: auto;
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 
     .sidebar .nav-link {
@@ -112,6 +124,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         padding: 0.5rem 1rem;
         color: rgba(255, 255, 255, 0.8);
         text-decoration: none;
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 
     .sidebar .nav-link:hover {
@@ -129,6 +142,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     .sidebar-footer {
         margin-top: auto;
         background-color: rgba(0, 0, 0, 0.2);
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 
     /* Ensure main content doesn't overlap with sidebar */
@@ -150,6 +164,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
     }
 
     /* Fix for the logo */
+    .sidebar-header {
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }
+
     .sidebar-header img {
         max-width: 100%;
         height: auto;
@@ -204,6 +222,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         transition: all 0.2s ease;
         text-decoration: none;
         display: block;
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 
     .sidebar .dropdown-item:hover {
@@ -372,6 +391,38 @@ $current_page = basename($_SERVER['PHP_SELF']);
         vertical-align: middle;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Admin profile image styling */
+    .admin-profile-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .admin-profile-img:hover {
+        border-color: rgba(255, 255, 255, 0.6);
+        transform: scale(1.05);
+    }
+
+    /* Ensure consistent font across all sidebar elements */
+    .sidebar * {
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    }
+
+    /* Override any inherited fonts from parent pages */
+    .sidebar,
+    .sidebar *,
+    .sidebar .nav-link,
+    .sidebar .dropdown-item,
+    .sidebar .dropdown-toggle,
+    .sidebar .sidebar-footer,
+    .sidebar .sidebar-header,
+    .sidebar .btn {
+        font-family: 'Open Sans', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
     }
 </style>
 

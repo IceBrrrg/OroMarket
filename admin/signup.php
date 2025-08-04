@@ -69,10 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert new admin user
             $stmt = $pdo->prepare("
-                INSERT INTO admins (username, password, email, full_name, is_active, created_at) 
-                VALUES (?, ?, ?, ?, TRUE, NOW())
+                INSERT INTO admins (username, password, email, first_name, last_name, phone, profile_image, is_active, created_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, TRUE, NOW())
             ");
-            $stmt->execute([$username, $hashed_password, $email, $full_name]);
+            $stmt->execute([$username, $hashed_password, $email, $first_name, $last_name, $phone, $profile_image]);
 
             $success = "Admin user created successfully!";
 

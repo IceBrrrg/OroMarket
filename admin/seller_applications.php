@@ -645,20 +645,13 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                     modalBody.innerHTML = `
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Business Information</h6>
-                                <p><strong>Business Name:</strong> ${data.business_name || 'N/A'}</p>
-                                <p><strong>Business Address:</strong> ${data.business_address || 'N/A'}</p>
-                                <p><strong>Business Email:</strong> ${data.business_email || 'N/A'}</p>
-                                <p><strong>Business Phone:</strong> ${data.business_phone || 'N/A'}</p>
+                                <h6>Stall Information</h6>
+                                <p><strong>Store Name:</strong> ${data.business_name || 'N/A'}</p>
+                                <p><strong>Business Phone Number:</strong> ${data.business_phone || 'N/A'}</p>
                                 <p><strong>Tax ID:</strong> ${data.tax_id || 'N/A'}</p>
                                 <p><strong>Registration Number:</strong> ${data.business_registration_number || 'N/A'}</p>
                             </div>
                             <div class="col-md-6">
-                                <h6>Banking Information</h6>
-                                <p><strong>Account Name:</strong> ${data.bank_account_name || 'N/A'}</p>
-                                <p><strong>Account Number:</strong> ${data.bank_account_number || 'N/A'}</p>
-                                <p><strong>Bank Name:</strong> ${data.bank_name || 'N/A'}</p>
-                                
                                 <h6 class="mt-3">Seller Information</h6>
                                 <p><strong>Username:</strong> ${data.username || 'N/A'}</p>
                                 <p><strong>Name:</strong> ${(data.first_name || '') + ' ' + (data.last_name || '') || 'N/A'}</p>

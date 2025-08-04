@@ -47,7 +47,7 @@
             <div class="d-flex justify-content-between">
                 <div class="top-info ps-2">
                     <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#"
-                            class="text-white"></a></small>
+                            class="text-white">Barrientos St, Oroquieta City, Misamis Occidental</a></small>
                 </div>
                 <div class="top-link pe-2">
                     <a href="#" class="text-white"><small class="text-white mx-2">Privacy Policy</small>/</a>
@@ -277,7 +277,8 @@
                     <div class="d-flex flex-column text-start footer-item">
                         <h4 class="text-light mb-3">Quick Links</h4>
                         <a class="btn-link" href="seller/signup.php">Become a Seller</a>
-                        <a class="btn-link" href="seller/login.php">Seller Login</a>
+                        <a class="btn-link" href="seller/login.php">Seller Portal</a>
+                        <a class="btn-link" href="admin/login.php">Admin Portal</a>
                         <a class="btn-link" href="customer/index.php">View the Market</a>
                         <a class="btn-link" href="#help">Help Center</a>
                     </div>
