@@ -13,7 +13,7 @@ $price_min = isset($_GET['price_min']) ? floatval($_GET['price_min']) : 0;
 $price_max = isset($_GET['price_max']) ? floatval($_GET['price_max']) : 999999;
 
 // Build query for products
-$where_conditions = ["p.status = 'approved'"];
+$where_conditions = ["p.is_active = 1"]; // Changed from p.status = 'approved' to p.is_active = 1
 $params = [];
 
 if (!empty($search)) {
@@ -39,10 +39,12 @@ if ($price_max < 999999) {
 
 $where_clause = implode(" AND ", $where_conditions);
 
-$query = "SELECT p.*, c.name as category_name, s.shop_name 
+$query = "SELECT p.*, c.name as category_name, 
+          COALESCE(sa.business_name, CONCAT(s.first_name, ' ', s.last_name), 'Unknown Seller') as shop_name 
           FROM products p 
           LEFT JOIN categories c ON p.category_id = c.id 
           LEFT JOIN sellers s ON p.seller_id = s.id 
+          LEFT JOIN seller_applications sa ON s.id = sa.seller_id AND sa.status = 'approved'
           WHERE $where_clause 
           ORDER BY p.created_at DESC";
 
