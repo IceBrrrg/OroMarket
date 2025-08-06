@@ -37,6 +37,35 @@ session_start();
     <link href="../assets/css/style.css" rel="stylesheet">
     <link href="../assets/img/logo-removebg.png" rel="icon">
     <link rel="stylesheet" href="css/index.css">
+
+    <style>
+        .navbar .nav-link {
+            color: #81c408;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .nav-link:hover {
+            color: #45a049;
+        }
+
+        .navbar .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .navbar .d-flex {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .navbar .nav-link {
+                margin: 5px 10px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -74,6 +103,12 @@ session_start();
                     <div class="navbar-nav mx-auto">
                     </div>
                     <div class="d-flex m-3 me-0">
+                        <a href="../index.php" class="nav-link me-4">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                        <a href="../customer/index.php" class="nav-link me-4">
+                            <i class="fas fa-shopping-basket me-1"></i>Market
+                        </a>
                         <a href="../authenticator.php" class="my-auto">
                             <i class="fas fa-solid fa-bell fa-2x"></i>
                         </a>

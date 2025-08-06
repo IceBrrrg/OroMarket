@@ -32,10 +32,6 @@ require_once 'header.php';
                 <div class="section-header">
                     <h2>Categories</h2>
                     <div class="controls">
-                        <button class="filter-btn">
-                            <i class="fas fa-filter"></i>
-                            Filter
-                        </button>
                         <div class="nav-arrows">
                             <button class="arrow-btn prev"><i class="fas fa-chevron-left"></i></button>
                             <button class="arrow-btn next"><i class="fas fa-chevron-right"></i></button>

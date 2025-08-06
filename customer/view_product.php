@@ -57,10 +57,87 @@ require_once 'header.php';
                                 <span class="label">Condition:</span>
                                 <span class="value">New</span>
                             </div>
+                            <div class="meta-item">
+                                <span class="label">Delivery:</span>
+                                <span class="value">
+                                    <i class="fas fa-truck text-success me-1"></i>
+                                    Available
+                                </span>
+                            </div>
                         </div>
                         <button class="btn btn-success message-vendor-btn">
                             <i class="fas fa-envelope me-2"></i>Message Vendor
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Products Section -->
+        <div class="related-products mt-5">
+            <h2 class="mb-4">Similar Products from Other Sellers</h2>
+            <div class="related-products-grid">
+                <!-- Related Product Card 1 -->
+                <div class="related-product-card">
+                    <div class="product-image">
+                        <img src="../assets/img/fruite-item-2.jpg" alt="Related Product">
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">Similar Product 1</h3>
+                        <div class="product-price">₱850.00</div>
+                        <div class="seller-info">
+                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                            <span class="seller-name">Another Store</span>
+                        </div>
+                        <button class="btn custom-btn w-100">View Product</button>
+                    </div>
+                </div>
+
+                <!-- Related Product Card 2 -->
+                <div class="related-product-card">
+                    <div class="product-image">
+                        <img src="../assets/img/fruite-item-3.jpg" alt="Related Product">
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">Similar Product 2</h3>
+                        <div class="product-price">₱920.00</div>
+                        <div class="seller-info">
+                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                            <span class="seller-name">Fresh Market</span>
+                        </div>
+                        <button class="btn custom-btn w-100">View Product</button>
+                    </div>
+                </div>
+
+                <!-- Related Product Card 3 -->
+                <div class="related-product-card">
+                    <div class="product-image">
+                        <img src="../assets/img/fruite-item-4.jpg" alt="Related Product">
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">Similar Product 3</h3>
+                        <div class="product-price">₱780.00</div>
+                        <div class="seller-info">
+                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                            <span class="seller-name">Organic Shop</span>
+                        </div>
+                        <button class="btn custom-btn w-100">View Product</button>
+                    </div>
+                </div>
+
+                <!-- Related Product Card 4 -->
+                <div class="related-product-card">
+                    <div class="product-image">
+                        <img src="../assets/img/fruite-item-5.jpg" alt="Related Product">
+                    </div>
+                    <div class="product-details">
+                        <h3 class="product-name">Similar Product 4</h3>
+                        <div class="product-price">₱890.00</div>
+                        <div class="seller-info">
+                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                            <span class="seller-name">Green Market</span>
+                        </div>
+                        <button class="btn custom-btn w-100">View Product</button>
                     </div>
                 </div>
             </div>

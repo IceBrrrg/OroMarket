@@ -1,6 +1,6 @@
 <!-- Left Sidebar -->
 <div class="sidebar">
-    <h4 class="sidebar-title">Filter & Categories</h4>
+    <h4 class="sidebar-title">Filter Options</h4>
 
     <!-- Search Bar -->
     <div class="search-bar">
