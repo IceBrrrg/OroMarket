@@ -1,10 +1,9 @@
--- 5th edit by Earl
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 04, 2025 at 01:57 PM
+-- Generation Time: Aug 06, 2025 at 10:18 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -58,6 +57,7 @@ INSERT INTO `admins` (`id`, `username`, `email`, `password`, `first_name`, `last
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `icon` varchar(10) DEFAULT NULL COMMENT 'Emoji or icon character',
   `description` text DEFAULT NULL,
   `parent_id` int(11) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
@@ -65,6 +65,19 @@ CREATE TABLE `categories` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `icon`, `description`, `parent_id`, `image`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'Fruits', NULL, 'Fresh and organic fruits', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(2, 'Bread', NULL, 'Fresh baked bread and bakery items', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(3, 'Vegetable', NULL, 'Fresh vegetables and greens', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(4, 'Fish', NULL, 'Fresh fish and seafood', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(5, 'Meat', NULL, 'Quality meat products', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(6, 'Drinks', NULL, 'Beverages and refreshments', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
+(7, 'Sea Food', NULL, 'Fresh seafood and marine products', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51');
 
 -- --------------------------------------------------------
 
@@ -139,14 +152,20 @@ CREATE TABLE `products` (
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
   `stock_quantity` int(11) NOT NULL DEFAULT 0,
-  `sku` varchar(50) DEFAULT NULL,
   `weight` decimal(10,2) DEFAULT NULL,
-  `dimensions` varchar(50) DEFAULT NULL,
   `is_featured` tinyint(1) DEFAULT 0,
   `is_active` tinyint(1) DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `products`
+--
+
+INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `stock_quantity`, `weight`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
+(5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
+(6, 20, 6, 'coca cola', 'fresh cocalcila', 50.00, 45, 0.00, 0, 1, '2025-08-06 07:29:08', '2025-08-06 07:29:08');
 
 -- --------------------------------------------------------
 
@@ -176,6 +195,14 @@ CREATE TABLE `product_images` (
   `display_order` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `product_images`
+--
+
+INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_primary`, `display_order`, `created_at`) VALUES
+(1, 5, 'uploads/products/product_5_1754310786_0.jpeg', 1, 0, '2025-08-04 12:33:06'),
+(2, 6, 'uploads/products/product_6_1754465348_0.jpg', 1, 0, '2025-08-06 07:29:08');
 
 -- --------------------------------------------------------
 
@@ -420,7 +447,6 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sku` (`sku`),
   ADD KEY `idx_products_seller_id` (`seller_id`),
   ADD KEY `idx_products_category_id` (`category_id`);
 
@@ -488,7 +514,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -506,7 +532,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `product_attributes`
@@ -518,7 +544,7 @@ ALTER TABLE `product_attributes`
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `sellers`

@@ -1161,3 +1161,234 @@ body {
     0% { left: -100%; }
     100% { left: 100%; }
 }
+
+/* Additional styles for new features */
+
+/* Category active state */
+.category-item.active {
+    background: linear-gradient(135deg, #52c41a, #45a820);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3);
+}
+
+/* Loading and error states */
+.loading-state,
+.error-state,
+.no-products {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    min-height: 300px;
+}
+
+.loading-spinner {
+    font-size: 2rem;
+    color: #52c41a;
+    margin-bottom: 1rem;
+}
+
+.error-state i {
+    font-size: 3rem;
+    color: #ff4d4f;
+    margin-bottom: 1rem;
+}
+
+.no-products-content i {
+    font-size: 3rem;
+    color: #d9d9d9;
+    margin-bottom: 1rem;
+}
+
+.loading-state p,
+.error-state p,
+.no-products-content p {
+    color: #666;
+    margin: 0.5rem 0;
+}
+
+.error-state button {
+    background: #52c41a;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.error-state button:hover {
+    background: #45a820;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 1000;
+    animation: slideInRight 0.3s ease;
+    max-width: 300px;
+}
+
+.notification-success {
+    border-left: 4px solid #52c41a;
+}
+
+.notification-error {
+    border-left: 4px solid #ff4d4f;
+}
+
+.notification-info {
+    border-left: 4px solid #1890ff;
+}
+
+.notification i {
+    font-size: 1.2rem;
+}
+
+.notification-success i {
+    color: #52c41a;
+}
+
+.notification-error i {
+    color: #ff4d4f;
+}
+
+.notification-info i {
+    color: #1890ff;
+}
+
+.notification button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    color: #999;
+}
+
+.notification button:hover {
+    color: #666;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Product badges */
+.featured-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+.low-stock-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ff4d4f, #cf1322);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+/* Stock info */
+.stock-info {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.stock-count {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.stock-count::before {
+    content: '📦';
+    font-size: 0.9rem;
+}
+
+/* Product meta */
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0.5rem 0;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.seller-name {
+    color: #52c41a;
+    font-weight: 500;
+}
+
+.product-weight {
+    background: #f0f0f0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+}
+
+/* Disabled button state */
+.add-btn.disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.add-btn.disabled:hover {
+    background: #d9d9d9;
+    transform: none;
+}
+
+/* Category count */
+.category-item small {
+    display: block;
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 0.2rem;
+}
+
+/* No sellers state */
+.no-sellers {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.no-sellers p {
+    margin: 0;
+    font-style: italic;
+}
+

@@ -88,7 +88,7 @@ function getAllProducts($pdo) {
             LEFT JOIN sellers s ON p.seller_id = s.id
             LEFT JOIN categories c ON p.category_id = c.id
             LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
-            WHERE p.is_active = 1 AND s.status = 'approved'
+            WHERE p.is_active = 1 AND s.status = 'approved' AND p.stock_quantity > 0
             ORDER BY p.is_featured DESC, p.created_at DESC
             LIMIT :limit OFFSET :offset";
     
