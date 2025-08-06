@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 06, 2025 at 10:18 AM
+-- Generation Time: Aug 06, 2025 at 04:16 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -105,7 +105,8 @@ INSERT INTO `notifications` (`id`, `recipient_type`, `recipient_id`, `title`, `m
 (2, 'seller', 4, 'Application Status Update', 'Your seller application has been reviewed. Please check for more details.', 'application_status.php', 0, '2025-08-01 12:19:40'),
 (3, 'seller', 20, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-01 15:20:38'),
 (4, 'seller', 21, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-02 13:42:53'),
-(5, 'seller', 22, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php', 0, '2025-08-02 14:13:34');
+(5, 'seller', 22, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php', 0, '2025-08-02 14:13:34'),
+(6, 'seller', 23, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-06 12:28:36');
 
 -- --------------------------------------------------------
 
@@ -165,7 +166,9 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `stock_quantity`, `weight`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
 (5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
-(6, 20, 6, 'coca cola', 'fresh cocalcila', 50.00, 45, 0.00, 0, 1, '2025-08-06 07:29:08', '2025-08-06 07:29:08');
+(6, 20, 6, 'coca cola', 'fresh cocalcila', 50.00, 45, 0.00, 0, 1, '2025-08-06 07:29:08', '2025-08-06 07:29:08'),
+(7, 20, 1, 'calamansi', 'sweet calamansi', 50.00, 500, 100.00, 0, 1, '2025-08-06 12:07:22', '2025-08-06 12:07:22'),
+(8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43');
 
 -- --------------------------------------------------------
 
@@ -202,7 +205,9 @@ CREATE TABLE `product_images` (
 
 INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_primary`, `display_order`, `created_at`) VALUES
 (1, 5, 'uploads/products/product_5_1754310786_0.jpeg', 1, 0, '2025-08-04 12:33:06'),
-(2, 6, 'uploads/products/product_6_1754465348_0.jpg', 1, 0, '2025-08-06 07:29:08');
+(2, 6, 'uploads/products/product_6_1754465348_0.jpg', 1, 0, '2025-08-06 07:29:08'),
+(3, 7, 'uploads/products/product_7_1754482042_0.jpg', 1, 0, '2025-08-06 12:07:22'),
+(4, 8, 'uploads/products/product_8_1754483443_0.jpeg', 1, 0, '2025-08-06 12:30:43');
 
 -- --------------------------------------------------------
 
@@ -240,7 +245,8 @@ INSERT INTO `sellers` (`id`, `username`, `email`, `password`, `first_name`, `las
 (19, 'COMLABb5', 'banawaearllawwwrence8333@gmail.com', '$2y$10$gzz5nIAdj0wdR04sQd8YX.h.ClGByiubXdsle1VMXatxvXELJrKBC', 'qwerty', 'dwad', '123456789', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'pending', '2025-08-01 14:05:45', '2025-08-01 14:05:45'),
 (20, 'batman', 'dc@comics.com', '$2y$10$UvxiJfeBnp82.UFez7dWU.lQzuPk80SpbuegKOtzpYF2AfFW5xGXS', 'batman', 'dc@comics.com', '123456', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 1, 'approved', '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (21, 'superman', 'superdc@comics.com', '$2y$10$Ja88JUjliZ0WjRfKfyAEkuHkMsPyjMl4alB342ZaUjCHUGNcFYRMe', 'superman', 'superman', '123456789', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 1, 'approved', '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
-(22, 'cyborg', 'cyborgdc@comics.com', '$2y$10$IlM6bRw04Pp9uWl/K6AwgOl9yBqiNmq52TOxZ0h38oFpOv5CSo4aS', 'batman', 'superman', '123123123', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 0, 'rejected', '2025-08-02 14:13:15', '2025-08-02 14:13:34');
+(22, 'cyborg', 'cyborgdc@comics.com', '$2y$10$IlM6bRw04Pp9uWl/K6AwgOl9yBqiNmq52TOxZ0h38oFpOv5CSo4aS', 'batman', 'superman', '123123123', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 0, 'rejected', '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
+(23, '0xletuss', 'yamiyuhiko@gmail.com', '$2y$10$dk0N6PKA2IKV6BNJwt1dr.qftO/.GCXNPyF9UuZE2C.2XFhxv/XIO', 'letuss', 'smits', '12312312', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'approved', '2025-08-06 12:27:50', '2025-08-06 12:28:36');
 
 -- --------------------------------------------------------
 
@@ -275,7 +281,8 @@ INSERT INTO `seller_applications` (`id`, `seller_id`, `business_name`, `business
 (7, 19, 'comics', '13212313', '12312313', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688cc9b740c91.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688cc9b741353.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688cc9b741832.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688cc9b741dee.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688cc9b742210.jpeg\"}', 'T2', 'approved', NULL, '2025-08-01 14:05:45', '2025-08-01 14:07:16'),
 (8, 20, 'dc', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688cd84f09114.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688cd84f09f5a.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688cd84f0a75f.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688cd84f0ab31.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688cd84f0ae81.jpeg\"}', 'T8', 'approved', NULL, '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (9, 21, 'dc', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e15ae3e4f4.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e15ae3f533.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e15ae3fc85.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e15ae40564.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e15ae40bf3.jpeg\"}', 'R3', 'approved', NULL, '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
-(10, 22, 'cyborg meatshop', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e1cf8952e2.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e1cf89615c.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e1cf8968a5.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e1cf896c59.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e1cf897c21.jpeg\"}', 'M6', 'rejected', '', '2025-08-02 14:13:15', '2025-08-02 14:13:34');
+(10, 22, 'cyborg meatshop', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e1cf8952e2.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e1cf89615c.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e1cf8968a5.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e1cf896c59.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e1cf897c21.jpeg\"}', 'M6', 'rejected', '', '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
+(11, 23, 'fish mart', '123456', '123456', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_68934a42f0014.jpg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_68934a42f0dc3.jpg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_68934a42f1188.jpg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_68934a42f14a6.jpg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_68934a42f183f.jpg\"}', 'M7', 'approved', NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
 
 -- --------------------------------------------------------
 
@@ -359,7 +366,7 @@ INSERT INTO `stalls` (`id`, `stall_number`, `floor_number`, `section`, `size`, `
 (54, 'M4', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (55, 'M5', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (56, 'M6', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-08-02 14:13:34'),
-(57, 'M7', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
+(57, 'M7', 1, 'Meat Section', 8.00, 3000.00, 'occupied', 23, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-08-06 12:28:36'),
 (58, 'M8', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (59, 'M9', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-08-02 14:17:00'),
 (60, 'M10', 1, 'Meat Section', 8.00, 3000.00, 'available', NULL, 'Meat vendor stall with refrigeration', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
@@ -401,7 +408,8 @@ INSERT INTO `stall_applications` (`id`, `stall_id`, `seller_id`, `application_da
 (6, 2, 19, '2025-08-01 14:05:45', 'pending', NULL, NULL, NULL, '2025-08-01 14:05:45', '2025-08-01 14:05:45'),
 (7, 8, 20, '2025-08-01 15:08:04', 'approved', NULL, NULL, NULL, '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (8, 31, 21, '2025-08-02 13:42:09', 'approved', NULL, NULL, NULL, '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
-(9, 56, 22, '2025-08-02 14:13:15', 'rejected', NULL, NULL, NULL, '2025-08-02 14:13:15', '2025-08-02 14:13:34');
+(9, 56, 22, '2025-08-02 14:13:15', 'rejected', NULL, NULL, NULL, '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
+(10, 57, 23, '2025-08-06 12:27:50', 'approved', NULL, NULL, NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
 
 --
 -- Indexes for dumped tables
@@ -520,7 +528,7 @@ ALTER TABLE `categories`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -532,7 +540,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `product_attributes`
@@ -544,19 +552,19 @@ ALTER TABLE `product_attributes`
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `sellers`
 --
 ALTER TABLE `sellers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `seller_applications`
 --
 ALTER TABLE `seller_applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `stalls`
@@ -568,7 +576,7 @@ ALTER TABLE `stalls`
 -- AUTO_INCREMENT for table `stall_applications`
 --
 ALTER TABLE `stall_applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Constraints for dumped tables
