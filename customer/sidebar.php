@@ -74,25 +74,6 @@
         </select>
     </div>
 
-    <!-- Rating Filter -->
-    <div class="filter-section">
-        <h5>Rating</h5>
-        <div class="filter-options">
-            <div class="filter-option">
-                <input type="checkbox" id="rating5" value="5">
-                <label for="rating5">⭐⭐⭐⭐⭐ 5 Stars</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="rating4" value="4">
-                <label for="rating4">⭐⭐⭐⭐ 4+ Stars</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="rating3" value="3">
-                <label for="rating3">⭐⭐⭐ 3+ Stars</label>
-            </div>
-        </div>
-    </div>
-
     <!-- Availability Filter -->
     <div class="filter-section">
         <h5>Availability</h5>

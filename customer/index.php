@@ -72,18 +72,6 @@ require_once 'header.php';
                         <div class="category-icon">🦐</div>
                         <span>Sea Food</span>
                     </div>
-                    <div class="category-item">
-                        <div class="category-icon">🍦</div>
-                        <span>Ice cream</span>
-                    </div>
-                    <div class="category-item">
-                        <div class="category-icon">🥤</div>
-                        <span>Juice</span>
-                    </div>
-                    <div class="category-item">
-                        <div class="category-icon">🍯</div>
-                        <span>Jam</span>
-                    </div>
                 </div>
             </section>
 
@@ -94,7 +82,7 @@ require_once 'header.php';
                     <!-- Popular Products -->
                     <section class="popular-products">
                         <div class="section-header">
-                            <h2>Popular Products</h2>
+                            <h2>All Products</h2>
                             <a href="#" class="view-more">View More</a>
                         </div>
 
@@ -103,43 +91,91 @@ require_once 'header.php';
                         </div>
                     </section>
 
-                    <!-- Discount Shop -->
-                    <section class="discount-shop">
+                    <!-- All Sellers -->
+                    <section class="all-sellers">
                         <div class="section-header">
-                            <h2>Discount Shop</h2>
-                            <a href="#" class="view-more">View More</a>
+                            <h2>Our Sellers</h2>
+                            <a href="#" class="view-more">View All Sellers</a>
                         </div>
 
-                        <div class="discount-grid">
-                            <div class="discount-card green">
-                                <div class="discount-content">
-                                    <h3>35% Discount</h3>
-                                    <p>Order any food from app and get the discount.</p>
-                                    <button class="shop-now-btn">Shop Now</button>
+                        <div class="sellers-grid">
+                            <div class="seller-card">
+                                <div class="seller-banner"></div>
+                                <div class="seller-info">
+                                    <div class="seller-logo">
+                                        <img src="../assets/img/avatar.jpg" alt="Seller Logo">
+                                    </div>
+                                    <h3>Fresh Market Store</h3>
+                                    <p>Fresh fruits and vegetables</p>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                        <span>(4.5)</span>
+                                    </div>
+                                    <button class="btn visit-store-btn">Visit Store</button>
                                 </div>
                             </div>
 
-                            <div class="discount-card blue">
-                                <div class="discount-content">
-                                    <h3>20% Discount</h3>
-                                    <p>Order any food from app and get the discount.</p>
-                                    <button class="shop-now-btn">Shop Now</button>
+                            <div class="seller-card">
+                                <div class="seller-banner"></div>
+                                <div class="seller-info">
+                                    <div class="seller-logo">
+                                        <img src="../assets/img/avatar.jpg" alt="Seller Logo">
+                                    </div>
+                                    <h3>Organic Farm</h3>
+                                    <p>100% Organic Products</p>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <span>(5.0)</span>
+                                    </div>
+                                    <button class="btn visit-store-btn">Visit Store</button>
                                 </div>
                             </div>
 
-                            <div class="discount-card teal">
-                                <div class="discount-content">
-                                    <h3>20% Discount</h3>
-                                    <p>Order any food from app and get the discount.</p>
-                                    <button class="shop-now-btn">Shop Now</button>
+                            <div class="seller-card">
+                                <div class="seller-banner"></div>
+                                <div class="seller-info">
+                                    <div class="seller-logo">
+                                        <img src="../assets/img/avatar.jpg" alt="Seller Logo">
+                                    </div>
+                                    <h3>Local Fishery</h3>
+                                    <p>Fresh Seafood Daily</p>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="far fa-star"></i>
+                                        <span>(4.0)</span>
+                                    </div>
+                                    <button class="btn visit-store-btn">Visit Store</button>
                                 </div>
                             </div>
 
-                            <div class="discount-card lime">
-                                <div class="discount-content">
-                                    <h3>10% Discount</h3>
-                                    <p>Order any food from app and get the discount.</p>
-                                    <button class="shop-now-btn">Shop Now</button>
+                            <div class="seller-card">
+                                <div class="seller-banner"></div>
+                                <div class="seller-info">
+                                    <div class="seller-logo">
+                                        <img src="../assets/img/avatar.jpg" alt="Seller Logo">
+                                    </div>
+                                    <h3>Butcher Shop</h3>
+                                    <p>Premium Quality Meats</p>
+                                    <div class="seller-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star-half-alt"></i>
+                                        <span>(4.7)</span>
+                                    </div>
+                                    <button class="btn visit-store-btn">Visit Store</button>
                                 </div>
                             </div>
                         </div>
@@ -178,7 +214,7 @@ require_once 'header.php';
                 <!-- Right Column -->
                 <div class="right-column">
                     <section class="last-order">
-                        <h2>Last Order</h2>
+                        <h2>Most Viewed</h2>
 
                         <div class="order-items">
                             <div class="order-item">
