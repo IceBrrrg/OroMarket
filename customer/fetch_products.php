@@ -268,16 +268,32 @@ function formatPrice($price) {
 }
 
 function getProductImageUrl($image_path) {
-    if ($image_path && file_exists($image_path)) {
-        return $image_path;
+    if ($image_path) {
+        // Check if the path is relative to root (starts with uploads/)
+        if (strpos($image_path, 'uploads/') === 0) {
+            // Use absolute path from web root (starts with /)
+            $web_path = '/' . $image_path;
+            
+            // Check if the file exists in the filesystem
+            $file_path = __DIR__ . '/../' . $image_path;
+            if (file_exists($file_path)) {
+                return $web_path;
+            }
+        } else {
+            // If it's already a full path or URL, use it as is
+            if (file_exists($image_path)) {
+                return $image_path;
+            }
+        }
     }
+    
     // Return default images based on common product types
     $default_images = [
-        'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=150&h=100&fit=crop', // Apple
-        'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=150&h=100&fit=crop', // Strawberry
-        'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=150&h=100&fit=crop', // Orange
-        'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=150&h=100&fit=crop', // Broccoli
-        'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=150&h=100&fit=crop'  // Cabbage
+        'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=200&h=200&fit=crop', // Apple
+        'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=200&h=200&fit=crop', // Strawberry
+        'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=200&h=200&fit=crop', // Orange
+        'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=200&h=200&fit=crop', // Broccoli
+        'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=200&h=200&fit=crop'  // Cabbage
     ];
     return $default_images[array_rand($default_images)];
 }
