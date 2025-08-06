@@ -72,18 +72,7 @@ require_once 'header.php';
                         <div class="category-icon">🦐</div>
                         <span>Sea Food</span>
                     </div>
-                    <div class="category-item">
-                        <div class="category-icon">🍦</div>
-                        <span>Ice cream</span>
-                    </div>
-                    <div class="category-item">
-                        <div class="category-icon">🥤</div>
-                        <span>Juice</span>
-                    </div>
-                    <div class="category-item">
-                        <div class="category-icon">🍯</div>
-                        <span>Jam</span>
-                    </div>
+                   
                 </div>
             </section>
 

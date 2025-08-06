@@ -628,85 +628,200 @@ try {
     </div>
 
     <!-- Add Product Modal -->
-    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addProductModalLabel">
-                        <i class="bi bi-plus-circle me-2"></i>Add New Product
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="addProductForm">
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label for="productName" class="form-label">Product Name *</label>
-                                <input type="text" class="form-control" id="productName" name="name" required>
-                            </div>
+    <!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProductModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Product
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="productName" class="form-label">Product Name *</label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label for="productPrice" class="form-label">Price (₱) *</label>
-                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01"
-                                    min="0" required>
-                            </div>
+                        <div class="col-md-4">
+                            <label for="productCategory" class="form-label">Category *</label>
+                            <select class="form-select" id="productCategory" name="category_id" required>
+                                <option value="">Select Category</option>
+                                <?php foreach ($categories as $category): ?>
+                                    <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label for="productStock" class="form-label">Stock Quantity *</label>
-                                <input type="number" class="form-control" id="productStock" name="stock_quantity"
-                                    min="0" required>
-                            </div>
+                        <div class="col-md-6">
+                            <label for="productPrice" class="form-label">Price (₱) *</label>
+                            <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label for="productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="productSKU" name="sku"
-                                    placeholder="e.g., PROD-001">
-                            </div>
+                        <div class="col-md-6">
+                            <label for="productStock" class="form-label">Stock Quantity *</label>
+                            <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" required>
+                        </div>
 
-                            <div class="col-md-6">
-                                <label for="productWeight" class="form-label">Weight (kg)</label>
-                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01"
-                                    min="0">
-                            </div>
+                        <div class="col-md-6">
+                            <label for="productWeight" class="form-label">Weight (kg)</label>
+                            <input type="number" class="form-control" id="productWeight" name="weight" step="0.01" min="0" placeholder="0.00">
+                        </div>
 
-                            <div class="col-md-12">
-                                <label for="productDescription" class="form-label">Description</label>
-                                <textarea class="form-control" id="productDescription" name="description" rows="4"
-                                    placeholder="Describe your product..."></textarea>
-                            </div>
-
-                            <div class="col-md-12">
-                                <label for="productImages" class="form-label">Product Images</label>
-                                <input type="file" class="form-control" id="productImages" name="images[]" multiple
-                                    accept="image/*">
-                                <small class="text-muted">You can select multiple images. First image will be the main
-                                    product image.</small>
-                                <div id="imagePreview" class="image-preview mt-2"></div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="productFeatured"
-                                        name="is_featured">
-                                    <label class="form-check-label" for="productFeatured">
-                                        Mark as Featured Product
-                                    </label>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-4 pt-2">
+                                <input class="form-check-input" type="checkbox" id="productFeatured" name="is_featured">
+                                <label class="form-check-label" for="productFeatured">
+                                    Mark as Featured Product
+                                </label>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="submitProduct()">
-                        <span class="loading-spinner"></span>
-                        <i class="bi bi-plus-circle me-2"></i>Add Product
-                    </button>
-                </div>
+
+                        <div class="col-md-12">
+                            <label for="productDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label for="productImages" class="form-label">Product Images</label>
+                            <input type="file" class="form-control" id="productImages" name="images[]" multiple accept="image/*">
+                            <small class="text-muted">You can select multiple images. First image will be the main product image.</small>
+                            <div id="imagePreview" class="image-preview mt-2"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitProduct()">
+                    <span class="loading-spinner"></span>
+                    <i class="bi bi-plus-circle me-2"></i>Add Product
+                </button>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+// Updated submitProduct function with category validation
+function submitProduct() {
+    const form = document.getElementById('addProductForm');
+    const submitBtn = document.querySelector('.modal-footer .btn-primary');
+    const spinner = submitBtn.querySelector('.loading-spinner');
+    const btnText = submitBtn.querySelector('i');
+
+    // Validate required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+
+    // Additional validation
+    const price = parseFloat(document.getElementById('productPrice').value);
+    const stock = parseInt(document.getElementById('productStock').value);
+    const categoryId = parseInt(document.getElementById('productCategory').value);
+
+    if (price <= 0) {
+        document.getElementById('productPrice').classList.add('is-invalid');
+        isValid = false;
+    }
+
+    if (stock < 0) {
+        document.getElementById('productStock').classList.add('is-invalid');
+        isValid = false;
+    }
+
+    if (categoryId <= 0) {
+        document.getElementById('productCategory').classList.add('is-invalid');
+        isValid = false;
+    }
+
+    if (!isValid) {
+        showNotification('Please fill in all required fields with valid values.', 'danger');
+        return;
+    }
+
+    // Show loading state
+    spinner.style.display = 'inline-block';
+    btnText.style.display = 'none';
+    submitBtn.disabled = true;
+
+    // Prepare form data for submission
+    const formData = new FormData(form);
+
+    // Make actual API call to save to database
+    fetch('add_product_api.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Add to local products array
+            products.push(data.product);
+
+            // Update dashboard stats
+            updateDashboardStats();
+
+            // Close modal and reset form
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+            modal.hide();
+            form.reset();
+            document.getElementById('imagePreview').style.display = 'none';
+
+            // Show success message
+            showNotification(data.message, 'success');
+
+            // Add to recent activity
+            addRecentActivity('product', data.product.name);
+
+            // Optionally refresh the page to show updated data
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+
+        } else {
+            throw new Error(data.message || 'Failed to add product');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error: ' + error.message, 'danger');
+    })
+    .finally(() => {
+        // Reset loading state
+        spinner.style.display = 'none';
+        btnText.style.display = 'inline';
+        submitBtn.disabled = false;
+    });
+}
+
+// Add category validation styling
+document.getElementById('productCategory').addEventListener('change', function() {
+    this.classList.remove('is-invalid');
+    if (this.value) {
+        this.classList.add('is-valid');
+    }
+});
+
+// Remove auto-generate SKU function since SKU is removed
+// Keep other existing JavaScript functions...
+</script>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

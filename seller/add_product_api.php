@@ -22,49 +22,45 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 try {
     $seller_id = $_SESSION['user_id'];
     
-    // Get form data (removed category_id and dimensions)
+    // Get form data (now includes category_id, removed sku and dimensions)
     $name = trim($_POST['name'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $price = floatval($_POST['price'] ?? 0);
     $stock_quantity = intval($_POST['stock_quantity'] ?? 0);
-    $sku = trim($_POST['sku'] ?? '');
+    $category_id = intval($_POST['category_id'] ?? 0);
     $weight = floatval($_POST['weight'] ?? 0);
     $is_featured = isset($_POST['is_featured']) ? 1 : 0;
     
     // Validate required fields
-    if (empty($name) || $price <= 0 || $stock_quantity < 0) {
+    if (empty($name) || $price <= 0 || $stock_quantity < 0 || $category_id <= 0) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Please fill in all required fields with valid values']);
         exit();
     }
     
-    // Generate SKU if not provided
-    if (empty($sku)) {
-        $sku = 'PROD-' . strtoupper(substr(md5($name . time()), 0, 8));
-    }
-    
-    // Check if SKU already exists
-    $stmt = $pdo->prepare("SELECT id FROM products WHERE sku = ? AND seller_id != ?");
-    $stmt->execute([$sku, $seller_id]);
-    if ($stmt->fetch()) {
-        // Generate a new unique SKU
-        $sku = 'PROD-' . strtoupper(substr(md5($name . time() . rand()), 0, 8));
+    // Verify category exists
+    $stmt = $pdo->prepare("SELECT id FROM categories WHERE id = ? AND is_active = 1");
+    $stmt->execute([$category_id]);
+    if (!$stmt->fetch()) {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'Invalid category selected']);
+        exit();
     }
     
     // Start transaction
     $pdo->beginTransaction();
     
-    // Insert product (removed category_id and dimensions)
+    // Insert product (removed sku and dimensions, added category_id)
     $stmt = $pdo->prepare("
         INSERT INTO products (
-            seller_id, name, description, price, stock_quantity, 
-            sku, weight, is_featured, is_active, created_at, updated_at
+            seller_id, category_id, name, description, price, stock_quantity, 
+            weight, is_featured, is_active, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
     ");
     
     $stmt->execute([
-        $seller_id, $name, $description, $price, $stock_quantity,
-        $sku, $weight, $is_featured
+        $seller_id, $category_id, $name, $description, $price, $stock_quantity,
+        $weight, $is_featured
     ]);
     
     $product_id = $pdo->lastInsertId();
@@ -125,10 +121,11 @@ try {
     // Commit transaction
     $pdo->commit();
     
-    // Get the complete product data to return
+    // Get the complete product data to return with category name
     $stmt = $pdo->prepare("
-        SELECT p.*, GROUP_CONCAT(pi.image_path) as images 
+        SELECT p.*, c.name as category_name, GROUP_CONCAT(pi.image_path) as images 
         FROM products p 
+        LEFT JOIN categories c ON p.category_id = c.id
         LEFT JOIN product_images pi ON p.id = pi.product_id 
         WHERE p.id = ? 
         GROUP BY p.id
@@ -143,9 +140,10 @@ try {
         'product' => [
             'id' => $product['id'],
             'name' => $product['name'],
+            'category_name' => $product['category_name'],
             'price' => $product['price'],
             'stock_quantity' => $product['stock_quantity'],
-            'sku' => $product['sku'],
+            'weight' => $product['weight'],
             'images' => $product['images'] ? explode(',', $product['images']) : [],
             'created_at' => $product['created_at']
         ]
