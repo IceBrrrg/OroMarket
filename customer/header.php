@@ -29,6 +29,10 @@ session_start();
     <!-- Customized Bootstrap Stylesheet -->
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Custom CSS -->
+    <link href="css/sellers.css" rel="stylesheet">
+    <link href="css/view_product.css" rel="stylesheet">
+    <link href="css/view_stall.css" rel="stylesheet">
     <!-- Template Stylesheet -->
     <link href="../assets/css/style.css" rel="stylesheet">
     <link href="../assets/img/logo-removebg.png" rel="icon">
