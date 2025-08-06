@@ -26,7 +26,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </div>
     <ul class="nav flex-column p-3">
         <li class="nav-item mb-2">
-            <a class="nav-link <?php echo $current_page == 'dashboard.php' ? 'active bg-primary' : 'text-white'; ?>"
+            <a class="nav-link <?php echo $current_page == 'dashboard.php' ? 'active' : 'text-white'; ?>"
                 href="dashboard.php">
                 <i class="bi bi-speedometer2 me-2"></i> Dashboard
             </a>
@@ -39,7 +39,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </a>
                 <ul class="dropdown-menu bg-dark" aria-labelledby="sellerDropdown">
                     <li>
-                        <a class="dropdown-item text-white <?php echo $current_page == 'manage_sellers.php' ? 'active bg-primary' : ''; ?>"
+                        <a class="dropdown-item text-white <?php echo $current_page == 'manage_sellers.php' ? 'active' : ''; ?>"
                             href="manage_sellers.php">
                             <i class="bi bi-gear me-2"></i> Manage Sellers
                         </a>
@@ -61,7 +61,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </li>
         <li class="nav-item mb-2">
-            <a class="nav-link <?php echo $current_page == 'manage_products.php' ? 'active bg-primary' : 'text-white'; ?>"
+            <a class="nav-link <?php echo $current_page == 'manage_products.php' ? 'active' : 'text-white'; ?>"
                 href="manage_products.php">
                 <i class="bi bi-box-seam me-2"></i> Manage Products
             </a>
@@ -103,6 +103,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
 </div>
 
 <style>
+    :root {
+        --primary-color: #2c3e50;
+        --secondary-color: #3498db;
+    }
+
     .sidebar {
         min-height: 100vh;
         width: 250px;
@@ -128,7 +133,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     }
 
     .sidebar .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(44, 62, 80, 0.15);
         color: #fff;
         transform: translateX(5px);
     }
@@ -136,7 +141,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
     .sidebar .nav-link.active {
         font-weight: bold;
         color: #fff;
-        background-color: #0d6efd !important;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
     }
 
     .sidebar-footer {
@@ -177,11 +183,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
     /* Make links more visible */
     .sidebar .nav-link.text-white {
         color: rgba(255, 255, 255, 0.8) !important;
-    }
-
-    .sidebar .nav-link.active {
-        background-color: #0d6efd !important;
-        color: white !important;
     }
 
     /* Dropdown styles - Fixed positioning and animation */
@@ -226,15 +227,16 @@ $current_page = basename($_SERVER['PHP_SELF']);
     }
 
     .sidebar .dropdown-item:hover {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(44, 62, 80, 0.15);
         color: #fff;
         transform: translateX(5px);
         text-decoration: none;
     }
 
     .sidebar .dropdown-item.active {
-        background-color: #0d6efd !important;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
         color: white !important;
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
     }
 
     .sidebar .dropdown-toggle::after {

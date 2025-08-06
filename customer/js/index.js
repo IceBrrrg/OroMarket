@@ -1,93 +1,352 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile sidebar toggle
-    const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'mobile-toggle';
-    toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-    toggleBtn.style.cssText = `
-        display: none;
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-        background: #52c41a;
-        color: white;
-        border: none;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        font-size: 1.2rem;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3);
-        transition: all 0.3s ease;
-    `;
+    
+    // Sample product data
+    const products = [
+        {
+            id: 1,
+            name: "Fresh Strawberries",
+            description: "Sweet and juicy organic strawberries",
+            price: 20.10,
+            image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=150&h=100&fit=crop",
+            category: "fruits",
+            rating: 4.5,
+            seller: "Fresh Market Store",
+            inStock: true,
+            onSale: false,
+            organic: true
+        },
+        {
+            id: 2,
+            name: "Fresh Cabbage",
+            description: "Crisp and fresh green cabbage",
+            price: 15.10,
+            image: "https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=150&h=100&fit=crop",
+            category: "vegetables",
+            rating: 4.2,
+            seller: "Organic Farm",
+            inStock: true,
+            onSale: true,
+            organic: true
+        },
+        {
+            id: 3,
+            name: "Broccoli",
+            description: "Fresh green broccoli heads",
+            price: 25.10,
+            image: "https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=150&h=100&fit=crop",
+            category: "vegetables",
+            rating: 4.8,
+            seller: "Organic Farm",
+            inStock: true,
+            onSale: false,
+            organic: true
+        },
+        {
+            id: 4,
+            name: "Fresh Oranges",
+            description: "Sweet and tangy oranges",
+            price: 12.10,
+            image: "https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=150&h=100&fit=crop",
+            category: "fruits",
+            rating: 4.3,
+            seller: "Fresh Market Store",
+            inStock: true,
+            onSale: true,
+            organic: false
+        },
+        {
+            id: 5,
+            name: "Fresh Apples",
+            description: "Crisp red apples",
+            price: 18.10,
+            image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=150&h=100&fit=crop",
+            category: "fruits",
+            rating: 4.6,
+            seller: "Fresh Market Store",
+            inStock: true,
+            onSale: false,
+            organic: true
+        },
+        {
+            id: 6,
+            name: "Fresh Fish",
+            description: "Fresh caught local fish",
+            price: 45.00,
+            image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=150&h=100&fit=crop",
+            category: "fish",
+            rating: 4.7,
+            seller: "Local Fishery",
+            inStock: true,
+            onSale: false,
+            organic: false
+        },
+        {
+            id: 7,
+            name: "Fresh Milk",
+            description: "Organic whole milk",
+            price: 8.50,
+            image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=150&h=100&fit=crop",
+            category: "dairy",
+            rating: 4.4,
+            seller: "Organic Farm",
+            inStock: true,
+            onSale: false,
+            organic: true
+        },
+        {
+            id: 8,
+            name: "Whole Grain Bread",
+            description: "Freshly baked whole grain bread",
+            price: 6.80,
+            image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=150&h=100&fit=crop",
+            category: "bakery",
+            rating: 4.9,
+            seller: "Bakery Corner",
+            inStock: true,
+            onSale: true,
+            organic: false
+        }
+    ];
 
-    document.body.appendChild(toggleBtn);
+    // Function to render products
+    function renderProducts(productsToRender) {
+        const grid = document.getElementById('productsGrid');
+        const resultsCount = document.getElementById('resultsCount');
+        
+        if (!grid) return;
+        
+        resultsCount.textContent = `Showing ${productsToRender.length} products`;
+        
+        grid.innerHTML = productsToRender.map(product => `
+            <div class="product-card" data-category="${product.category}" data-seller="${product.seller}" data-price="${product.price}" data-rating="${product.rating}">
+                <div class="product-image">
+                    <img src="${product.image}" alt="${product.name}">
+                    <button class="favorite-btn" onclick="toggleFavorite(${product.id})">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p class="product-desc">${product.description}</p>
+                    <div class="product-footer">
+                        <span class="price">₱${product.price.toFixed(2)} <small>per kg</small></span>
+                        <button class="add-btn" onclick="addToCart(${product.id})">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        // Reinitialize product interactions
+        initializeProductInteractions();
+    }
 
-    // Show toggle button on mobile
-    function checkMobile() {
-        if (window.innerWidth <= 768) {
-            toggleBtn.style.display = 'flex';
-            toggleBtn.style.alignItems = 'center';
-            toggleBtn.style.justifyContent = 'center';
+    // Function to apply filters
+    function applyFilters() {
+        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+        const minPrice = parseFloat(document.getElementById('minPrice')?.value) || 0;
+        const maxPrice = parseFloat(document.getElementById('maxPrice')?.value) || Infinity;
+        const selectedSeller = document.getElementById('sellerFilter')?.value || '';
+        
+        // Get selected categories
+        const selectedCategories = [];
+        document.querySelectorAll('.filter-option input[type="checkbox"]:checked').forEach(checkbox => {
+            if (['fruits', 'vegetables', 'meat', 'fish', 'dairy', 'grains', 'beverages', 'bakery'].includes(checkbox.value)) {
+                selectedCategories.push(checkbox.value);
+            }
+        });
+        
+        // Filter products
+        let filteredProducts = products.filter(product => {
+            const matchesSearch = product.name.toLowerCase().includes(searchTerm) || 
+                               product.description.toLowerCase().includes(searchTerm);
+            const matchesPrice = product.price >= minPrice && product.price <= maxPrice;
+            const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+            const matchesSeller = !selectedSeller || product.seller === selectedSeller;
+            
+            return matchesSearch && matchesPrice && matchesCategory && matchesSeller;
+        });
+        
+        // Sort products
+        const sortBy = document.getElementById('sortBy')?.value || 'relevance';
+        switch(sortBy) {
+            case 'price-low':
+                filteredProducts.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-high':
+                filteredProducts.sort((a, b) => b.price - a.price);
+                break;
+            case 'rating':
+                filteredProducts.sort((a, b) => b.rating - a.rating);
+                break;
+            case 'newest':
+                filteredProducts.sort((a, b) => b.id - a.id);
+                break;
+        }
+        
+        renderProducts(filteredProducts);
+    }
+
+    // Function to clear filters
+    function clearFilters() {
+        // Clear search
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = '';
+        
+        // Clear price range
+        const minPrice = document.getElementById('minPrice');
+        const maxPrice = document.getElementById('maxPrice');
+        if (minPrice) minPrice.value = '';
+        if (maxPrice) maxPrice.value = '';
+        
+        // Clear seller filter
+        const sellerFilter = document.getElementById('sellerFilter');
+        if (sellerFilter) sellerFilter.value = '';
+        
+        // Clear checkboxes
+        document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Reset sort
+        const sortBy = document.getElementById('sortBy');
+        if (sortBy) sortBy.value = 'relevance';
+        
+        // Reapply filters to show all products
+        applyFilters();
+        
+        showNotification('All filters cleared!', 'success');
+    }
+
+    // Function to toggle favorite
+    function toggleFavorite(productId) {
+        const btn = event.target.closest('.favorite-btn');
+        const icon = btn.querySelector('i');
+        
+        if (btn.classList.contains('active')) {
+            btn.classList.remove('active');
+            icon.classList.remove('fas');
+            icon.classList.add('far');
         } else {
-            toggleBtn.style.display = 'none';
-            sidebar.classList.remove('open');
+            btn.classList.add('active');
+            icon.classList.remove('far');
+            icon.classList.add('fas');
         }
     }
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    toggleBtn.addEventListener('click', function() {
-        sidebar.classList.toggle('open');
-        this.innerHTML = sidebar.classList.contains('open') 
-            ? '<i class="fas fa-times"></i>' 
-            : '<i class="fas fa-bars"></i>';
-    });
-
-    // Close sidebar when clicking outside on mobile
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768 && 
-            !sidebar.contains(e.target) && 
-            !toggleBtn.contains(e.target) && 
-            sidebar.classList.contains('open')) {
-            sidebar.classList.remove('open');
-            toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-        }
-    });
-
-    // Navigation functionality
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Remove active class from all items
-            navItems.forEach(nav => nav.classList.remove('active'));
-            // Add active class to clicked item
-            this.classList.add('active');
+    // Function to add to cart
+    function addToCart(productId) {
+        const btn = event.target.closest('.add-btn');
+        const originalHTML = btn.innerHTML;
+        
+        // Add loading state
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.style.background = '#45a820';
+        
+        // Simulate API call
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.style.background = '#28a745';
             
-            // Close mobile sidebar after selection
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('open');
-                toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-            }
+            showNotification('Product added to cart!', 'success');
+            
+            // Revert button after 2 seconds
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = '#52c41a';
+            }, 2000);
+        }, 800);
+    }
+
+    // Initialize product interactions
+    function initializeProductInteractions() {
+        // Favorite buttons
+        const favoriteButtons = document.querySelectorAll('.favorite-btn');
+        favoriteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                this.classList.toggle('active');
+                
+                const icon = this.querySelector('i');
+                if (this.classList.contains('active')) {
+                    icon.className = 'fas fa-heart';
+                    this.style.color = '#ff4d4f';
+                } else {
+                    icon.className = 'far fa-heart';
+                    this.style.color = '';
+                }
+            });
         });
-    });
+
+        // Add to cart buttons
+        const addButtons = document.querySelectorAll('.add-btn');
+        addButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                addToCart();
+            });
+        });
+    }
+
+    // Add event listeners for filtering
+    function initializeFiltering() {
+        // Search input
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            let searchTimeout;
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                }, 300);
+            });
+        }
+
+        // Price range inputs
+        const minPrice = document.getElementById('minPrice');
+        const maxPrice = document.getElementById('maxPrice');
+        if (minPrice) minPrice.addEventListener('input', applyFilters);
+        if (maxPrice) maxPrice.addEventListener('input', applyFilters);
+
+        // Seller filter
+        const sellerFilter = document.getElementById('sellerFilter');
+        if (sellerFilter) sellerFilter.addEventListener('change', applyFilters);
+
+        // Category checkboxes
+        document.querySelectorAll('.filter-option input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', applyFilters);
+        });
+
+        // Sort select
+        const sortBy = document.getElementById('sortBy');
+        if (sortBy) sortBy.addEventListener('change', applyFilters);
+
+        // Apply filters button
+        const applyFiltersBtn = document.querySelector('.apply-filters-btn');
+        if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFilters);
+
+        // Clear filters button
+        const clearFiltersBtn = document.querySelector('.clear-filters-btn');
+        if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearFilters);
+    }
 
     // Search functionality
     const searchInput = document.querySelector('.search-container input');
     let searchTimeout;
     
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            const searchTerm = this.value.toLowerCase();
-            console.log('Searching for:', searchTerm);
-            // Here you would typically make an API call to search products
-            // For demo purposes, we'll just log the search term
-        }, 300);
-    });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const searchTerm = this.value.toLowerCase();
+                console.log('Searching for:', searchTerm);
+                // Here you would typically make an API call to search products
+                // For demo purposes, we'll just log the search term
+            }, 300);
+        });
+    }
 
     // Category selection
     const categoryItems = document.querySelectorAll('.category-item');
@@ -101,56 +360,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const categoryName = this.querySelector('span').textContent;
             console.log('Selected category:', categoryName);
             // Here you would filter products by category
-        });
-    });
-
-    // Product interactions
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-    favoriteButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            this.classList.toggle('active');
-            
-            const icon = this.querySelector('i');
-            if (this.classList.contains('active')) {
-                icon.className = 'fas fa-heart';
-                this.style.color = '#ff4d4f';
-                // Add to favorites
-                console.log('Added to favorites');
-            } else {
-                icon.className = 'far fa-heart';
-                this.style.color = '';
-                // Remove from favorites
-                console.log('Removed from favorites');
-            }
-        });
-    });
-
-    // Add to cart functionality
-    const addButtons = document.querySelectorAll('.add-btn');
-    addButtons.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            
-            // Add loading state
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            this.style.background = '#45a820';
-            
-            // Simulate API call
-            setTimeout(() => {
-                this.innerHTML = '<i class="fas fa-check"></i>';
-                this.style.background = '#28a745';
-                
-                // Show success message
-                showNotification('Product added to cart!', 'success');
-                
-                // Revert button after 2 seconds
-                setTimeout(() => {
-                    this.innerHTML = originalHTML;
-                    this.style.background = '#52c41a';
-                }, 2000);
-            }, 800);
         });
     });
 
@@ -267,17 +476,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Filter functionality
     const filterBtn = document.querySelector('.filter-btn');
-    filterBtn.addEventListener('click', function() {
-        console.log('Opening filters...');
-        showNotification('Filters feature coming soon!', 'info');
-    });
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function() {
+            console.log('Opening filters...');
+            showNotification('Filters feature coming soon!', 'info');
+        });
+    }
 
     // Profile dropdown (placeholder)
     const profile = document.querySelector('.profile');
-    profile.addEventListener('click', function() {
-        console.log('Profile clicked');
-        showNotification('Profile menu coming soon!', 'info');
-    });
+    if (profile) {
+        profile.addEventListener('click', function() {
+            console.log('Profile clicked');
+            showNotification('Profile menu coming soon!', 'info');
+        });
+    }
 
     // Header icon interactions
     const headerIcons = document.querySelectorAll('.icon-item');
@@ -309,8 +522,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Call initialization
+    // Initialize everything
+    initializeFiltering();
     initializeInteractivity();
+    renderProducts(products); // Initial render
 
     // Handle window resize for responsive behavior
     window.addEventListener('resize', function() {
@@ -324,5 +539,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    console.log('SaniShop Marketplace initialized successfully!');
+    console.log('Oroquieta Marketplace initialized successfully!');
 });
+
+// Global functions for onclick handlers
+window.toggleFavorite = function(productId) {
+    const btn = event.target.closest('.favorite-btn');
+    const icon = btn.querySelector('i');
+    
+    if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        icon.classList.remove('fas');
+        icon.classList.add('far');
+    } else {
+        btn.classList.add('active');
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+    }
+};
+
+window.addToCart = function(productId) {
+    const btn = event.target.closest('.add-btn');
+    const originalHTML = btn.innerHTML;
+    
+    // Add loading state
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.style.background = '#45a820';
+    
+    // Simulate API call
+    setTimeout(() => {
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        btn.style.background = '#28a745';
+        
+        // Show success message
+        // showNotification('Product added to cart!', 'success');
+        
+        // Revert button after 2 seconds
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.style.background = '#52c41a';
+        }, 2000);
+    }, 800);
+};

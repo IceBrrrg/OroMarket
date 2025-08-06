@@ -582,7 +582,7 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
 
                                         // Clean up document type name
                                         let docLabel = docType.replace(/_/g, ' ').replace(/document/g, '').trim();
-                                        docLabel = docLabel.charAt(0).toUpperCase() + docLabel.slice(1);
+                                        docLabel = docLabel.toUpperCase();
                                         if (docLabel === '') docLabel = 'Document';
 
                                         documentsHtml += `

@@ -386,7 +386,7 @@ if ($step === 4) {
                     <?php elseif ($step === 2): ?>
                         <h4 class="mb-3">Stall Information</h4>
                         <div class="mb-3">
-                            <label for="business_name" class="form-label">Store Name *</label>
+                            <label for="business_name" class="form-label">Stall Name *</label>
                             <input type="text" class="form-control" id="business_name" name="business_name"
                                 value="<?php echo htmlspecialchars($data['business_name'] ?? ''); ?>" required>
                         </div>

@@ -12,20 +12,319 @@ body {
     display: flex;
     min-height: 100vh;
     color: #333;
+    /* Add padding to account for fixed header */
+    padding-top: 120px; /* Adjust based on header height */
 }
 
+/* Responsive header adjustments */
+@media (max-width: 768px) {
+    body {
+        padding-top: 140px; /* More padding for mobile */
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding-top: 160px; /* Even more padding for small screens */
+    }
+}
+
+/* Ensure main content doesn't get covered by fixed header */
+.main-content {
+    flex: 1;
+    padding: 2rem;
+    overflow-x: hidden;
+    /* Remove any top margin that might conflict */
+    margin-top: 0;
+}
+
+/* Main Container Layout */
+.main-container {
+    display: flex;
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    margin-top: 2rem;
+}
+
+/* Sidebar Styles */
 .sidebar {
-    width: 250px;
-    background: #ffffff;
-    border-radius: 0 25px 25px 0;
-    padding: 2rem 1rem;
-    box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+    width: 280px;
+    background: white;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    height: fit-content;
+    position: sticky;
+    top: 140px;
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border-bottom: 2px solid #52c41a;
+    padding-bottom: 0.5rem;
+}
+
+/* Search Bar in Sidebar */
+.search-bar {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.search-bar i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+    z-index: 1;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 12px 12px 12px 40px;
+    border: 2px solid #e8e8e8;
+    border-radius: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #f8f9fa;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #52c41a;
+    box-shadow: 0 0 0 3px rgba(82, 196, 26, 0.1);
+    background: white;
+}
+
+/* Filter Sections */
+.filter-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+}
+
+.filter-section h5 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.filter-options {
     display: flex;
     flex-direction: column;
-    position: fixed;
-    height: 100vh;
-    z-index: 1000;
+    gap: 0.5rem;
 }
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-option:hover {
+    color: #52c41a;
+}
+
+.filter-option input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #52c41a;
+    cursor: pointer;
+}
+
+.filter-option label {
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: color 0.3s ease;
+}
+
+.filter-option:hover label {
+    color: #52c41a;
+}
+
+/* Price Range */
+.price-range {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.price-range input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.price-range input:focus {
+    outline: none;
+    border-color: #52c41a;
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.1);
+}
+
+.price-range span {
+    color: #999;
+    font-weight: 500;
+}
+
+/* Filter Select */
+.filter-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    cursor: pointer;
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: #52c41a;
+    box-shadow: 0 0 0 2px rgba(82, 196, 26, 0.1);
+}
+
+/* Filter Buttons */
+.apply-filters-btn,
+.clear-filters-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.apply-filters-btn {
+    background: #52c41a;
+    color: white;
+}
+
+.apply-filters-btn:hover {
+    background: #45a820;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3);
+}
+
+.clear-filters-btn {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.clear-filters-btn:hover {
+    background: #e8e8e8;
+    color: #333;
+}
+
+/* Content Area */
+.content-area {
+    flex: 1;
+    min-width: 0; /* Prevents flex item from overflowing */
+}
+
+/* Results Info */
+.results-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.results-count {
+    font-weight: 500;
+    color: #666;
+}
+
+.sort-options {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sort-options label {
+    font-size: 14px;
+    color: #666;
+}
+
+.sort-select {
+    padding: 6px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: #52c41a;
+}
+
+/* Adjust header positioning for better responsiveness */
+.container-fluid.fixed-top {
+    z-index: 1030; /* Ensure header stays on top */
+}
+
+/* Responsive adjustments for the navbar */
+@media (max-width: 768px) {
+    .navbar-brand img {
+        width: 80px !important; /* Smaller logo on mobile */
+    }
+    
+    .navbar {
+        padding: 0.5rem 1rem;
+    }
+    
+    .topbar {
+        font-size: 0.8rem;
+    }
+    
+    .topbar .top-info small,
+    .topbar .top-link small {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .navbar-brand img {
+        width: 70px !important;
+    }
+    
+    .topbar {
+        display: none !important; /* Hide topbar on very small screens */
+    }
+    
+    body {
+        padding-top: 200px; /* Less padding when topbar is hidden */
+    }
+}
+
 
 .logo {
     margin-bottom: 2rem;
@@ -79,13 +378,6 @@ body {
 .logout {
     border-top: 1px solid #f0f0f0;
     padding-top: 1rem;
-}
-
-.main-content {
-    flex: 1;
-    margin-left: 250px;
-    padding: 2rem;
-    overflow-x: hidden;
 }
 
 .header {
@@ -663,6 +955,14 @@ body {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+    .main-container {
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        width: 250px;
+    }
+    
     .main-grid {
         grid-template-columns: 1fr;
     }
@@ -676,18 +976,25 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+    .main-container {
+        flex-direction: column;
+    }
+    
     .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
+        width: 100%;
+        position: static;
+        margin-bottom: 1rem;
     }
     
-    .sidebar.open {
-        transform: translateX(0);
+    .content-area {
+        width: 100%;
     }
-    
+}
+
+@media (max-width: 768px) {
+    /* Adjust main content padding for mobile */
     .main-content {
-        margin-left: 0;
         padding: 1rem;
     }
     
@@ -724,6 +1031,68 @@ body {
     
     .category-icon {
         font-size: 2rem;
+    }
+    
+    /* Adjust section headers for mobile */
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .controls {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (max-width: 576px) {
+    .main-content {
+        padding: 0.5rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .product-card {
+        border-radius: 15px;
+    }
+    
+    .product-info {
+        padding: 1rem;
+    }
+    
+    .categories-grid {
+        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .category-item {
+        padding: 0.5rem;
+        min-width: 60px;
+    }
+    
+    .category-icon {
+        font-size: 1.5rem;
+    }
+    
+    .category-item span {
+        font-size: 0.7rem;
+    }
+    
+    .right-column {
+        padding: 1rem;
+    }
+    
+    .order-item {
+        padding: 0.5rem 0;
+    }
+    
+    .item-image {
+        width: 40px;
+        height: 40px;
     }
 }
 
