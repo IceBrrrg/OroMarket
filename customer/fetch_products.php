@@ -110,7 +110,7 @@ function fetchProducts($limit = 10, $category_id = null, $is_featured = null, $s
         // Process each product
         foreach ($products as &$product) {
             $product['formatted_price'] = formatPrice($product['price']);
-            $product['image_url'] = getProductImageUrl($product['primary_image']);
+            $product['image_url'] = getCorrectImagePath($product['primary_image']);
             $product['short_description'] = truncateDescription($product['description'], 60);
             $product['rating'] = $product['avg_rating'] ? round($product['avg_rating'], 1) : 0;
             $product['in_stock'] = $product['stock_quantity'] > 0;
@@ -267,35 +267,79 @@ function formatPrice($price) {
     return '₱' . number_format($price, 2);
 }
 
-function getProductImageUrl($image_path) {
-    if ($image_path) {
-        // Check if the path is relative to root (starts with uploads/)
-        if (strpos($image_path, 'uploads/') === 0) {
-            // Use absolute path from web root (starts with /)
-            $web_path = '/' . $image_path;
-            
-            // Check if the file exists in the filesystem
-            $file_path = __DIR__ . '/../' . $image_path;
-            if (file_exists($file_path)) {
-                return $web_path;
-            }
-        } else {
-            // If it's already a full path or URL, use it as is
-            if (file_exists($image_path)) {
-                return $image_path;
+/**
+ * Fixed image path function - this is the main fix
+ */
+function getCorrectImagePath($stored_path) {
+    // If no stored path, return default image
+    if (empty($stored_path)) {
+        return '../assets/img/default-product.jpg';
+    }
+    
+    // Clean the stored path
+    $clean_path = trim($stored_path);
+    
+    // If the path already starts with '../' or '/', use it as is
+    if (strpos($clean_path, '../') === 0 || strpos($clean_path, '/') === 0) {
+        return $clean_path;
+    }
+    
+    // If the path starts with 'uploads/', add '../' prefix
+    if (strpos($clean_path, 'uploads/') === 0) {
+        return '../' . $clean_path;
+    }
+    
+    // If it's just a filename, assume it's in uploads/products/
+    return '../uploads/products/' . $clean_path;
+}
+
+/**
+ * Alternative function to verify if image file actually exists
+ */
+function findProductImageOroMarket($product_id, $stored_path = null) {
+    // Get the document root or project base directory
+    $project_root = $_SERVER['DOCUMENT_ROOT'] . '/OroMarket';
+    
+    // If project is not in /OroMarket/, adjust this path
+    if (!is_dir($project_root)) {
+        $project_root = dirname(dirname(__FILE__)); // Goes up from customer/ to project root
+    }
+    
+    // First, try the stored path if provided
+    if ($stored_path) {
+        $clean_path = ltrim(trim($stored_path), '/');
+        
+        // Try different path combinations
+        $possible_paths = [
+            $project_root . '/' . $clean_path,
+            $project_root . '/uploads/products/' . basename($clean_path),
+            dirname(__FILE__) . '/../' . $clean_path
+        ];
+        
+        foreach ($possible_paths as $full_path) {
+            if (file_exists($full_path)) {
+                // Convert to web path
+                $web_path = str_replace($project_root, '', $full_path);
+                return '../' . ltrim($web_path, '/');
             }
         }
     }
     
-    // Return default images based on common product types
-    $default_images = [
-        'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=200&h=200&fit=crop', // Apple
-        'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=200&h=200&fit=crop', // Strawberry
-        'https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=200&h=200&fit=crop', // Orange
-        'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=200&h=200&fit=crop', // Broccoli
-        'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=200&h=200&fit=crop'  // Cabbage
-    ];
-    return $default_images[array_rand($default_images)];
+    // If stored path doesn't work, search for files by product ID
+    $upload_dir = $project_root . '/uploads/products/';
+    
+    if (is_dir($upload_dir)) {
+        // Look for files that start with product_{id}_
+        $files = glob($upload_dir . "product_{$product_id}_*.{jpg,jpeg,png,gif}", GLOB_BRACE);
+        
+        if (!empty($files)) {
+            $filename = basename($files[0]);
+            return '../uploads/products/' . $filename;
+        }
+    }
+    
+    // Return default image if nothing found
+    return '../assets/img/default-product.jpg';
 }
 
 function truncateDescription($description, $length = 50) {

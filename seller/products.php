@@ -1095,7 +1095,7 @@ $categories = $cat_stmt->fetchAll();
                         if (data.images && data.images.length > 0) {
                             currentImagesDiv.innerHTML = data.images.map((img, index) => `
                                 <div class="d-inline-block me-2 mb-2 position-relative">
-                                    <img src="../${img.image_path}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
+                                    <img src="${img.image_path}" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;" alt="Product Image">
                                     ${img.is_primary ? '<span class="badge bg-primary position-absolute top-0 start-0">Main</span>' : ''}
                                 </div>
                             `).join('');

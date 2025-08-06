@@ -133,6 +133,7 @@ async function sortProducts(sortBy) {
 }
 
 // Render products
+// Render products
 function renderProducts(products) {
     const grid = document.getElementById('productsGrid');
     
@@ -152,15 +153,37 @@ function renderProducts(products) {
     }
     
     grid.innerHTML = products.map(product => {
-        const imageUrl = product.primary_image ? 
-            `../uploads/products/${product.primary_image}` : 
-            'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop';
+        // Fix: Use the same image path logic as PHP
+        let imageUrl;
+        if (product.image_url) {
+            // If image_url is already provided (from PHP), use it directly
+            imageUrl = product.image_url;
+        } else if (product.primary_image) {
+            // If we have primary_image field, construct the path
+            const imagePath = product.primary_image;
+            if (imagePath.startsWith('../') || imagePath.startsWith('/')) {
+                imageUrl = imagePath;
+            } else if (imagePath.startsWith('uploads/')) {
+                imageUrl = '../' + imagePath;
+            } else {
+                imageUrl = '../uploads/products/' + imagePath;
+            }
+        } else {
+            // Fallback to default image
+            imageUrl = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop';
+        }
         
-        const sellerName = product.seller_first_name && product.seller_last_name ? 
-            `${product.seller_first_name} ${product.seller_last_name}` : 
-            'Unknown Seller';
+        // Fix: Handle seller name consistently
+        const sellerName = product.seller_full_name || 
+                          (product.seller_first_name && product.seller_last_name ? 
+                           `${product.seller_first_name} ${product.seller_last_name}` : 
+                           product.seller_name || 'Unknown Seller');
         
-        const price = parseFloat(product.price) || 0;
+        // Fix: Use formatted_price if available, otherwise format the price
+        const priceDisplay = product.formatted_price || `₱${parseFloat(product.price || 0).toFixed(2)}`;
+        
+        // Fix: Handle description consistently
+        const description = product.short_description || product.description || 'No description available';
         
         return `
             <div class="product-card" data-product-id="${product.id}">
@@ -175,14 +198,14 @@ function renderProducts(products) {
                 <div class="product-info">
                     <div class="product-category">${product.category_name || 'Uncategorized'}</div>
                     <h3>${product.name}</h3>
-                    <p class="product-desc">${product.description || 'No description available'}</p>
+                    <p class="product-desc">${description}</p>
                     <div class="product-meta">
                         <span class="seller-name">by ${sellerName}</span>
                         ${product.weight ? `<span class="product-weight">${product.weight}kg</span>` : ''}
                     </div>
                     <div class="product-footer">
                         <div class="price-section">
-                            <span class="price">₱${price.toFixed(2)}</span>
+                            <span class="price">${priceDisplay}</span>
                             <small>per ${product.weight ? 'kg' : 'unit'}</small>
                         </div>
                         <div class="product-actions">
