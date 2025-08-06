@@ -13,7 +13,7 @@ $popular_sellers = getSellers(4);
 <div class="main-content">
     <!-- Main Container with Sidebar -->
     <div class="main-container">
-        <?php require_once 'sidebar.php'; ?>
+
 
         <!-- Main Content Area -->
         <div class="content-area">
@@ -22,17 +22,133 @@ $popular_sellers = getSellers(4);
                 <div class="results-count">
                     <span id="resultsCount">Showing <?php echo count($products); ?> products</span>
                 </div>
-                <div class="sort-options">
-                    <label for="sortBy">Sort by:</label>
-                    <select id="sortBy" class="sort-select">
-                        <option value="relevance">Relevance</option>
-                        <option value="price-low">Price: Low to High</option>
-                        <option value="price-high">Price: High to Low</option>
-                        <option value="rating">Rating</option>
-                        <option value="newest">Newest</option>
-                    </select>
+                <div class="right-controls">
+                    <div class="search-box">
+                        <input type="text" id="productSearch" placeholder="Search products...">
+                        <button type="button" class="search-button">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="sort-options">
+                        <label for="sortBy">Sort by:</label>
+                        <select id="sortBy" class="sort-select">
+                            <option value="relevance">Relevance</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="rating">Rating</option>
+                            <option value="newest">Newest</option>
+                        </select>
+                    </div>
                 </div>
             </div>
+
+            <style>
+                .results-info {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 15px;
+                    background: #fff;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                }
+
+                .right-controls {
+                    display: flex;
+                    align-items: center;
+                    gap: 20px;
+                }
+
+                .search-box {
+                    position: relative;
+                    width: 300px;
+                }
+
+                .search-box input {
+                    width: 100%;
+                    padding: 8px 35px 8px 15px;
+                    border: 2px solid #eee;
+                    border-radius: 6px;
+                    font-size: 0.95rem;
+                    transition: all 0.3s ease;
+                }
+
+                .search-box input:focus {
+                    border-color: #81c408;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(129, 196, 8, 0.1);
+                }
+
+                .search-button {
+                    position: absolute;
+                    right: 10px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    background: none;
+                    border: none;
+                    color: #81c408;
+                    cursor: pointer;
+                }
+
+                .search-button:hover {
+                    color: #6da607;
+                }
+
+                @media (max-width: 768px) {
+                    .results-info {
+                        flex-direction: column;
+                        gap: 15px;
+                    }
+
+                    .right-controls {
+                        flex-direction: column;
+                        width: 100%;
+                    }
+
+                    .search-box {
+                        width: 100%;
+                    }
+
+                    .sort-options {
+                        width: 100%;
+                    }
+
+                    .sort-select {
+                        width: 100%;
+                    }
+                }
+
+                /* Product Description Styles */
+                .product-description {
+                    color: #666;
+                    font-size: 0.85rem;
+                    line-height: 1.4;
+                    margin: 8px 0;
+                    min-height: 40px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                /* Product Card Button Styles */
+                .view-product-btn {
+                    background-color: #81c408;
+                    color: white;
+                    border: none;
+                    padding: 8px 16px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 0.9rem;
+                    width: 100%;
+                }
+
+                .view-product-btn:hover {
+                    background-color: #72ac07;
+                    transform: translateY(-2px);
+                }
+            </style>
 
             <!-- Categories Section -->
             <section class="categories-section">
@@ -48,29 +164,29 @@ $popular_sellers = getSellers(4);
 
                 <div class="categories-grid">
                     <?php foreach ($categories as $category): ?>
-                    <div class="category-item" data-category-id="<?php echo $category['id']; ?>">
-                        <div class="category-icon">
-                            <?php 
-                            // Map category names to emojis
-                            $category_emojis = [
-                                'fruits' => '🍎',
-                                'vegetables' => '🥬',
-                                'meat' => '🥩',
-                                'fish' => '🐟',
-                                'bread' => '🍞',
-                                'drinks' => '🥤',
-                                'seafood' => '🦐',
-                                'dairy' => '🥛',
-                                'grains' => '🌾',
-                                'herbs' => '🌿'
-                            ];
-                            $category_name_lower = strtolower($category['name']);
-                            echo isset($category_emojis[$category_name_lower]) ? $category_emojis[$category_name_lower] : '🛒';
-                            ?>
+                        <div class="category-item" data-category-id="<?php echo $category['id']; ?>">
+                            <div class="category-icon">
+                                <?php
+                                // Map category names to emojis
+                                $category_emojis = [
+                                    'fruits' => '🍎',
+                                    'vegetables' => '🥬',
+                                    'meat' => '🥩',
+                                    'fish' => '🐟',
+                                    'bread' => '🍞',
+                                    'drinks' => '🥤',
+                                    'seafood' => '🦐',
+                                    'dairy' => '🥛',
+                                    'grains' => '🌾',
+                                    'herbs' => '🌿'
+                                ];
+                                $category_name_lower = strtolower($category['name']);
+                                echo isset($category_emojis[$category_name_lower]) ? $category_emojis[$category_name_lower] : '🛒';
+                                ?>
+                            </div>
+                            <span><?php echo htmlspecialchars($category['name']); ?></span>
+                            <small>(<?php echo $category['product_count']; ?>)</small>
                         </div>
-                        <span><?php echo htmlspecialchars($category['name']); ?></span>
-                        <small>(<?php echo $category['product_count']; ?>)</small>
-                    </div>
                     <?php endforeach; ?>
                 </div>
             </section>
@@ -97,50 +213,42 @@ $popular_sellers = getSellers(4);
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($products as $product): ?>
-                                <div class="product-card" data-product-id="<?php echo $product['id']; ?>">
-                                    <div class="product-image">
-                                        <img src="<?php echo $product['image_url']; ?>" 
-                                             alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                             onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'">
-                                        <button class="favorite-btn" onclick="toggleFavorite(<?php echo $product['id']; ?>)" title="Add to favorites">
-                                            <i class="far fa-heart"></i>
-                                        </button>
-                                        <?php if ($product['is_featured']): ?>
-                                            <div class="featured-badge">Featured</div>
-                                        <?php endif; ?>
-                                        <?php if ($product['stock_quantity'] <= 5): ?>
-                                            <div class="low-stock-badge">Low Stock</div>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="product-info">
-                                        <div class="product-category"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></div>
-                                        <h3><?php echo htmlspecialchars($product['name']); ?></h3>
-                                        <p class="product-desc"><?php echo htmlspecialchars($product['short_description']); ?></p>
-                                        <div class="product-meta">
-                                            <span class="seller-name">by <?php echo htmlspecialchars($product['seller_full_name']); ?></span>
-                                            <?php if (isset($product['weight']) && $product['weight']): ?>
-                                                <span class="product-weight"><?php echo $product['weight']; ?>kg</span>
+                                    <div class="product-card" data-product-id="<?php echo $product['id']; ?>">
+                                        <div class="product-image">
+                                            <img src="<?php echo $product['image_url']; ?>"
+                                                alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'">
+                                            <?php if ($product['is_featured']): ?>
+                                                <div class="featured-badge">Featured</div>
                                             <?php endif; ?>
+                                            
                                         </div>
-                                        <div class="product-footer">
-                                            <div class="price-section">
-                                                <span class="price"><?php echo $product['formatted_price']; ?></span>
-                                                <small>per <?php echo (isset($product['weight']) && $product['weight']) ? 'kg' : 'unit'; ?></small>
+                                        <div class="product-info">
+                                            <h3 class="product-name"><?php echo htmlspecialchars($product['name']); ?></h3>
+                                            <div class="stall-name">
+                                                <?php echo htmlspecialchars($product['seller_full_name']); ?>
                                             </div>
-                                            <div class="product-actions">
-                                                <button class="add-btn <?php echo $product['stock_quantity'] <= 0 ? 'disabled' : ''; ?>" 
-                                                        onclick="addToCart(<?php echo $product['id']; ?>)" 
-                                                        <?php echo $product['stock_quantity'] <= 0 ? 'disabled' : ''; ?>
-                                                        title="<?php echo $product['stock_quantity'] <= 0 ? 'Out of stock' : 'Add to cart'; ?>">
-                                                    <i class="fas fa-plus"></i>
-                                                </button>
+                                            <div class="product-description">
+                                                <?php
+                                                $description = isset($product['description']) ? $product['description'] : '';
+                                                $short_desc = strlen($description) > 100 ? substr($description, 0, 100) . '...' : $description;
+                                                echo htmlspecialchars($short_desc);
+                                                ?>
                                             </div>
-                                        </div>
-                                        <div class="stock-info">
-                                            <span class="stock-count"><?php echo $product['stock_quantity']; ?> in stock</span>
+                                            <div class="product-footer">
+                                                <div class="price-section">
+                                                    <span class="price"><?php echo $product['formatted_price']; ?></span>
+                                                </div>
+                                                <div class="product-actions">
+                                                    <button class="view-product-btn"
+                                                        onclick="viewProduct(<?php echo $product['id']; ?>)"
+                                                        title="View product">
+                                                        View product
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
@@ -160,32 +268,33 @@ $popular_sellers = getSellers(4);
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($popular_sellers as $seller): ?>
-                                <div class="seller-card">
-                                    <div class="seller-banner"></div>
-                                    <div class="seller-info">
-                                        <div class="seller-logo">
-                                            <img src="<?php echo $seller['profile_image_url']; ?>" alt="Seller Logo">
-                                        </div>
-                                        <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
-                                        <p><?php echo $seller['product_count']; ?> products</p>
-                                        <div class="seller-rating">
-                                            <?php
-                                            $rating = $seller['rating'];
-                                            for ($i = 1; $i <= 5; $i++) {
-                                                if ($i <= $rating) {
-                                                    echo '<i class="fas fa-star"></i>';
-                                                } elseif ($i - 0.5 <= $rating) {
-                                                    echo '<i class="fas fa-star-half-alt"></i>';
-                                                } else {
-                                                    echo '<i class="far fa-star"></i>';
+                                    <div class="seller-card">
+                                        <div class="seller-banner"></div>
+                                        <div class="seller-info">
+                                            <div class="seller-logo">
+                                                <img src="<?php echo $seller['profile_image_url']; ?>" alt="Seller Logo">
+                                            </div>
+                                            <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
+                                            <p><?php echo $seller['product_count']; ?> products</p>
+                                            <div class="seller-rating">
+                                                <?php
+                                                $rating = $seller['rating'];
+                                                for ($i = 1; $i <= 5; $i++) {
+                                                    if ($i <= $rating) {
+                                                        echo '<i class="fas fa-star"></i>';
+                                                    } elseif ($i - 0.5 <= $rating) {
+                                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                                    } else {
+                                                        echo '<i class="far fa-star"></i>';
+                                                    }
                                                 }
-                                            }
-                                            ?>
-                                            <span>(<?php echo $rating; ?>)</span>
+                                                ?>
+                                                <span>(<?php echo $rating; ?>)</span>
+                                            </div>
+                                            <button class="btn visit-store-btn"
+                                                onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
                                         </div>
-                                        <button class="btn visit-store-btn" onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
                                     </div>
-                                </div>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>

@@ -609,7 +609,7 @@ body {
 
 .products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -621,6 +621,10 @@ body {
     transition: all 0.3s ease;
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     position: relative;
+    width: 100%;
+    height: 420px;
+    display: flex;
+    flex-direction: column;
 }
 
 .product-card:hover {
@@ -630,8 +634,9 @@ body {
 
 .product-image {
     position: relative;
-    height: 150px;
+    height: 180px;
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 .product-image img {
@@ -672,37 +677,70 @@ body {
 
 .product-info {
     padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: white;
 }
 
-.product-info h3 {
+.product-name {
     font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: #333;
+    margin-top: 0;
 }
 
-.product-desc {
+.stall-name {
     color: #666;
     font-size: 0.9rem;
     margin-bottom: 1rem;
+    font-weight: 500;
 }
 
 .product-footer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
+    margin-top: auto;
+}
+
+.price-section {
+    display: flex;
+    flex-direction: column;
 }
 
 .price {
     font-weight: 700;
     color: #333;
     font-size: 1.1rem;
+    margin-bottom: 0.25rem;
 }
 
-.price small {
+.price-section small {
     color: #999;
     font-weight: 400;
     font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.view-product-btn {
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.view-product-btn:hover {
+    background: #7c3aed;
+    transform: translateY(-2px);
 }
 
 .add-btn {
@@ -1009,7 +1047,7 @@ body {
     }
     
     .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 1rem;
     }
     
@@ -1052,11 +1090,12 @@ body {
     }
     
     .products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.5rem;
+        grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
     .product-card {
+        height: 380px;
         border-radius: 15px;
     }
     

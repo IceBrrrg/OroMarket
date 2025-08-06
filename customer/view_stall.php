@@ -267,7 +267,7 @@ function contactSeller(email, phone) {
 
 <style>
 .seller-profile-banner {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #82c408 0%, #72ac07 100%);
     color: white;
     padding: 2rem 0;
     margin-bottom: 2rem;
@@ -295,6 +295,7 @@ function contactSeller(email, phone) {
 .seller-name {
     margin-bottom: 0.5rem;
     font-size: 2rem;
+    color: white;
 }
 
 .seller-meta {
@@ -368,8 +369,8 @@ function contactSeller(email, phone) {
 }
 
 .featured-badge {
-    background: #ffc107;
-    color: #000;
+    background: #82c408;
+    color: white;
 }
 
 .out-of-stock-badge {
@@ -389,7 +390,7 @@ function contactSeller(email, phone) {
 .product-price {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #28a745;
+    color: #82c408;
     margin-bottom: 0.5rem;
 }
 
@@ -450,6 +451,29 @@ function contactSeller(email, phone) {
     .products-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Theme color updates for buttons and pagination */
+.btn-primary, .page-link {
+    background-color: #82c408;
+    border-color: #82c408;
+    color: white;
+}
+
+.btn-primary:hover, .page-link:hover {
+    background-color: #72ac07;
+    border-color: #72ac07;
+    color: white;
+}
+
+.page-item.active .page-link {
+    background-color: #82c408;
+    border-color: #82c408;
+}
+
+.btn-primary:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
 }
 </style>
 

@@ -3,7 +3,7 @@ require_once 'header.php';
 require_once '../includes/db_connect.php'; // Adjust path as needed
 
 // Get product ID from URL parameter
-$product_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$product_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 if ($product_id <= 0) {
     header('Location: index.php');
@@ -36,15 +36,15 @@ try {
         LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
         WHERE p.id = ? AND p.is_active = 1 AND s.status = 'approved'
     ");
-    
+
     $stmt->execute([$product_id]);
     $product = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if (!$product) {
         header('Location: index.php');
         exit();
     }
-    
+
     // Fetch all product images
     $stmt = $pdo->prepare("
         SELECT image_path, is_primary, display_order 
@@ -54,7 +54,7 @@ try {
     ");
     $stmt->execute([$product_id]);
     $product_images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     // Fetch similar products from the same category (excluding current product)
     $stmt = $pdo->prepare("
         SELECT 
@@ -80,7 +80,7 @@ try {
     ");
     $stmt->execute([$product['category_id'], $product_id]);
     $similar_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
 } catch (PDOException $e) {
     error_log("Database error: " . $e->getMessage());
     header('Location: index.php');
@@ -88,12 +88,14 @@ try {
 }
 
 // Helper function to format price
-function formatPrice($price) {
+function formatPrice($price)
+{
     return '₱' . number_format($price, 2);
 }
 
 // Helper function to get seller display name
-function getSellerDisplayName($product) {
+function getSellerDisplayName($product)
+{
     if (!empty($product['business_name'])) {
         return $product['business_name'];
     } elseif (!empty($product['first_name']) && !empty($product['last_name'])) {
@@ -104,7 +106,8 @@ function getSellerDisplayName($product) {
 }
 
 // Helper function to get product image
-function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jpg') {
+function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jpg')
+{
     if (!empty($image_path) && file_exists('../' . $image_path)) {
         return '../' . $image_path;
     }
@@ -114,395 +117,766 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
 <div class="main-content">
     <div class="container py-5">
-        <h1 class="mb-4">Product and Store Details</h1>
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.php">Market</a></li>
+                <li class="breadcrumb-item"><a href="index.php">Products</a></li>
+                <li class="breadcrumb-item active" aria-current="page"><?php echo htmlspecialchars($product['name']); ?>
+                </li>
+            </ol>
+        </nav>
 
-        <div class="product-store-container">
-            <!-- Store Section -->
-            <div class="store-section">
-                <h2>Store</h2>
-                <div class="store-card">
-                    <div class="store-logo">
-                        <?php 
-                        $profile_image = !empty($product['profile_image']) ? '../' . $product['profile_image'] : '../assets/img/avatar.jpg';
-                        ?>
-                        <img src="<?php echo htmlspecialchars($profile_image); ?>" alt="Store Logo" class="rounded-circle">
+        <div class="product-details-container">
+            <!-- Product Images Section -->
+            <div class="product-images-section">
+                <div class="main-image-container">
+                    <?php
+                    $main_image = !empty($product['primary_image']) ? '../' . $product['primary_image'] : '../assets/img/fruite-item-1.jpg';
+                    ?>
+                    <img src="<?php echo htmlspecialchars($main_image); ?>"
+                        alt="<?php echo htmlspecialchars($product['name']); ?>" id="main-product-image"
+                        class="main-product-image">
+                </div>
+
+                <?php if (count($product_images) > 1): ?>
+                    <div class="image-thumbnails">
+                        <?php foreach ($product_images as $img): ?>
+                            <div class="thumbnail-container <?php echo $img['is_primary'] ? 'active' : ''; ?>">
+                                <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>"
+                                    alt="Product Image" class="thumbnail-img"
+                                    onclick="changeMainImage(this.src, this.parentElement)">
+                            </div>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="store-info">
-                        <h3 class="store-name"><?php echo htmlspecialchars(getSellerDisplayName($product)); ?></h3>
-                        <p class="store-description">
-                            <?php if (!empty($product['stall_number'])): ?>
-                                Located at Stall <?php echo htmlspecialchars($product['stall_number']); ?> 
-                                (<?php echo htmlspecialchars($product['stall_section']); ?>)
+                <?php endif; ?>
+            </div>
+
+            <!-- Product Info Section -->
+            <div class="product-info-section">
+                <div class="product-header">
+                    <h1 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h1>
+                    <div class="product-category">
+                        <?php if (!empty($product['category_icon'])): ?>
+                            <span class="category-icon"><?php echo $product['category_icon']; ?></span>
+                        <?php endif; ?>
+                        <span
+                            class="category-name"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></span>
+                    </div>
+                </div>
+
+                <div class="product-price-section">
+                    <div class="price-display">
+                        <span class="price-amount"><?php echo formatPrice($product['price']); ?></span>
+                        <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
+                            <span class="price-unit">per <?php echo $product['weight']; ?>g</span>
+                        <?php endif; ?>
+                    </div>
+                    <div
+                        class="stock-status <?php echo $product['stock_quantity'] > 0 ? 'in-stock' : 'out-of-stock'; ?>">
+                        <i
+                            class="fas <?php echo $product['stock_quantity'] > 0 ? 'fa-check-circle' : 'fa-times-circle'; ?>"></i>
+                        <span>
+                            <?php if ($product['stock_quantity'] > 0): ?>
+                                <?php echo $product['stock_quantity']; ?> items available
                             <?php else: ?>
-                                Marketplace vendor offering quality products
+                                Out of stock
                             <?php endif; ?>
-                        </p>
-                        <div class="store-rating mb-3">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                            <span>(4.5)</span>
+                        </span>
+                    </div>
+                </div>
+
+                <?php if (!empty($product['description'])): ?>
+                    <div class="product-description">
+                        <h3>Description</h3>
+                        <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <div class="product-actions">
+                    <?php if ($product['stock_quantity'] > 0): ?>
+                        <button class="btn btn-primary order-btn" onclick="orderProduct(<?php echo $product['id']; ?>)">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>Order Now</span>
+                        </button>
+                        <button class="btn btn-outline-primary message-btn"
+                            onclick="messageVendor(<?php echo $product['seller_id']; ?>)">
+                            <i class="fas fa-envelope"></i>
+                            <span>Inquire Vendor</span>
+                        </button>
+                    <?php else: ?>
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-times"></i>
+                            <span>Out of Stock</span>
+                        </button>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Product Details -->
+                <div class="product-details">
+                    <h3>Product Details</h3>
+                    <div class="details-grid">
+                        <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
+                            <div class="detail-item">
+                                <span class="detail-label">Weight:</span>
+                                <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Condition:</span>
+                            <span class="detail-value">Fresh</span>
                         </div>
-                        <?php if (!empty($product['stall_number'])): ?>
-                            <a href="stall_view.php?stall=<?php echo urlencode($product['stall_number']); ?>" class="btn btn-outline-success view-stall-btn">View Stall</a>
-                        <?php endif; ?>
-                        
-                        <?php if (!empty($product['facebook_url'])): ?>
-                            <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank" class="btn btn-outline-primary ms-2">
-                                <i class="fab fa-facebook me-1"></i>Facebook
-                            </a>
-                        <?php endif; ?>
+
+                        <div class="detail-item">
+                            <span class="detail-label">Contact:</span>
+                            <span class="detail-value">
+                                <?php if (!empty($product['business_phone'])): ?>
+                                    <i class="fas fa-phone text-success"></i>
+                                    <?php echo htmlspecialchars($product['business_phone']); ?>
+                                <?php else: ?>
+                                    Available via message
+                                <?php endif; ?>
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Product Section -->
-            <div class="product-section">
-                <h2>Product</h2>
-                <div class="product-details-card">
-                    <div class="product-image">
-                        <?php 
-                        $main_image = !empty($product['primary_image']) ? '../' . $product['primary_image'] : '../assets/img/fruite-item-1.jpg';
+        <!-- Store Information Section -->
+        <div class="store-section">
+            <h2>About the Seller</h2>
+            <div class="store-card">
+                <div class="store-header">
+                    <div class="store-avatar">
+                        <?php
+                        $profile_image = !empty($product['profile_image']) ? '../' . $product['profile_image'] : '../assets/img/avatar.jpg';
                         ?>
-                        <img src="<?php echo htmlspecialchars($main_image); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                        
-                        <?php if (count($product_images) > 1): ?>
-                        <div class="product-thumbnails mt-3">
-                            <?php foreach ($product_images as $img): ?>
-                                <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>" 
-                                     alt="Product Image" 
-                                     class="thumbnail-img <?php echo $img['is_primary'] ? 'active' : ''; ?>"
-                                     onclick="changeMainImage(this.src)">
-                            <?php endforeach; ?>
-                        </div>
-                        <?php endif; ?>
+                        <img src="<?php echo htmlspecialchars($profile_image); ?>" alt="Store Avatar">
                     </div>
-                    <div class="product-info">
-                        <h3 class="product-name"><?php echo htmlspecialchars($product['name']); ?></h3>
-                        <div class="product-price mb-3"><?php echo formatPrice($product['price']); ?></div>
-                        
-                        <?php if (!empty($product['description'])): ?>
-                        <div class="product-description mb-3">
-                            <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-                        </div>
-                        <?php endif; ?>
-                        
-                        <div class="product-meta mb-4">
-                            <?php if (!empty($product['category_name'])): ?>
-                            <div class="meta-item">
-                                <span class="label">Category:</span>
-                                <span class="value">
-                                    <?php if (!empty($product['category_icon'])): ?>
-                                        <?php echo $product['category_icon']; ?>
-                                    <?php endif; ?>
-                                    <?php echo htmlspecialchars($product['category_name']); ?>
-                                </span>
-                            </div>
+                    <div class="store-info">
+                        <h3 class="store-name"><?php echo htmlspecialchars(getSellerDisplayName($product)); ?></h3>
+                        <div class="store-location">
+                            <?php if (!empty($product['stall_number'])): ?>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Stall <?php echo htmlspecialchars($product['stall_number']); ?>
+                                    (<?php echo htmlspecialchars($product['stall_section']); ?>)</span>
+                            <?php else: ?>
+                                <i class="fas fa-store"></i>
+                                <span>Marketplace Vendor</span>
                             <?php endif; ?>
-                            
-                            <div class="meta-item">
-                                <span class="label">Stock:</span>
-                                <span class="value <?php echo $product['stock_quantity'] > 0 ? 'text-success' : 'text-danger'; ?>">
-                                    <?php if ($product['stock_quantity'] > 0): ?>
-                                        <?php echo $product['stock_quantity']; ?> items available
-                                    <?php else: ?>
-                                        Out of stock
-                                    <?php endif; ?>
-                                </span>
-                            </div>
-                            
-                            <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
-                            <div class="meta-item">
-                                <span class="label">Weight:</span>
-                                <span class="value"><?php echo $product['weight']; ?> grams</span>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <div class="meta-item">
-                                <span class="label">Condition:</span>
-                                <span class="value">Fresh</span>
-                            </div>
-                            
-                            <div class="meta-item">
-                                <span class="label">Contact:</span>
-                                <span class="value">
-                                    <?php if (!empty($product['business_phone'])): ?>
-                                        <i class="fas fa-phone text-success me-1"></i>
-                                        <?php echo htmlspecialchars($product['business_phone']); ?>
-                                    <?php else: ?>
-                                        Available via message
-                                    <?php endif; ?>
-                                </span>
-                            </div>
                         </div>
-                        
-                        <?php if ($product['stock_quantity'] > 0): ?>
-                            <button class="btn btn-success message-vendor-btn me-2" onclick="messageVendor(<?php echo $product['seller_id']; ?>)">
-                                <i class="fas fa-envelope me-2"></i>Message Vendor
-                            </button>
-                            <button class="btn btn-primary order-btn" onclick="orderProduct(<?php echo $product['id']; ?>)">
-                                <i class="fas fa-shopping-cart me-2"></i>Order Now
-                            </button>
-                        <?php else: ?>
-                            <button class="btn btn-secondary" disabled>
-                                <i class="fas fa-times me-2"></i>Out of Stock
-                            </button>
-                        <?php endif; ?>
+                        <div class="store-rating">
+                            <div class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star-half-alt"></i>
+                            </div>
+                            <span class="rating-text">4.5 (24 reviews)</span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="store-actions">
+                    <?php if (!empty($product['stall_number'])): ?>
+                        <a href="stall_view.php?stall=<?php echo urlencode($product['stall_number']); ?>"
+                            class="btn btn-outline-success">
+                            <i class="fas fa-store"></i>
+                            View Stall
+                        </a>
+                    <?php endif; ?>
+
+                    <?php if (!empty($product['facebook_url'])): ?>
+                        <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank"
+                            class="btn btn-outline-primary">
+                            <i class="fab fa-facebook"></i>
+                            Facebook
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <!-- Similar Products Section -->
         <?php if (!empty($similar_products)): ?>
-        <div class="related-products mt-5">
-            <h2 class="mb-4">Similar Products from Other Sellers</h2>
-            <div class="related-products-grid">
-                <?php foreach ($similar_products as $similar): ?>
-                <div class="related-product-card">
-                    <div class="product-image">
-                        <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>" alt="<?php echo htmlspecialchars($similar['name']); ?>">
-                    </div>
-                    <div class="product-details">
-                        <h3 class="product-name"><?php echo htmlspecialchars($similar['name']); ?></h3>
-                        <div class="product-price"><?php echo formatPrice($similar['price']); ?></div>
-                        <div class="seller-info">
-                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
-                            <span class="seller-name">
-                                <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
-                            </span>
+            <div class="similar-products-section">
+                <h2>Similar Products</h2>
+                <div class="similar-products-grid">
+                    <?php foreach ($similar_products as $similar): ?>
+                        <div class="similar-product-card">
+                            <div class="product-image">
+                                <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>"
+                                    alt="<?php echo htmlspecialchars($similar['name']); ?>">
+                            </div>
+                            <div class="product-content">
+                                <h3 class="product-name"><?php echo htmlspecialchars($similar['name']); ?></h3>
+                                <div class="product-price"><?php echo formatPrice($similar['price']); ?></div>
+                                <div class="seller-info">
+                                    <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                                    <span class="seller-name">
+                                        <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
+                                    </span>
+                                </div>
+                                <a href="view_product.php?id=<?php echo $similar['id']; ?>"
+                                    class="btn btn-outline-primary w-100">
+                                    View Product
+                                </a>
+                            </div>
                         </div>
-                        <a href="product_details.php?id=<?php echo $similar['id']; ?>" class="btn custom-btn w-100">View Product</a>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
             </div>
-        </div>
         <?php endif; ?>
     </div>
 </div>
 
 <script>
-// Function to change main product image
-function changeMainImage(src) {
-    document.querySelector('.product-image img:first-child').src = src;
-    
-    // Update thumbnail active state
-    document.querySelectorAll('.thumbnail-img').forEach(img => {
-        img.classList.remove('active');
-    });
-    event.target.classList.add('active');
-}
+    // Function to change main product image
+    function changeMainImage(src, thumbnailElement) {
+        document.getElementById('main-product-image').src = src;
 
-// Function to message vendor
-function messageVendor(sellerId) {
-    // Implement messaging functionality
-    alert('Messaging feature will redirect to contact form for seller ID: ' + sellerId);
-    // You can redirect to a contact form or open a modal
-    // window.location.href = 'contact_seller.php?seller_id=' + sellerId;
-}
+        // Update thumbnail active state
+        document.querySelectorAll('.thumbnail-container').forEach(container => {
+            container.classList.remove('active');
+        });
+        thumbnailElement.classList.add('active');
+    }
 
-// Function to order product
-function orderProduct(productId) {
-    // Implement order functionality
-    alert('Order functionality for product ID: ' + productId);
-    // You can redirect to order form
-    // window.location.href = 'order.php?product_id=' + productId;
-}
+    // Function to message vendor
+    function messageVendor(sellerId) {
+        // Implement messaging functionality
+        alert('Messaging feature will redirect to contact form for seller ID: ' + sellerId);
+        // You can redirect to a contact form or open a modal
+        // window.location.href = 'contact_seller.php?seller_id=' + sellerId;
+    }
+
+    // Function to order product
+    function orderProduct(productId) {
+        // Implement order functionality
+        alert('Order functionality for product ID: ' + productId);
+        // You can redirect to order form
+        // window.location.href = 'order.php?product_id=' + productId;
+    }
 </script>
 
 <style>
-.product-store-container {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 2rem;
-    margin-bottom: 2rem;
-}
-
-.store-card {
-    display: flex;
-    align-items: center;
-    padding: 1.5rem;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.store-logo img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-}
-
-.store-info {
-    margin-left: 1rem;
-    flex: 1;
-}
-
-.store-name {
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.store-rating {
-    color: #ffa500;
-}
-
-.product-details-card {
-    display: flex;
-    gap: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
-
-.product-image {
-    flex: 1;
-}
-
-.product-image img:first-child {
-    width: 100%;
-    height: 300px;
-    object-fit: cover;
-    border-radius: 8px;
-}
-
-.product-thumbnails {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.thumbnail-img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    cursor: pointer;
-    border: 2px solid transparent;
-}
-
-.thumbnail-img.active,
-.thumbnail-img:hover {
-    border-color: #28a745;
-}
-
-.product-info {
-    flex: 1.5;
-}
-
-.product-name {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-}
-
-.product-price {
-    font-size: 1.8rem;
-    color: #28a745;
-    font-weight: 700;
-}
-
-.product-meta {
-    display: grid;
-    gap: 0.5rem;
-}
-
-.meta-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
-}
-
-.meta-item .label {
-    font-weight: 600;
-    color: #666;
-}
-
-.meta-item .value {
-    color: #333;
-}
-
-.related-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.related-product-card {
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease;
-}
-
-.related-product-card:hover {
-    transform: translateY(-5px);
-}
-
-.related-product-card .product-image img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-}
-
-.related-product-card .product-details {
-    padding: 1rem;
-}
-
-.seller-info {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 1rem 0;
-}
-
-.seller-avatar {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.custom-btn {
-    background-color: #28a745;
-    border-color: #28a745;
-    color: white;
-}
-
-.custom-btn:hover {
-    background-color: #218838;
-    border-color: #1e7e34;
-}
-
-@media (max-width: 768px) {
-    .product-store-container {
-        grid-template-columns: 1fr;
+    /* Main Layout */
+    .product-details-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        margin-bottom: 3rem;
     }
-    
-    .product-details-card {
+
+    /* Product Images Section */
+    .product-images-section {
+        position: sticky;
+        top: 2rem;
+    }
+
+    .main-image-container {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .main-product-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .main-product-image:hover {
+        transform: scale(1.02);
+    }
+
+    .image-thumbnails {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .thumbnail-container {
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+
+    .thumbnail-container.active {
+        border-color: #82c408;
+    }
+
+    .thumbnail-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .thumbnail-container:hover .thumbnail-img {
+        transform: scale(1.05);
+    }
+
+    /* Product Info Section */
+    .product-info-section {
+        display: flex;
         flex-direction: column;
+        gap: 2rem;
     }
-    
+
+    .product-header {
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 1.5rem;
+    }
+
+    .product-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        line-height: 1.2;
+    }
+
+    .product-category {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        font-size: 1rem;
+    }
+
+    .category-icon {
+        font-size: 1.2rem;
+    }
+
+    .product-price-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+    }
+
+    .price-display {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .price-amount {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #059669;
+    }
+
+    .price-unit {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-weight: 500;
+    }
+
+    .stock-status {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .stock-status.in-stock {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .stock-status.out-of-stock {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .product-description {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .product-description h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .product-description p {
+        color: #4b5563;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    .product-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .order-btn,
+    .message-btn {
+        flex: 1;
+        min-width: 150px;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .order-btn {
+        background: linear-gradient(135deg, #82c408 0%, #72ac07 100%);
+        border: none;
+        color: white;
+    }
+
+    .order-btn:hover {
+        background: linear-gradient(135deg, #72ac07 0%, #659806 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(130, 196, 8, 0.3);
+    }
+
+    .message-btn {
+        border: 2px solid #82c408;
+        color: #82c408;
+        background: white;
+    }
+
+    .message-btn:hover {
+        background: #82c408;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .product-details {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .product-details h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1f2937;
+    }
+
+    .details-grid {
+        display: grid;
+        gap: 1rem;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .detail-value {
+        color: #1f2937;
+        font-weight: 500;
+    }
+
+    /* Store Section */
+    .store-section {
+        margin-bottom: 3rem;
+    }
+
+    .store-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+    }
+
     .store-card {
-        flex-direction: column;
-        text-align: center;
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
     }
-    
+
+    .store-header {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .store-avatar img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #82c408;
+    }
+
     .store-info {
-        margin-left: 0;
-        margin-top: 1rem;
+        flex: 1;
     }
-}
+
+    .store-name {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+
+    .store-location {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .store-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .stars {
+        color: #fbbf24;
+    }
+
+    .rating-text {
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .store-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .store-actions .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    /* Similar Products Section */
+    .similar-products-section {
+        margin-top: 3rem;
+    }
+
+    .similar-products-section h2 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        color: #1f2937;
+    }
+
+    .similar-products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .similar-product-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .similar-product-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    .similar-product-card .product-image img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .similar-product-card .product-content {
+        padding: 1.5rem;
+    }
+
+    .similar-product-card .product-name {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #1f2937;
+    }
+
+    .similar-product-card .product-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #059669;
+        margin-bottom: 1rem;
+    }
+
+    .seller-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .seller-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .seller-name {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    /* Breadcrumb */
+    .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+    }
+
+    .breadcrumb-item a {
+        color: #82c408;
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #6b7280;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+        .product-details-container {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        .product-images-section {
+            position: static;
+        }
+
+        .main-product-image {
+            height: 350px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+
+        .product-title {
+            font-size: 2rem;
+        }
+
+        .price-amount {
+            font-size: 2rem;
+        }
+
+        .product-price-section {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .product-actions {
+            flex-direction: column;
+        }
+
+        .order-btn,
+        .message-btn {
+            width: 100%;
+        }
+
+        .store-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+
+        .store-actions {
+            justify-content: center;
+        }
+
+        .similar-products-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .main-product-image {
+            height: 300px;
+        }
+
+        .thumbnail-img {
+            width: 60px;
+            height: 60px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .product-title {
+            font-size: 1.75rem;
+        }
+
+        .price-amount {
+            font-size: 1.75rem;
+        }
+
+        .main-product-image {
+            height: 250px;
+        }
+
+        .store-card {
+            padding: 1.5rem;
+        }
+
+        .similar-product-card .product-content {
+            padding: 1rem;
+        }
+    }
 </style>
 
 <script src="../customer/js/index.js"></script>
