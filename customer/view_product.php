@@ -878,7 +878,75 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         }
     }
 </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Get product ID from URL or PHP variable
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id') || <?php echo $product_id; ?>;
+    
+    if (productId) {
+        trackProductView(productId);
+    }
+});
 
+// Function to track product view via AJAX
+function trackProductView(productId) {
+    console.log('Tracking view for product ID:', productId);
+    
+    fetch('track_view.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({
+            product_id: parseInt(productId),
+            action: 'track_view'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('View tracking response:', data);
+        
+        if (data.success) {
+            console.log('View tracked successfully. New count:', data.new_view_count);
+            
+            // Update view count display if there's an element for it
+            const viewCountElement = document.querySelector('.view-count');
+            if (viewCountElement && data.new_view_count) {
+                viewCountElement.textContent = data.new_view_count + ' views';
+            }
+        } else {
+            console.error('Failed to track view:', data.message);
+            console.error('Debug info:', data.debug);
+        }
+    })
+    .catch(error => {
+        console.error('Error tracking view:', error);
+    });
+}
+
+// Optional: Add view count display to your product info
+function addViewCountDisplay() {
+    const productInfo = document.querySelector('.product-info-section');
+    if (productInfo && !document.querySelector('.view-count-display')) {
+        const viewCountDiv = document.createElement('div');
+        viewCountDiv.className = 'view-count-display';
+        viewCountDiv.innerHTML = `
+            <div class="view-stats">
+                <i class="fas fa-eye"></i>
+                <span class="view-count">Loading...</span>
+            </div>
+        `;
+        
+        // Add it after the product header
+        const productHeader = document.querySelector('.product-header');
+        if (productHeader) {
+            productHeader.insertAdjacentElement('afterend', viewCountDiv);
+        }
+    }
+}
+</script>
 <script src="../customer/js/index.js"></script>
 
 <!-- JavaScript Libraries -->

@@ -7,13 +7,13 @@ $products = fetchProducts(12);
 $categories = fetchCategories();
 $featured_products = getFeaturedProducts(6);
 $popular_sellers = getSellers(4);
+$most_viewed_products = getMostViewedProducts(4); // Get most viewed products
 ?>
 
 <!-- Main Content -->
 <div class="main-content">
     <!-- Main Container with Sidebar -->
     <div class="main-container">
-
 
         <!-- Main Content Area -->
         <div class="content-area">
@@ -37,6 +37,7 @@ $popular_sellers = getSellers(4);
                             <option value="price-high">Price: High to Low</option>
                             <option value="rating">Rating</option>
                             <option value="newest">Newest</option>
+                            <option value="most_viewed">Most Viewed</option>
                         </select>
                     </div>
                 </div>
@@ -148,6 +149,106 @@ $popular_sellers = getSellers(4);
                     background-color: #72ac07;
                     transform: translateY(-2px);
                 }
+
+                /* Most Viewed Section Styles */
+                .view-count-badge {
+                    background-color: rgba(129, 196, 8, 0.1);
+                    color: #81c408;
+                    font-size: 0.75rem;
+                    padding: 2px 6px;
+                    border-radius: 12px;
+                    font-weight: 500;
+                }
+
+                .order-item {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    padding: 12px 0;
+                    border-bottom: 1px solid #f0f0f0;
+                    cursor: pointer;
+                    transition: background-color 0.2s ease;
+                }
+
+                .order-item:hover {
+                    background-color: #f9f9f9;
+                    border-radius: 8px;
+                    margin: 0 -8px;
+                    padding: 12px 8px;
+                }
+
+                .order-item:last-child {
+                    border-bottom: none;
+                }
+
+                .item-image {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 8px;
+                    overflow: hidden;
+                    flex-shrink: 0;
+                }
+
+                .item-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+
+                .item-info {
+                    flex: 1;
+                    min-width: 0;
+                }
+
+                .item-info h4 {
+                    margin: 0 0 4px 0;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: #333;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .item-info p {
+                    margin: 0 0 4px 0;
+                    font-size: 0.8rem;
+                    color: #666;
+                }
+
+                .item-price {
+                    font-weight: 600;
+                    color: #81c408;
+                    font-size: 1rem;
+                    flex-shrink: 0;
+                }
+
+                .rating {
+                    display: flex;
+                    align-items: center;
+                    gap: 1px;
+                }
+
+                .rating i {
+                    font-size: 0.75rem;
+                    color: #ffc107;
+                }
+
+                /* Loading state for most viewed */
+                .loading-skeleton {
+                    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                    background-size: 200% 100%;
+                    animation: loading 1.5s infinite;
+                }
+
+                @keyframes loading {
+                    0% {
+                        background-position: 200% 0;
+                    }
+                    100% {
+                        background-position: -200% 0;
+                    }
+                }
             </style>
 
             <!-- Categories Section -->
@@ -221,7 +322,9 @@ $popular_sellers = getSellers(4);
                                             <?php if ($product['is_featured']): ?>
                                                 <div class="featured-badge">Featured</div>
                                             <?php endif; ?>
-                                            
+                                            <?php if ($product['view_count'] > 0): ?>
+                                                <div class="view-count-badge"><?php echo $product['view_count']; ?> views</div>
+                                            <?php endif; ?>
                                         </div>
                                         <div class="product-info">
                                             <h3 class="product-name"><?php echo htmlspecialchars($product['name']); ?></h3>
@@ -336,94 +439,269 @@ $popular_sellers = getSellers(4);
                         <h2>Most Viewed</h2>
 
                         <div class="order-items">
-                            <div class="order-item">
-                                <div class="item-image">
-                                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=50&h=50&fit=crop"
-                                        alt="Red Saffron">
+                            <?php if (empty($most_viewed_products)): ?>
+                                <div class="no-products-message">
+                                    <i class="fas fa-eye"></i>
+                                    <p>No viewed products yet</p>
                                 </div>
-                                <div class="item-info">
-                                    <h4>Red Saffron</h4>
-                                    <p>Weight 500 gm</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
+                            <?php else: ?>
+                                <?php foreach ($most_viewed_products as $index => $product): ?>
+                                    <div class="order-item" onclick="viewProduct(<?php echo $product['id']; ?>)">
+                                        <div class="item-image">
+                                            <img src="<?php echo $product['image_url']; ?>"
+                                                alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=60&h=60&fit=crop'">
+                                        </div>
+                                        <div class="item-info">
+                                            <h4><?php echo htmlspecialchars($product['name']); ?></h4>
+                                            <p><?php echo htmlspecialchars($product['seller_full_name']); ?></p>
+                                            <div class="view-count-badge">
+                                                <?php echo $product['view_count']; ?> views
+                                            </div>
+                                            <div class="rating">
+                                                <?php
+                                                $rating = $product['rating'] ?: 4; // Default rating
+                                                for ($i = 1; $i <= 5; $i++) {
+                                                    if ($i <= $rating) {
+                                                        echo '<i class="fas fa-star"></i>';
+                                                    } elseif ($i - 0.5 <= $rating) {
+                                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                                    } else {
+                                                        echo '<i class="far fa-star"></i>';
+                                                    }
+                                                }
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <div class="item-price"><?php echo $product['formatted_price']; ?></div>
                                     </div>
-                                </div>
-                                <div class="item-price">$150</div>
-                            </div>
-
-                            <div class="order-item">
-                                <div class="item-image">
-                                    <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=50&h=50&fit=crop"
-                                        alt="Friesh Apple">
-                                </div>
-                                <div class="item-info">
-                                    <h4>Friesh Apple</h4>
-                                    <p>Weight 2 kg</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
-                                <div class="item-price">$120</div>
-                            </div>
-
-                            <div class="order-item">
-                                <div class="item-image">
-                                    <img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=50&h=50&fit=crop"
-                                        alt="Big Fish">
-                                </div>
-                                <div class="item-info">
-                                    <h4>Big Fish</h4>
-                                    <p>Weight 6 kg</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="far fa-star"></i>
-                                    </div>
-                                </div>
-                                <div class="item-price">$300</div>
-                            </div>
-
-                            <div class="order-item">
-                                <div class="item-image">
-                                    <img src="https://images.unsplash.com/photo-1551024506-0bccd828d307?w=50&h=50&fit=crop"
-                                        alt="Sweets">
-                                </div>
-                                <div class="item-info">
-                                    <h4>Sweets</h4>
-                                    <p>Weight 2 kg</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                    </div>
-                                </div>
-                                <div class="item-price">$150</div>
-                            </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
 
+                        <?php if (!empty($most_viewed_products)): ?>
                         <div class="order-navigation">
-                            <button class="nav-dot active"></button>
-                            <button class="nav-dot"></button>
-                            <button class="nav-dot"></button>
+                            <?php for ($i = 0; $i < min(3, count($most_viewed_products)); $i++): ?>
+                                <button class="nav-dot <?php echo $i === 0 ? 'active' : ''; ?>" data-slide="<?php echo $i; ?>"></button>
+                            <?php endfor; ?>
                         </div>
+                        <?php endif; ?>
                     </section>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+// Enhanced JavaScript for view tracking and most viewed functionality
+
+// Track product view when clicking on a product
+function viewProduct(productId) {
+    // Track the view via AJAX
+    fetch('track_view.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            action: 'track_view'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('View tracked successfully');
+            // Optionally update view count in UI
+            updateViewCount(productId, data.new_view_count);
+        }
+    })
+    .catch(error => {
+        console.error('Error tracking view:', error);
+    });
+    
+    // Redirect to product page
+    window.location.href = `product_details.php?id=${productId}`;
+}
+
+// Function to update view count in UI
+function updateViewCount(productId, newCount) {
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+    if (productCard) {
+        const viewBadge = productCard.querySelector('.view-count-badge');
+        if (viewBadge) {
+            viewBadge.textContent = `${newCount} views`;
+        } else if (newCount > 0) {
+            // Create view count badge if it doesn't exist
+            const productImage = productCard.querySelector('.product-image');
+            const badge = document.createElement('div');
+            badge.className = 'view-count-badge';
+            badge.textContent = `${newCount} views`;
+            productImage.appendChild(badge);
+        }
+    }
+}
+
+// Enhanced sort functionality to include most viewed
+document.getElementById('sortBy').addEventListener('change', function() {
+    const sortValue = this.value;
+    
+    // Show loading state
+    const productsGrid = document.getElementById('productsGrid');
+    productsGrid.innerHTML = '<div class="loading">Loading products...</div>';
+    
+    // Fetch sorted products
+    fetch('ajax_sort_products.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            sort_by: sortValue,
+            search: document.getElementById('productSearch').value
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateProductsGrid(data.products);
+            document.getElementById('resultsCount').textContent = `Showing ${data.products.length} products`;
+        }
+    })
+    .catch(error => {
+        console.error('Error sorting products:', error);
+        productsGrid.innerHTML = '<div class="error">Error loading products</div>';
+    });
+});
+
+// Function to update products grid
+function updateProductsGrid(products) {
+    const productsGrid = document.getElementById('productsGrid');
+    
+    if (products.length === 0) {
+        productsGrid.innerHTML = `
+            <div class="no-products">
+                <div class="no-products-content">
+                    <i class="fas fa-shopping-basket"></i>
+                    <h3>No products found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    products.forEach(product => {
+        html += `
+            <div class="product-card" data-product-id="${product.id}">
+                <div class="product-image">
+                    <img src="${product.image_url}" 
+                         alt="${product.name}"
+                         onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'">
+                    ${product.is_featured ? '<div class="featured-badge">Featured</div>' : ''}
+                    ${product.view_count > 0 ? `<div class="view-count-badge">${product.view_count} views</div>` : ''}
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${product.name}</h3>
+                    <div class="stall-name">${product.seller_full_name}</div>
+                    <div class="product-description">${product.short_description || ''}</div>
+                    <div class="product-footer">
+                        <div class="price-section">
+                            <span class="price">${product.formatted_price}</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="view-product-btn" onclick="viewProduct(${product.id})" title="View product">
+                                View product
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    productsGrid.innerHTML = html;
+}
+
+// Navigation dots for most viewed section
+document.querySelectorAll('.nav-dot').forEach(dot => {
+    dot.addEventListener('click', function() {
+        const slideIndex = this.getAttribute('data-slide');
+        
+        // Remove active class from all dots
+        document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+        
+        // Add active class to clicked dot
+        this.classList.add('active');
+        
+        // You can implement slide functionality here if needed
+        console.log(`Navigating to slide ${slideIndex}`);
+    });
+});
+
+// Auto-refresh most viewed section periodically (optional)
+setInterval(function() {
+    fetch('ajax_most_viewed.php')
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.products) {
+            updateMostViewedSection(data.products);
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing most viewed:', error);
+    });
+}, 1000); // Refresh every 5 minutes
+
+function updateMostViewedSection(products) {
+    const orderItems = document.querySelector('.order-items');
+    
+    if (products.length === 0) {
+        orderItems.innerHTML = `
+            <div class="no-products-message">
+                <i class="fas fa-eye"></i>
+                <p>No viewed products yet</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    products.forEach(product => {
+        const rating = product.rating || 4;
+        let stars = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                stars += '<i class="fas fa-star"></i>';
+            } else if (i - 0.5 <= rating) {
+                stars += '<i class="fas fa-star-half-alt"></i>';
+            } else {
+                stars += '<i class="far fa-star"></i>';
+            }
+        }
+        
+        html += `
+            <div class="order-item" onclick="viewProduct(${product.id})">
+                <div class="item-image">
+                    <img src="${product.image_url}" alt="${product.name}"
+                         onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=60&h=60&fit=crop'">
+                </div>
+                <div class="item-info">
+                    <h4>${product.name}</h4>
+                    <p>${product.seller_full_name}</p>
+                    <div class="view-count-badge">${product.view_count} views</div>
+                    <div class="rating">${stars}</div>
+                </div>
+                <div class="item-price">${product.formatted_price}</div>
+            </div>
+        `;
+    });
+    
+    orderItems.innerHTML = html;
+}
+</script>
 
 <script src="../customer/js/index.js"></script>
 <script src="../customer/js/customer.js"></script>
@@ -439,5 +717,4 @@ $popular_sellers = getSellers(4);
 <!-- Template Javascript -->
 <script src="../assets/js/main.js"></script>
 </body>
-
 </html>
