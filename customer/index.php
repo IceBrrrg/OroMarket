@@ -653,7 +653,7 @@ setInterval(function() {
     .catch(error => {
         console.error('Error refreshing most viewed:', error);
     });
-}, 1000); // Refresh every 5 minutes
+}, 1000); // Refresh every 1 second
 
 function updateMostViewedSection(products) {
     const orderItems = document.querySelector('.order-items');
