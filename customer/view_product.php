@@ -140,15 +140,15 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                 </div>
 
                 <?php if (count($product_images) > 1): ?>
-                    <div class="image-thumbnails">
-                        <?php foreach ($product_images as $img): ?>
-                            <div class="thumbnail-container <?php echo $img['is_primary'] ? 'active' : ''; ?>">
-                                <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>"
-                                    alt="Product Image" class="thumbnail-img"
-                                    onclick="changeMainImage(this.src, this.parentElement)">
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
+                        <div class="image-thumbnails">
+                            <?php foreach ($product_images as $img): ?>
+                                    <div class="thumbnail-container <?php echo $img['is_primary'] ? 'active' : ''; ?>">
+                                        <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>"
+                                            alt="Product Image" class="thumbnail-img"
+                                            onclick="changeMainImage(this.src, this.parentElement)">
+                                    </div>
+                            <?php endforeach; ?>
+                        </div>
                 <?php endif; ?>
             </div>
 
@@ -158,7 +158,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <h1 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h1>
                     <div class="product-category">
                         <?php if (!empty($product['category_icon'])): ?>
-                            <span class="category-icon"><?php echo $product['category_icon']; ?></span>
+                                <span class="category-icon"><?php echo $product['category_icon']; ?></span>
                         <?php endif; ?>
                         <span
                             class="category-name"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></span>
@@ -169,7 +169,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <div class="price-display">
                         <span class="price-amount"><?php echo formatPrice($product['price']); ?></span>
                         <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
-                            <span class="price-unit">per <?php echo $product['weight']; ?>g</span>
+                                <span class="price-unit">per <?php echo $product['weight']; ?>g</span>
                         <?php endif; ?>
                     </div>
                     <div
@@ -178,37 +178,37 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                             class="fas <?php echo $product['stock_quantity'] > 0 ? 'fa-check-circle' : 'fa-times-circle'; ?>"></i>
                         <span>
                             <?php if ($product['stock_quantity'] > 0): ?>
-                                <?php echo $product['stock_quantity']; ?> items available
+                                    <?php echo $product['stock_quantity']; ?> items available
                             <?php else: ?>
-                                Out of stock
+                                    Out of stock
                             <?php endif; ?>
                         </span>
                     </div>
                 </div>
 
                 <?php if (!empty($product['description'])): ?>
-                    <div class="product-description">
-                        <h3>Description</h3>
-                        <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-                    </div>
+                        <div class="product-description">
+                            <h3>Description</h3>
+                            <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
+                        </div>
                 <?php endif; ?>
 
                 <div class="product-actions">
                     <?php if ($product['stock_quantity'] > 0): ?>
-                        <button class="btn btn-primary order-btn" onclick="orderProduct(<?php echo $product['id']; ?>)">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Order Now</span>
-                        </button>
-                        <button class="btn btn-outline-primary message-btn"
-                            onclick="messageVendor(<?php echo $product['seller_id']; ?>)">
-                            <i class="fas fa-envelope"></i>
-                            <span>Inquire Vendor</span>
-                        </button>
+                            <button class="btn btn-primary order-btn" onclick="orderProduct(<?php echo $product['id']; ?>)">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Order Now</span>
+                            </button>
+                            <button class="btn btn-outline-primary message-btn"
+                                onclick="messageVendor(<?php echo $product['seller_id']; ?>)">
+                                <i class="fas fa-envelope"></i>
+                                <span>Inquire Vendor</span>
+                            </button>
                     <?php else: ?>
-                        <button class="btn btn-secondary" disabled>
-                            <i class="fas fa-times"></i>
-                            <span>Out of Stock</span>
-                        </button>
+                            <button class="btn btn-secondary" disabled>
+                                <i class="fas fa-times"></i>
+                                <span>Out of Stock</span>
+                            </button>
                     <?php endif; ?>
                 </div>
 
@@ -217,10 +217,10 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <h3>Product Details</h3>
                     <div class="details-grid">
                         <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
-                            <div class="detail-item">
-                                <span class="detail-label">Weight:</span>
-                                <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
-                            </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Weight:</span>
+                                    <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
+                                </div>
                         <?php endif; ?>
 
                         <div class="detail-item">
@@ -232,10 +232,10 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                             <span class="detail-label">Contact:</span>
                             <span class="detail-value">
                                 <?php if (!empty($product['business_phone'])): ?>
-                                    <i class="fas fa-phone text-success"></i>
-                                    <?php echo htmlspecialchars($product['business_phone']); ?>
+                                        <i class="fas fa-phone text-success"></i>
+                                        <?php echo htmlspecialchars($product['business_phone']); ?>
                                 <?php else: ?>
-                                    Available via message
+                                        Available via message
                                 <?php endif; ?>
                             </span>
                         </div>
@@ -259,12 +259,12 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                         <h3 class="store-name"><?php echo htmlspecialchars(getSellerDisplayName($product)); ?></h3>
                         <div class="store-location">
                             <?php if (!empty($product['stall_number'])): ?>
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>Stall <?php echo htmlspecialchars($product['stall_number']); ?>
-                                    (<?php echo htmlspecialchars($product['stall_section']); ?>)</span>
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Stall <?php echo htmlspecialchars($product['stall_number']); ?>
+                                        (<?php echo htmlspecialchars($product['stall_section']); ?>)</span>
                             <?php else: ?>
-                                <i class="fas fa-store"></i>
-                                <span>Marketplace Vendor</span>
+                                    <i class="fas fa-store"></i>
+                                    <span>Marketplace Vendor</span>
                             <?php endif; ?>
                         </div>
                         <div class="store-rating">
@@ -282,19 +282,19 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
                 <div class="store-actions">
                     <?php if (!empty($product['stall_number'])): ?>
-                        <a href="stall_view.php?stall=<?php echo urlencode($product['stall_number']); ?>"
-                            class="btn btn-outline-success">
-                            <i class="fas fa-store"></i>
-                            View Stall
-                        </a>
+                            <a href="stall_view.php?stall=<?php echo urlencode($product['stall_number']); ?>"
+                                class="btn btn-outline-success">
+                                <i class="fas fa-store"></i>
+                                View Stall
+                            </a>
                     <?php endif; ?>
 
                     <?php if (!empty($product['facebook_url'])): ?>
-                        <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank"
-                            class="btn btn-outline-primary">
-                            <i class="fab fa-facebook"></i>
-                            Facebook
-                        </a>
+                            <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank"
+                                class="btn btn-outline-primary">
+                                <i class="fab fa-facebook"></i>
+                                Facebook
+                            </a>
                     <?php endif; ?>
                 </div>
             </div>
@@ -302,33 +302,33 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
         <!-- Similar Products Section -->
         <?php if (!empty($similar_products)): ?>
-            <div class="similar-products-section">
-                <h2>Similar Products</h2>
-                <div class="similar-products-grid">
-                    <?php foreach ($similar_products as $similar): ?>
-                        <div class="similar-product-card">
-                            <div class="product-image">
-                                <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>"
-                                    alt="<?php echo htmlspecialchars($similar['name']); ?>">
-                            </div>
-                            <div class="product-content">
-                                <h3 class="product-name"><?php echo htmlspecialchars($similar['name']); ?></h3>
-                                <div class="product-price"><?php echo formatPrice($similar['price']); ?></div>
-                                <div class="seller-info">
-                                    <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
-                                    <span class="seller-name">
-                                        <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
-                                    </span>
+                <div class="similar-products-section">
+                    <h2>Similar Products</h2>
+                    <div class="similar-products-grid">
+                        <?php foreach ($similar_products as $similar): ?>
+                                <div class="similar-product-card">
+                                    <div class="product-image">
+                                        <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>"
+                                            alt="<?php echo htmlspecialchars($similar['name']); ?>">
+                                    </div>
+                                    <div class="product-content">
+                                        <h3 class="product-name"><?php echo htmlspecialchars($similar['name']); ?></h3>
+                                        <div class="product-price"><?php echo formatPrice($similar['price']); ?></div>
+                                        <div class="seller-info">
+                                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
+                                            <span class="seller-name">
+                                                <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
+                                            </span>
+                                        </div>
+                                        <a href="view_product.php?id=<?php echo $similar['id']; ?>"
+                                            class="btn btn-outline-primary w-100">
+                                            View Product
+                                        </a>
+                                    </div>
                                 </div>
-                                <a href="view_product.php?id=<?php echo $similar['id']; ?>"
-                                    class="btn btn-outline-primary w-100">
-                                    View Product
-                                </a>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
         <?php endif; ?>
     </div>
 </div>

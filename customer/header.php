@@ -109,7 +109,7 @@ session_start();
                         <a href="../customer/index.php" class="nav-link me-4">
                             <i class="fas fa-shopping-basket me-1"></i>Market
                         </a>
-                        <a href="../authenticator.php" class="my-auto">
+                        <a href="#" class="my-auto">
                             <i class="fas fa-solid fa-bell fa-2x"></i>
                         </a>
                     </div>

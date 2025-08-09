@@ -8,27 +8,29 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
     exit();
 }
 
-// Handle product status updates
+// Handle product status updates using current schema (is_active)
 if (isset($_POST['action']) && isset($_POST['product_id'])) {
-    $product_id = $_POST['product_id'];
+    $product_id = (int) $_POST['product_id'];
     $action = $_POST['action'];
 
-    if ($action == 'approve') {
-        $sql = "UPDATE products SET status = 'approved' WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
+    if ($action === 'approve') {
+        $stmt = $pdo->prepare("UPDATE products SET is_active = 1 WHERE id = ?");
         $stmt->execute([$product_id]);
-    } elseif ($action == 'reject') {
-        $sql = "UPDATE products SET status = 'rejected' WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
+    } elseif ($action === 'reject') {
+        $stmt = $pdo->prepare("UPDATE products SET is_active = 0 WHERE id = ?");
         $stmt->execute([$product_id]);
-    } elseif ($action == 'delete') {
-        // Delete the product (image is stored as BLOB in products table)
-
-        // Then delete the product
-        $sql = "DELETE FROM products WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
+    } elseif ($action === 'delete') {
+        // product_images will cascade-delete via FK
+        $stmt = $pdo->prepare("DELETE FROM products WHERE id = ?");
         $stmt->execute([$product_id]);
     }
+}
+
+// Pre-compute total products
+try {
+    $total_products = (int) $pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+} catch (Exception $e) {
+    $total_products = 0;
 }
 ?>
 
@@ -132,20 +134,16 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
             letter-spacing: 0.5px;
         }
 
-        .status-approved {
-            background-color: rgba(39, 174, 96, 0.1);
-            color: var(--success-color);
+        .status-active {
+            background: #e8f7ef;
+            color: #27ae60;
         }
 
-        .status-pending {
-            background-color: rgba(243, 156, 18, 0.1);
-            color: var(--warning-color);
+        .status-inactive {
+            background: #fdecea;
+            color: #e74c3c;
         }
 
-        .status-rejected {
-            background-color: rgba(231, 76, 60, 0.1);
-            color: var(--danger-color);
-        }
 
         .btn-action {
             padding: 0.5rem 1rem;
@@ -325,23 +323,6 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
             </div>
         </div>
 
-        <!-- Filters -->
-        <div class="filters-card">
-            <div class="d-flex justify-content-center flex-wrap">
-                <button class="filter-btn active" onclick="filterProducts('all')">
-                    <i class="fas fa-list me-1"></i>All Products
-                </button>
-                <button class="filter-btn" onclick="filterProducts('approved')">
-                    <i class="fas fa-check-circle me-1"></i>Approved
-                </button>
-                <button class="filter-btn" onclick="filterProducts('pending')">
-                    <i class="fas fa-clock me-1"></i>Pending
-                </button>
-                <button class="filter-btn" onclick="filterProducts('rejected')">
-                    <i class="fas fa-times-circle me-1"></i>Rejected
-                </button>
-            </div>
-        </div>
 
         <!-- Products Table -->
         <div class="card product-card">
@@ -361,11 +342,15 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                         </thead>
                         <tbody>
                             <?php
-                            $sql = "SELECT p.*, c.name as category_name, s.shop_name 
-                                   FROM products p 
-                                   LEFT JOIN categories c ON p.category_id = c.id
-                                   LEFT JOIN sellers s ON p.seller_id = s.id 
-                                   ORDER BY p.id DESC";
+                            // Fetch products with primary image path
+                            $sql = "SELECT p.*, c.name AS category_name,
+                                           CONCAT(COALESCE(sa.business_name, s.username)) AS seller_name,
+                                           (SELECT image_path FROM product_images pi WHERE pi.product_id = p.id AND pi.is_primary = 1 LIMIT 1) AS primary_image
+                                    FROM products p
+                                    LEFT JOIN categories c ON p.category_id = c.id
+                                    LEFT JOIN sellers s ON p.seller_id = s.id
+                                    LEFT JOIN seller_applications sa ON sa.seller_id = s.id AND sa.status = 'approved'
+                                    ORDER BY p.id DESC";
                             $stmt = $pdo->query($sql);
                             $products = $stmt->fetchAll();
 
@@ -381,23 +366,12 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                                 </tr>
                             <?php else:
                                 foreach ($products as $row):
-                                    $status_class = '';
-                                    switch ($row['status']) {
-                                        case 'approved':
-                                            $status_class = 'status-approved';
-                                            break;
-                                        case 'pending':
-                                            $status_class = 'status-pending';
-                                            break;
-                                        case 'rejected':
-                                            $status_class = 'status-rejected';
-                                            break;
-                                    }
+                                    $status_class = $row['is_active'] ? 'status-active' : 'status-inactive';
                                     ?>
                                     <tr class='product-row' data-status='<?php echo $row['status']; ?>'>
                                         <td>
-                                            <?php if (!empty($row['image'])): ?>
-                                                <img src='data:image/jpeg;base64,<?php echo base64_encode($row['image']); ?>'
+                                            <?php if (!empty($row['primary_image']) && file_exists('../' . $row['primary_image'])): ?>
+                                                <img src='<?php echo '../' . htmlspecialchars($row['primary_image']); ?>'
                                                     class='product-image' alt='Product'>
                                             <?php else: ?>
                                                 <div class='product-image-placeholder'>
@@ -411,24 +385,24 @@ if (isset($_POST['action']) && isset($_POST['product_id'])) {
                                         </td>
                                         <td><?php echo htmlspecialchars($row['category_name'] ?: 'Uncategorized'); ?></td>
                                         <td><strong>₱<?php echo number_format($row['price'], 2); ?></strong></td>
-                                        <td><?php echo htmlspecialchars($row['shop_name'] ?: 'Unknown Seller'); ?></td>
+                                        <td><?php echo htmlspecialchars($row['seller_name'] ?: 'Unknown Seller'); ?></td>
                                         <td>
                                             <span class='status-badge <?php echo $status_class; ?>'>
-                                                <?php echo ucfirst($row['status']); ?>
+                                                <?php echo $row['is_active'] ? 'Active' : 'Inactive'; ?>
                                             </span>
                                         </td>
                                         <td>
-                                            <?php if ($row['status'] != 'approved'): ?>
+                                            <?php if (!$row['is_active']): ?>
                                                 <button type="button" class="btn-action btn-approve"
-                                                    onclick="approveProduct(<?php echo $row['id']; ?>)">
-                                                    <i class="fas fa-check"></i>Approve
+                                                    onclick="approveProduct(<?php echo (int) $row['id']; ?>)">
+                                                    <i class="fas fa-check"></i>Activate
                                                 </button>
                                             <?php endif; ?>
 
-                                            <?php if ($row['status'] != 'rejected'): ?>
+                                            <?php if ($row['is_active']): ?>
                                                 <button type="button" class="btn-action btn-reject"
-                                                    onclick="rejectProduct(<?php echo $row['id']; ?>)">
-                                                    <i class="fas fa-times"></i>Reject
+                                                    onclick="rejectProduct(<?php echo (int) $row['id']; ?>)">
+                                                    <i class="fas fa-times"></i>Deactivate
                                                 </button>
                                             <?php endif; ?>
 

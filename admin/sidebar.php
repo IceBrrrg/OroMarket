@@ -67,6 +67,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </a>
         </li>
         <li class="nav-item mb-2">
+            <a class="nav-link <?php echo $current_page == 'categories.php' ? 'active' : 'text-white'; ?>"
+                href="categories.php">
+                <i class="bi bi-tags me-2"></i> Categories
+            </a>
+        </li>
+        <li class="nav-item mb-2">
             <a class="nav-link <?php echo $current_page == 'signup.php' ? 'active bg-primary' : 'text-white'; ?>"
                 href="signup.php">
                 <i class="bi bi-person-plus me-2"></i> Add New Admin
