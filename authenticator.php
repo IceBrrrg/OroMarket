@@ -31,7 +31,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - ORO Market</title>
+    <title>Oroquieta Marketplace</title>
+    <link href="assets/img/logo-removebg.png" rel="icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <style>
@@ -129,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['role'])) {
                 </div>
                 <div class="col-md-6">
                     <div class="role-section">
-                        <h2 class="text-center mb-4">Welcome to ORO Market</h2>
+                        <h2 class="text-center mb-4">Temporary Rani</h2>
                         <p class="text-center text-muted mb-4">Please select your role to continue</p>
                         <form method="POST">
                             <button type="submit" name="role" value="admin" class="btn btn-primary role-btn">

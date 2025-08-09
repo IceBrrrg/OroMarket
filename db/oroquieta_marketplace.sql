@@ -1,9 +1,10 @@
+--6th version by Earl
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 06, 2025 at 04:16 PM
+-- Generation Time: Aug 09, 2025 at 10:27 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -78,6 +79,127 @@ INSERT INTO `categories` (`id`, `name`, `icon`, `description`, `parent_id`, `ima
 (5, 'Meat', NULL, 'Quality meat products', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
 (6, 'Drinks', NULL, 'Beverages and refreshments', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51'),
 (7, 'Sea Food', NULL, 'Fresh seafood and marine products', NULL, NULL, 1, '2025-08-06 07:23:51', '2025-08-06 07:23:51');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_blocks`
+--
+
+CREATE TABLE `chat_blocks` (
+  `id` int(11) NOT NULL,
+  `seller_id` int(11) NOT NULL,
+  `blocked_name` varchar(255) NOT NULL,
+  `blocked_contact` varchar(255) DEFAULT NULL,
+  `reason` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_settings`
+--
+
+CREATE TABLE `chat_settings` (
+  `id` int(11) NOT NULL,
+  `setting_key` varchar(50) NOT NULL,
+  `setting_value` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chat_settings`
+--
+
+INSERT INTO `chat_settings` (`id`, `setting_key`, `setting_value`, `created_at`, `updated_at`) VALUES
+(1, 'chat_enabled', '1', '2025-08-09 07:53:17', '2025-08-09 07:53:17'),
+(2, 'max_message_length', '1000', '2025-08-09 07:53:17', '2025-08-09 07:53:17'),
+(3, 'auto_archive_days', '30', '2025-08-09 07:53:17', '2025-08-09 07:53:17'),
+(4, 'welcome_message', 'Hello! How can I help you today?', '2025-08-09 07:53:17', '2025-08-09 07:53:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversations`
+--
+
+CREATE TABLE `conversations` (
+  `id` int(11) NOT NULL,
+  `guest_name` varchar(255) NOT NULL,
+  `guest_contact` varchar(255) DEFAULT NULL,
+  `seller_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `status` enum('active','archived','blocked') DEFAULT 'active',
+  `last_message_preview` varchar(100) DEFAULT NULL,
+  `guest_ip_address` varchar(45) DEFAULT NULL,
+  `is_archived` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `conversations`
+--
+
+INSERT INTO `conversations` (`id`, `guest_name`, `guest_contact`, `seller_id`, `created_at`, `updated_at`, `status`, `last_message_preview`, `guest_ip_address`, `is_archived`) VALUES
+(1, 'earl', '09509720086', 20, '2025-08-09 07:56:46', '2025-08-09 08:19:23', 'active', 'ulol', NULL, 0),
+(2, 'yami', '09123456', 23, '2025-08-09 08:19:55', '2025-08-09 08:19:55', 'active', 'Hi! I\'m interested in your product: tuna', NULL, 0),
+(3, 'yami', '09123456', 20, '2025-08-09 08:20:22', '2025-08-09 08:24:38', 'active', 'okay', NULL, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` int(11) NOT NULL,
+  `conversation_id` int(11) NOT NULL,
+  `sender_type` enum('guest','seller') NOT NULL,
+  `sender_name` varchar(255) NOT NULL,
+  `message_text` text NOT NULL,
+  `sent_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_read` tinyint(1) DEFAULT 0,
+  `message_type` enum('text','image','file') DEFAULT 'text',
+  `attachment_path` varchar(500) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`id`, `conversation_id`, `sender_type`, `sender_name`, `message_text`, `sent_at`, `is_read`, `message_type`, `attachment_path`) VALUES
+(1, 1, 'guest', 'earl', 'Hi! I\'m interested in your product: malunggay', '2025-08-09 07:56:46', 1, 'text', NULL),
+(2, 1, 'guest', 'earl', 'naa oa moy malunggay?', '2025-08-09 07:57:18', 1, 'text', NULL),
+(3, 1, 'guest', 'earl', 'Hi! I\'m interested in your product: malunggay', '2025-08-09 08:01:52', 1, 'text', NULL),
+(4, 1, 'guest', 'earl', 'woi', '2025-08-09 08:01:57', 1, 'text', NULL),
+(5, 1, 'guest', 'earl', 'Hi! I\'m interested in your product: malunggay', '2025-08-09 08:12:08', 1, 'text', NULL),
+(6, 1, 'seller', 'batman dc@comics.com', 'wala na yamo choi!', '2025-08-09 08:17:30', 1, 'text', NULL),
+(7, 1, 'guest', 'earl', 'Hi! I\'m interested in your product: malunggay', '2025-08-09 08:18:27', 1, 'text', NULL),
+(8, 1, 'seller', 'batman dc@comics.com', 'sumo oi', '2025-08-09 08:19:09', 1, 'text', NULL),
+(9, 1, 'guest', 'earl', 'hahahahh', '2025-08-09 08:19:19', 1, 'text', NULL),
+(10, 1, 'seller', 'batman dc@comics.com', 'ulol', '2025-08-09 08:19:23', 1, 'text', NULL),
+(11, 2, 'guest', 'yami', 'Hi! I\'m interested in your product: tuna', '2025-08-09 08:19:55', 0, 'text', NULL),
+(12, 3, 'guest', 'yami', 'Hi! I\'m interested in your product: calamansi', '2025-08-09 08:20:22', 1, 'text', NULL),
+(13, 3, 'seller', 'batman dc@comics.com', 'pila kabouk?', '2025-08-09 08:20:44', 1, 'text', NULL),
+(14, 3, 'guest', 'yami', 'isa', '2025-08-09 08:20:52', 1, 'text', NULL),
+(15, 3, 'seller', 'batman dc@comics.com', 'pauli', '2025-08-09 08:20:59', 1, 'text', NULL),
+(16, 3, 'guest', 'yami', 'Hi! I\'m interested in your product: calamansi', '2025-08-09 08:24:28', 1, 'text', NULL),
+(17, 3, 'seller', 'batman dc@comics.com', 'okay', '2025-08-09 08:24:38', 1, 'text', NULL);
+
+--
+-- Triggers `messages`
+--
+DELIMITER $$
+CREATE TRIGGER `update_conversation_preview` AFTER INSERT ON `messages` FOR EACH ROW BEGIN
+    UPDATE conversations 
+    SET last_message_preview = LEFT(NEW.message_text, 100),
+        updated_at = NOW()
+    WHERE id = NEW.conversation_id;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -168,7 +290,8 @@ INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`,
 (5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
 (6, 20, 6, 'coca cola', 'fresh cocalcila', 50.00, 45, 0.00, 0, 1, '2025-08-06 07:29:08', '2025-08-06 07:29:08'),
 (7, 20, 1, 'calamansi', 'sweet calamansi', 50.00, 500, 100.00, 0, 1, '2025-08-06 12:07:22', '2025-08-06 12:07:22'),
-(8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43');
+(8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43'),
+(9, 20, 3, 'malunggay', '\"Ang Ultimate Pinoy Superfood nga Dili Ka Makalingaw\" - Malunggay ba, ang dahon nga makahimo nimog healthy pero ang lami sama sa kinang-kinang na papel!\r\nUsahay gitawag sab nila og \"Popeye\'s Jealousy Plant\" kay mas healthy pa ni sa spinach pero ang problema lang, murag nag-kaon ka og grass sa bukid!\r\nO kaha \"Ang Plant nga Gi-bless sa Lola Nimo\" - pirmi jud na isulti sa mga lola nga \"Kaon ana nak, healthy na!\" Pero ikaw naman, \"Ay Lola, bitter man!\"\r\n\"Ang Green Medicina nga Murag Laway sa Iro\" kung lutoon nimo siya sa sabaw - slimy kaayo pero healthy daw!\r\nPero seriously though, grabe ka-healthy ani. Daghan vitamins ug minerals. Maong daghan mga Pinoy nagtanom ani sa likod sa balay - \"Ang Backyard Pharmacy\" ba!\r\nNindot sab ibutang sa tinola, monggo, o kaha sa mga soup. Basta timan-i lang, dili ni lami kung raw - kinahanglan lutoon jud!', 5.00, 20, 0.00, 0, 1, '2025-08-08 14:08:38', '2025-08-08 14:08:38');
 
 -- --------------------------------------------------------
 
@@ -207,7 +330,95 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_primary`, `d
 (1, 5, 'uploads/products/product_5_1754310786_0.jpeg', 1, 0, '2025-08-04 12:33:06'),
 (2, 6, 'uploads/products/product_6_1754465348_0.jpg', 1, 0, '2025-08-06 07:29:08'),
 (3, 7, 'uploads/products/product_7_1754482042_0.jpg', 1, 0, '2025-08-06 12:07:22'),
-(4, 8, 'uploads/products/product_8_1754483443_0.jpeg', 1, 0, '2025-08-06 12:30:43');
+(4, 8, 'uploads/products/product_8_1754483443_0.jpeg', 1, 0, '2025-08-06 12:30:43'),
+(5, 9, 'uploads/products/product_9_1754662118_0.jpeg', 1, 0, '2025-08-08 14:08:38');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_views`
+--
+
+CREATE TABLE `product_views` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `view_count` int(11) DEFAULT 0,
+  `last_viewed` datetime DEFAULT current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `product_views`
+--
+
+INSERT INTO `product_views` (`id`, `product_id`, `view_count`, `last_viewed`, `created_at`, `updated_at`) VALUES
+(1, 5, 3, '2025-08-08 22:30:54', '2025-08-08 13:14:28', '2025-08-08 14:30:54'),
+(2, 6, 1, '2025-08-08 22:05:36', '2025-08-08 13:14:28', '2025-08-08 14:05:36'),
+(3, 7, 9, '2025-08-09 16:24:22', '2025-08-08 13:14:28', '2025-08-09 08:24:22'),
+(4, 8, 17, '2025-08-09 16:19:39', '2025-08-08 13:14:28', '2025-08-09 08:19:39'),
+(25, 9, 10, '2025-08-09 16:18:21', '2025-08-08 14:08:52', '2025-08-09 08:18:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_view_logs`
+--
+
+CREATE TABLE `product_view_logs` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `session_id` varchar(255) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `viewed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `product_view_logs`
+--
+
+INSERT INTO `product_view_logs` (`id`, `product_id`, `user_id`, `session_id`, `ip_address`, `user_agent`, `viewed_at`) VALUES
+(1, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:49:34'),
+(2, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:50:01'),
+(9, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:55:51'),
+(15, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:10'),
+(16, 5, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:19'),
+(17, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:59'),
+(18, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:02'),
+(19, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:10'),
+(20, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:15'),
+(21, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:29'),
+(22, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:02:02'),
+(23, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:02:19'),
+(24, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:03:50'),
+(25, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:04:01'),
+(26, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:04:38'),
+(27, 6, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:05:36'),
+(28, 9, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:08:52'),
+(29, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:09:43'),
+(30, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:10:03'),
+(31, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:30:48'),
+(32, 5, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:30:54'),
+(33, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:15'),
+(34, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:24'),
+(35, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:27'),
+(36, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:29'),
+(37, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:54'),
+(38, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:43:00'),
+(39, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:43:29'),
+(40, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:43:58'),
+(41, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:56:25'),
+(42, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:58:03'),
+(43, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:09:32'),
+(44, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:09:46'),
+(45, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:09:48'),
+(46, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:12:04'),
+(47, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:18:21'),
+(48, 8, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:19:39'),
+(49, 7, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:20:15'),
+(50, 7, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:24:22');
 
 -- --------------------------------------------------------
 
@@ -283,6 +494,22 @@ INSERT INTO `seller_applications` (`id`, `seller_id`, `business_name`, `business
 (9, 21, 'dc', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e15ae3e4f4.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e15ae3f533.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e15ae3fc85.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e15ae40564.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e15ae40bf3.jpeg\"}', 'R3', 'approved', NULL, '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
 (10, 22, 'cyborg meatshop', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e1cf8952e2.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e1cf89615c.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e1cf8968a5.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e1cf896c59.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e1cf897c21.jpeg\"}', 'M6', 'rejected', '', '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
 (11, 23, 'fish mart', '123456', '123456', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_68934a42f0014.jpg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_68934a42f0dc3.jpg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_68934a42f1188.jpg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_68934a42f14a6.jpg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_68934a42f183f.jpg\"}', 'M7', 'approved', NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `seller_message_stats`
+-- (See below for the actual view)
+--
+CREATE TABLE `seller_message_stats` (
+`seller_id` int(11)
+,`first_name` varchar(50)
+,`last_name` varchar(50)
+,`total_conversations` bigint(21)
+,`active_conversations` bigint(21)
+,`unread_messages` bigint(21)
+,`last_message_time` timestamp
+);
 
 -- --------------------------------------------------------
 
@@ -411,6 +638,15 @@ INSERT INTO `stall_applications` (`id`, `stall_id`, `seller_id`, `application_da
 (9, 56, 22, '2025-08-02 14:13:15', 'rejected', NULL, NULL, NULL, '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
 (10, 57, 23, '2025-08-06 12:27:50', 'approved', NULL, NULL, NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
 
+-- --------------------------------------------------------
+
+--
+-- Structure for view `seller_message_stats`
+--
+DROP TABLE IF EXISTS `seller_message_stats`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `seller_message_stats`  AS SELECT `s`.`id` AS `seller_id`, `s`.`first_name` AS `first_name`, `s`.`last_name` AS `last_name`, count(distinct `c`.`id`) AS `total_conversations`, count(distinct case when `c`.`status` = 'active' then `c`.`id` end) AS `active_conversations`, count(distinct case when `m`.`sender_type` = 'guest' and `m`.`is_read` = 0 then `m`.`id` end) AS `unread_messages`, max(`m`.`sent_at`) AS `last_message_time` FROM ((`sellers` `s` left join `conversations` `c` on(`s`.`id` = `c`.`seller_id`)) left join `messages` `m` on(`c`.`id` = `m`.`conversation_id`)) WHERE `s`.`status` = 'approved' GROUP BY `s`.`id`, `s`.`first_name`, `s`.`last_name` ;
+
 --
 -- Indexes for dumped tables
 --
@@ -429,6 +665,44 @@ ALTER TABLE `admins`
 ALTER TABLE `categories`
   ADD PRIMARY KEY (`id`),
   ADD KEY `parent_id` (`parent_id`);
+
+--
+-- Indexes for table `chat_blocks`
+--
+ALTER TABLE `chat_blocks`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_seller_blocked` (`seller_id`,`blocked_name`);
+
+--
+-- Indexes for table `chat_settings`
+--
+ALTER TABLE `chat_settings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `setting_key` (`setting_key`);
+
+--
+-- Indexes for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_conversation` (`guest_name`,`seller_id`),
+  ADD KEY `idx_seller_id` (`seller_id`),
+  ADD KEY `idx_updated_at` (`updated_at`),
+  ADD KEY `idx_seller_status` (`seller_id`,`status`),
+  ADD KEY `idx_guest_seller` (`guest_name`,`seller_id`),
+  ADD KEY `idx_archived` (`is_archived`);
+
+--
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_conversation_id` (`conversation_id`),
+  ADD KEY `idx_sender` (`sender_type`,`sender_name`),
+  ADD KEY `idx_sent_at` (`sent_at`),
+  ADD KEY `idx_is_read` (`is_read`),
+  ADD KEY `idx_conversation_sender` (`conversation_id`,`sender_type`),
+  ADD KEY `idx_read_status` (`is_read`,`sender_type`);
 
 --
 -- Indexes for table `notifications`
@@ -471,6 +745,25 @@ ALTER TABLE `product_attributes`
 ALTER TABLE `product_images`
   ADD PRIMARY KEY (`id`),
   ADD KEY `product_id` (`product_id`);
+
+--
+-- Indexes for table `product_views`
+--
+ALTER TABLE `product_views`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_product` (`product_id`),
+  ADD KEY `idx_view_count` (`view_count`),
+  ADD KEY `idx_last_viewed` (`last_viewed`);
+
+--
+-- Indexes for table `product_view_logs`
+--
+ALTER TABLE `product_view_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_product_date` (`product_id`,`viewed_at`),
+  ADD KEY `idx_session` (`session_id`),
+  ADD KEY `idx_user` (`user_id`),
+  ADD KEY `idx_viewed_at` (`viewed_at`);
 
 --
 -- Indexes for table `sellers`
@@ -525,6 +818,30 @@ ALTER TABLE `categories`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `chat_blocks`
+--
+ALTER TABLE `chat_blocks`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `chat_settings`
+--
+ALTER TABLE `chat_settings`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `conversations`
+--
+ALTER TABLE `conversations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
@@ -540,7 +857,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `product_attributes`
@@ -552,7 +869,19 @@ ALTER TABLE `product_attributes`
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `product_views`
+--
+ALTER TABLE `product_views`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+
+--
+-- AUTO_INCREMENT for table `product_view_logs`
+--
+ALTER TABLE `product_view_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `sellers`
@@ -589,6 +918,24 @@ ALTER TABLE `categories`
   ADD CONSTRAINT `categories_ibfk_1` FOREIGN KEY (`parent_id`) REFERENCES `categories` (`id`) ON DELETE SET NULL;
 
 --
+-- Constraints for table `chat_blocks`
+--
+ALTER TABLE `chat_blocks`
+  ADD CONSTRAINT `chat_blocks_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD CONSTRAINT `fk_convo_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `products`
 --
 ALTER TABLE `products`
@@ -606,6 +953,18 @@ ALTER TABLE `product_attributes`
 --
 ALTER TABLE `product_images`
   ADD CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `product_views`
+--
+ALTER TABLE `product_views`
+  ADD CONSTRAINT `product_views_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `product_view_logs`
+--
+ALTER TABLE `product_view_logs`
+  ADD CONSTRAINT `product_view_logs_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `seller_applications`
