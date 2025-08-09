@@ -73,7 +73,7 @@
 
 /* Chat Header */
 .chat-header {
-    background: #075e54;
+    background: #25d366;
     color: white;
     padding: 8px 16px;
     display: flex;
@@ -372,7 +372,7 @@
 }
 
 .modal-header {
-    background: #075e54;
+    background: #25d366;
     color: white;
     padding: 20px;
     display: flex;

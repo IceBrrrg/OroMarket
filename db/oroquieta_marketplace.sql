@@ -1,10 +1,9 @@
---6th version by Earl
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 09, 2025 at 10:27 AM
+-- Generation Time: Aug 09, 2025 at 02:11 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -144,8 +143,11 @@ CREATE TABLE `conversations` (
 
 INSERT INTO `conversations` (`id`, `guest_name`, `guest_contact`, `seller_id`, `created_at`, `updated_at`, `status`, `last_message_preview`, `guest_ip_address`, `is_archived`) VALUES
 (1, 'earl', '09509720086', 20, '2025-08-09 07:56:46', '2025-08-09 08:19:23', 'active', 'ulol', NULL, 0),
-(2, 'yami', '09123456', 23, '2025-08-09 08:19:55', '2025-08-09 08:19:55', 'active', 'Hi! I\'m interested in your product: tuna', NULL, 0),
-(3, 'yami', '09123456', 20, '2025-08-09 08:20:22', '2025-08-09 08:24:38', 'active', 'okay', NULL, 0);
+(2, 'yami', '09123456', 23, '2025-08-09 08:19:55', '2025-08-09 08:28:30', 'active', 'Hi! I\'m interested in your product: tuna', NULL, 0),
+(3, 'yami', '09123456', 20, '2025-08-09 08:20:22', '2025-08-09 08:24:38', 'active', 'okay', NULL, 0),
+(4, 'earl', '09123456', 24, '2025-08-09 11:47:34', '2025-08-09 11:59:44', 'active', 'klaro ana', NULL, 0),
+(5, 'yami', '09509720086', 24, '2025-08-09 11:50:15', '2025-08-09 11:50:23', 'active', 'okay', NULL, 0),
+(6, '0xletus', 'banaw@gmail.com', 24, '2025-08-09 12:01:43', '2025-08-09 12:03:48', 'active', 'klaro ana', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -186,7 +188,20 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_type`, `sender_name`, `
 (14, 3, 'guest', 'yami', 'isa', '2025-08-09 08:20:52', 1, 'text', NULL),
 (15, 3, 'seller', 'batman dc@comics.com', 'pauli', '2025-08-09 08:20:59', 1, 'text', NULL),
 (16, 3, 'guest', 'yami', 'Hi! I\'m interested in your product: calamansi', '2025-08-09 08:24:28', 1, 'text', NULL),
-(17, 3, 'seller', 'batman dc@comics.com', 'okay', '2025-08-09 08:24:38', 1, 'text', NULL);
+(17, 3, 'seller', 'batman dc@comics.com', 'okay', '2025-08-09 08:24:38', 1, 'text', NULL),
+(18, 2, 'guest', 'yami', 'Hi! I\'m interested in your product: tuna', '2025-08-09 08:28:30', 0, 'text', NULL),
+(19, 4, 'guest', 'earl', 'Hi! I\'m interested in your product: Lumyagan', '2025-08-09 11:47:34', 1, 'text', NULL),
+(20, 4, 'guest', 'earl', 'buhi paka?', '2025-08-09 11:47:38', 1, 'text', NULL),
+(21, 5, 'guest', 'yami', 'Hi! I\'m interested in your product: Lumyagan', '2025-08-09 11:50:15', 0, 'text', NULL),
+(22, 5, 'guest', 'yami', 'okay', '2025-08-09 11:50:23', 0, 'text', NULL),
+(23, 4, 'guest', 'Earl', 'Hi! I\'m interested in your product: Lumyagan', '2025-08-09 11:58:37', 1, 'text', NULL),
+(24, 4, 'guest', 'Earl', 'okay', '2025-08-09 11:58:59', 1, 'text', NULL),
+(25, 4, 'seller', 'Kurt Cobain', 'klaro ana', '2025-08-09 11:59:44', 1, 'text', NULL),
+(26, 6, 'guest', '0xletus', 'Hi! I\'m interested in your product: Lumyagan', '2025-08-09 12:01:43', 1, 'text', NULL),
+(27, 6, 'guest', '0xletus', 'luh', '2025-08-09 12:01:56', 1, 'text', NULL),
+(28, 6, 'guest', '0xletus', 'si Kurt Cobain', '2025-08-09 12:02:04', 1, 'text', NULL),
+(29, 6, 'guest', '0xletus', 'online ampt, kusog signal langit?', '2025-08-09 12:02:44', 1, 'text', NULL),
+(30, 6, 'seller', 'Kurt Cobain', 'klaro ana', '2025-08-09 12:03:48', 1, 'text', NULL);
 
 --
 -- Triggers `messages`
@@ -228,7 +243,9 @@ INSERT INTO `notifications` (`id`, `recipient_type`, `recipient_id`, `title`, `m
 (3, 'seller', 20, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-01 15:20:38'),
 (4, 'seller', 21, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-02 13:42:53'),
 (5, 'seller', 22, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php', 0, '2025-08-02 14:13:34'),
-(6, 'seller', 23, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-06 12:28:36');
+(6, 'seller', 23, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-06 12:28:36'),
+(7, 'seller', 19, 'Application Rejected', 'Your seller application has been reviewed and rejected. Please contact support for more details.', 'application_status.php', 0, '2025-08-09 11:08:41'),
+(8, 'seller', 24, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php', 0, '2025-08-09 11:45:11');
 
 -- --------------------------------------------------------
 
@@ -288,10 +305,11 @@ CREATE TABLE `products` (
 
 INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `stock_quantity`, `weight`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
 (5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
-(6, 20, 6, 'coca cola', 'fresh cocalcila', 50.00, 45, 0.00, 0, 1, '2025-08-06 07:29:08', '2025-08-06 07:29:08'),
-(7, 20, 1, 'calamansi', 'sweet calamansi', 50.00, 500, 100.00, 0, 1, '2025-08-06 12:07:22', '2025-08-06 12:07:22'),
 (8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43'),
-(9, 20, 3, 'malunggay', '\"Ang Ultimate Pinoy Superfood nga Dili Ka Makalingaw\" - Malunggay ba, ang dahon nga makahimo nimog healthy pero ang lami sama sa kinang-kinang na papel!\r\nUsahay gitawag sab nila og \"Popeye\'s Jealousy Plant\" kay mas healthy pa ni sa spinach pero ang problema lang, murag nag-kaon ka og grass sa bukid!\r\nO kaha \"Ang Plant nga Gi-bless sa Lola Nimo\" - pirmi jud na isulti sa mga lola nga \"Kaon ana nak, healthy na!\" Pero ikaw naman, \"Ay Lola, bitter man!\"\r\n\"Ang Green Medicina nga Murag Laway sa Iro\" kung lutoon nimo siya sa sabaw - slimy kaayo pero healthy daw!\r\nPero seriously though, grabe ka-healthy ani. Daghan vitamins ug minerals. Maong daghan mga Pinoy nagtanom ani sa likod sa balay - \"Ang Backyard Pharmacy\" ba!\r\nNindot sab ibutang sa tinola, monggo, o kaha sa mga soup. Basta timan-i lang, dili ni lami kung raw - kinahanglan lutoon jud!', 5.00, 20, 0.00, 0, 1, '2025-08-08 14:08:38', '2025-08-08 14:08:38');
+(9, 20, 3, 'malunggay', '\"Ang Ultimate Pinoy Superfood nga Dili Ka Makalingaw\" - Malunggay ba, ang dahon nga makahimo nimog healthy pero ang lami sama sa kinang-kinang na papel!\r\nUsahay gitawag sab nila og \"Popeye\'s Jealousy Plant\" kay mas healthy pa ni sa spinach pero ang problema lang, murag nag-kaon ka og grass sa bukid!\r\nO kaha \"Ang Plant nga Gi-bless sa Lola Nimo\" - pirmi jud na isulti sa mga lola nga \"Kaon ana nak, healthy na!\" Pero ikaw naman, \"Ay Lola, bitter man!\"\r\n\"Ang Green Medicina nga Murag Laway sa Iro\" kung lutoon nimo siya sa sabaw - slimy kaayo pero healthy daw!\r\nPero seriously though, grabe ka-healthy ani. Daghan vitamins ug minerals. Maong daghan mga Pinoy nagtanom ani sa likod sa balay - \"Ang Backyard Pharmacy\" ba!\r\nNindot sab ibutang sa tinola, monggo, o kaha sa mga soup. Basta timan-i lang, dili ni lami kung raw - kinahanglan lutoon jud!', 5.00, 20, 0.00, 0, 1, '2025-08-08 14:08:38', '2025-08-08 14:08:38'),
+(10, 20, 3, 'calamansi', 'calamansi', 5.00, 120000, 20.00, 0, 1, '2025-08-09 11:36:05', '2025-08-09 11:36:05'),
+(11, 20, 2, 'pandesal ni aling nina', 'init pa ang pan tehh!', 5.00, 50, 0.00, 0, 1, '2025-08-09 11:38:29', '2025-08-09 11:38:29'),
+(12, 24, 7, 'Lumyagan', 'Lumyagan sa Oroquieta', 130.00, 69, 500.00, 0, 1, '2025-08-09 11:47:13', '2025-08-09 11:47:13');
 
 -- --------------------------------------------------------
 
@@ -328,10 +346,11 @@ CREATE TABLE `product_images` (
 
 INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_primary`, `display_order`, `created_at`) VALUES
 (1, 5, 'uploads/products/product_5_1754310786_0.jpeg', 1, 0, '2025-08-04 12:33:06'),
-(2, 6, 'uploads/products/product_6_1754465348_0.jpg', 1, 0, '2025-08-06 07:29:08'),
-(3, 7, 'uploads/products/product_7_1754482042_0.jpg', 1, 0, '2025-08-06 12:07:22'),
 (4, 8, 'uploads/products/product_8_1754483443_0.jpeg', 1, 0, '2025-08-06 12:30:43'),
-(5, 9, 'uploads/products/product_9_1754662118_0.jpeg', 1, 0, '2025-08-08 14:08:38');
+(5, 9, 'uploads/products/product_9_1754662118_0.jpeg', 1, 0, '2025-08-08 14:08:38'),
+(6, 10, 'uploads/products/product_10_1754739365_0.jpg', 1, 0, '2025-08-09 11:36:05'),
+(7, 11, 'uploads/products/product_11_1754739509_0.jpg', 1, 0, '2025-08-09 11:38:29'),
+(8, 12, 'uploads/products/product_12_1754740033_0.jpg', 1, 0, '2025-08-09 11:47:13');
 
 -- --------------------------------------------------------
 
@@ -353,11 +372,10 @@ CREATE TABLE `product_views` (
 --
 
 INSERT INTO `product_views` (`id`, `product_id`, `view_count`, `last_viewed`, `created_at`, `updated_at`) VALUES
-(1, 5, 3, '2025-08-08 22:30:54', '2025-08-08 13:14:28', '2025-08-08 14:30:54'),
-(2, 6, 1, '2025-08-08 22:05:36', '2025-08-08 13:14:28', '2025-08-08 14:05:36'),
-(3, 7, 9, '2025-08-09 16:24:22', '2025-08-08 13:14:28', '2025-08-09 08:24:22'),
-(4, 8, 17, '2025-08-09 16:19:39', '2025-08-08 13:14:28', '2025-08-09 08:19:39'),
-(25, 9, 10, '2025-08-09 16:18:21', '2025-08-08 14:08:52', '2025-08-09 08:18:21');
+(1, 5, 4, '2025-08-09 18:54:32', '2025-08-08 13:14:28', '2025-08-09 10:54:32'),
+(4, 8, 18, '2025-08-09 16:28:25', '2025-08-08 13:14:28', '2025-08-09 08:28:25'),
+(25, 9, 11, '2025-08-09 19:00:23', '2025-08-08 14:08:52', '2025-08-09 11:00:23'),
+(53, 12, 4, '2025-08-09 20:01:24', '2025-08-09 11:47:25', '2025-08-09 12:01:24');
 
 -- --------------------------------------------------------
 
@@ -381,25 +399,17 @@ CREATE TABLE `product_view_logs` (
 
 INSERT INTO `product_view_logs` (`id`, `product_id`, `user_id`, `session_id`, `ip_address`, `user_agent`, `viewed_at`) VALUES
 (1, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:49:34'),
-(2, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:50:01'),
 (9, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:55:51'),
 (15, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:10'),
 (16, 5, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:19'),
-(17, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 13:56:59'),
 (18, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:02'),
-(19, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:10'),
 (20, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:15'),
 (21, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:01:29'),
-(22, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:02:02'),
-(23, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:02:19'),
 (24, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:03:50'),
 (25, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:04:01'),
 (26, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:04:38'),
-(27, 6, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:05:36'),
 (28, 9, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:08:52'),
 (29, 8, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:09:43'),
-(30, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:10:03'),
-(31, 7, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:30:48'),
 (32, 5, NULL, 'ka0q7n3g93llbso58afqe40ifk', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-08 14:30:54'),
 (33, 8, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:15'),
 (34, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 07:42:24'),
@@ -417,8 +427,13 @@ INSERT INTO `product_view_logs` (`id`, `product_id`, `user_id`, `session_id`, `i
 (46, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:12:04'),
 (47, 9, NULL, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:18:21'),
 (48, 8, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:19:39'),
-(49, 7, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:20:15'),
-(50, 7, 20, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:24:22');
+(51, 8, 4, 'j48gboff11m7sq7s35eki423un', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 08:28:25'),
+(52, 5, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 10:54:32'),
+(55, 9, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:00:23'),
+(56, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:47:25'),
+(57, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:50:10'),
+(58, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:58:12'),
+(59, 12, 24, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 12:01:24');
 
 -- --------------------------------------------------------
 
@@ -453,11 +468,12 @@ INSERT INTO `sellers` (`id`, `username`, `email`, `password`, `first_name`, `las
 (4, 'COMLABb', 'banawaearllawrence@gmail.com', '$2y$10$qTEjzdWc.W1nUWAXpirhf.RFmK8ptNsbo6FseYpDHOOwV83qhYirG', 'qwerty', 'awds', '123456789', NULL, NULL, '', 1, 'approved', '2025-07-31 11:35:56', '2025-08-01 12:53:10'),
 (5, 'earl lawrence', 'user1@user.com', '$2y$10$u4EOkLfPSlAS/osK6wPhtew5M0ux6bObhwh2NbMuc4SvaSK5feZ4m', 'qwerty', 'dwad', '341231', NULL, NULL, '', 1, 'approved', '2025-08-01 11:31:15', '2025-08-01 12:53:10'),
 (6, 'bxpmco', 'margie.callenero40@gmail.com', '$2y$10$Iqj/FwhwAgf5Nz.sKdniFuAI8bmE.wxs0zYdZpaDMgTh5fXKwA.cy', 'qwerty', 'qwerty', '123456789', NULL, NULL, '', 1, 'approved', '2025-08-01 11:33:06', '2025-08-01 12:53:10'),
-(19, 'COMLABb5', 'banawaearllawwwrence8333@gmail.com', '$2y$10$gzz5nIAdj0wdR04sQd8YX.h.ClGByiubXdsle1VMXatxvXELJrKBC', 'qwerty', 'dwad', '123456789', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'pending', '2025-08-01 14:05:45', '2025-08-01 14:05:45'),
+(19, 'COMLABb5', 'banawaearllawwwrence8333@gmail.com', '$2y$10$gzz5nIAdj0wdR04sQd8YX.h.ClGByiubXdsle1VMXatxvXELJrKBC', 'qwerty', 'dwad', '123456789', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'rejected', '2025-08-01 14:05:45', '2025-08-09 11:08:41'),
 (20, 'batman', 'dc@comics.com', '$2y$10$UvxiJfeBnp82.UFez7dWU.lQzuPk80SpbuegKOtzpYF2AfFW5xGXS', 'batman', 'dc@comics.com', '123456', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 1, 'approved', '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (21, 'superman', 'superdc@comics.com', '$2y$10$Ja88JUjliZ0WjRfKfyAEkuHkMsPyjMl4alB342ZaUjCHUGNcFYRMe', 'superman', 'superman', '123456789', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 1, 'approved', '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
 (22, 'cyborg', 'cyborgdc@comics.com', '$2y$10$IlM6bRw04Pp9uWl/K6AwgOl9yBqiNmq52TOxZ0h38oFpOv5CSo4aS', 'batman', 'superman', '123123123', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee/', 0, 'rejected', '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
-(23, '0xletuss', 'yamiyuhiko@gmail.com', '$2y$10$dk0N6PKA2IKV6BNJwt1dr.qftO/.GCXNPyF9UuZE2C.2XFhxv/XIO', 'letuss', 'smits', '12312312', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'approved', '2025-08-06 12:27:50', '2025-08-06 12:28:36');
+(23, '0xletuss', 'yamiyuhiko@gmail.com', '$2y$10$dk0N6PKA2IKV6BNJwt1dr.qftO/.GCXNPyF9UuZE2C.2XFhxv/XIO', 'letuss', 'smits', '12312312', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'approved', '2025-08-06 12:27:50', '2025-08-06 12:28:36'),
+(24, 'the1975', 'seller@seller.com', '$2y$10$UIOt9evUXtoGZquOO/bwfeOl6HqMQ0a8aHykFHzfeDTIqnnVwdOdW', 'Kurt', 'Cobain', '09509720086', NULL, NULL, 'https://www.facebook.com/Eaarrllzzkiiee', 1, 'approved', '2025-08-09 11:44:17', '2025-08-09 11:45:11');
 
 -- --------------------------------------------------------
 
@@ -493,7 +509,8 @@ INSERT INTO `seller_applications` (`id`, `seller_id`, `business_name`, `business
 (8, 20, 'dc', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688cd84f09114.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688cd84f09f5a.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688cd84f0a75f.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688cd84f0ab31.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688cd84f0ae81.jpeg\"}', 'T8', 'approved', NULL, '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (9, 21, 'dc', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e15ae3e4f4.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e15ae3f533.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e15ae3fc85.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e15ae40564.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e15ae40bf3.jpeg\"}', 'R3', 'approved', NULL, '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
 (10, 22, 'cyborg meatshop', '1234566', '12343432', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_688e1cf8952e2.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_688e1cf89615c.jpeg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_688e1cf8968a5.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_688e1cf896c59.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_688e1cf897c21.jpeg\"}', 'M6', 'rejected', '', '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
-(11, 23, 'fish mart', '123456', '123456', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_68934a42f0014.jpg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_68934a42f0dc3.jpg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_68934a42f1188.jpg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_68934a42f14a6.jpg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_68934a42f183f.jpg\"}', 'M7', 'approved', NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
+(11, 23, 'fish mart', '123456', '123456', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_68934a42f0014.jpg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_68934a42f0dc3.jpg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_68934a42f1188.jpg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_68934a42f14a6.jpg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_68934a42f183f.jpg\"}', 'M7', 'approved', NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36'),
+(12, 24, 'Seafood ni Kurt Cobain', '13212313', '123456', '{\"dti_document\":\"uploads\\/seller_documents\\/dti_document_6897348f617e5.jpeg\",\"business_permit_document\":\"uploads\\/seller_documents\\/business_permit_document_6897348f61c24.jpg\",\"barangay_clearance_document\":\"uploads\\/seller_documents\\/barangay_clearance_document_6897348f6237b.jpeg\",\"bir_tin_document\":\"uploads\\/seller_documents\\/bir_tin_document_6897348f62867.jpeg\",\"sanitary_permit_document\":\"uploads\\/seller_documents\\/sanitary_permit_document_6897348f62e1d.jpg\"}', 'T11', 'pending', NULL, '2025-08-09 11:44:17', '2025-08-09 11:44:17');
 
 -- --------------------------------------------------------
 
@@ -547,7 +564,7 @@ INSERT INTO `stalls` (`id`, `stall_number`, `floor_number`, `section`, `size`, `
 (8, 'T8', 1, 'Top Row', 12.00, 2500.00, 'occupied', 20, 'Top row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-08-01 15:20:38'),
 (9, 'T9', 1, 'Top Row', 12.00, 2500.00, 'available', NULL, 'Top row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (10, 'T10', 1, 'Top Row', 12.00, 2500.00, 'available', NULL, 'Top row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
-(11, 'T11', 1, 'Top Row', 12.00, 2500.00, 'available', NULL, 'Top row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
+(11, 'T11', 1, 'Top Row', 12.00, 2500.00, 'reserved', NULL, 'Top row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-08-09 11:44:17'),
 (12, 'B1', 1, 'Bottom Row', 12.00, 2500.00, 'available', NULL, 'Bottom row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (13, 'B2', 1, 'Bottom Row', 12.00, 2500.00, 'available', NULL, 'Bottom row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
 (14, 'B3', 1, 'Bottom Row', 12.00, 2500.00, 'available', NULL, 'Bottom row general merchandise stall', NULL, '2025-07-31 11:31:53', '2025-07-31 11:31:53'),
@@ -636,7 +653,8 @@ INSERT INTO `stall_applications` (`id`, `stall_id`, `seller_id`, `application_da
 (7, 8, 20, '2025-08-01 15:08:04', 'approved', NULL, NULL, NULL, '2025-08-01 15:08:04', '2025-08-01 15:20:38'),
 (8, 31, 21, '2025-08-02 13:42:09', 'approved', NULL, NULL, NULL, '2025-08-02 13:42:09', '2025-08-02 13:42:53'),
 (9, 56, 22, '2025-08-02 14:13:15', 'rejected', NULL, NULL, NULL, '2025-08-02 14:13:15', '2025-08-02 14:13:34'),
-(10, 57, 23, '2025-08-06 12:27:50', 'approved', NULL, NULL, NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36');
+(10, 57, 23, '2025-08-06 12:27:50', 'approved', NULL, NULL, NULL, '2025-08-06 12:27:50', '2025-08-06 12:28:36'),
+(11, 11, 24, '2025-08-09 11:44:17', 'pending', NULL, NULL, NULL, '2025-08-09 11:44:17', '2025-08-09 11:44:17');
 
 -- --------------------------------------------------------
 
@@ -833,19 +851,19 @@ ALTER TABLE `chat_settings`
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -857,7 +875,7 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `product_attributes`
@@ -869,31 +887,31 @@ ALTER TABLE `product_attributes`
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `product_views`
 --
 ALTER TABLE `product_views`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `product_view_logs`
 --
 ALTER TABLE `product_view_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `sellers`
 --
 ALTER TABLE `sellers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `seller_applications`
 --
 ALTER TABLE `seller_applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `stalls`
@@ -905,7 +923,7 @@ ALTER TABLE `stalls`
 -- AUTO_INCREMENT for table `stall_applications`
 --
 ALTER TABLE `stall_applications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- Constraints for dumped tables
