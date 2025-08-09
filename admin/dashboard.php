@@ -915,268 +915,810 @@ $occupancy_percentage = $total_stalls > 0 ? round(($occupied_stalls / $total_sta
     </div>
 
     <!-- Chart.js Configuration -->
-    <script>
-        // Handle applications card click
-        function handleApplicationsClick(pendingCount) {
-            if (pendingCount > 0) {
-                if (confirm(`There are ${pendingCount} pending seller applications. Would you like to review them now?`)) {
-                    window.location.href = 'manage_sellers.php?filter=pending';
-                }
-            } else {
-                alert('No pending applications at the moment. All applications have been reviewed!');
+ <!-- Replace the existing script section in your dashboard with this enhanced version -->
+
+<!-- Hidden data for JavaScript -->
+<script type="application/json" id="category-data"><?php echo json_encode(array_column($category_stats, 'product_count')); ?></script>
+<script type="application/json" id="category-labels"><?php echo json_encode(array_column($category_stats, 'name')); ?></script>
+
+<!-- Enhanced Dashboard JavaScript -->
+<script>
+// Handle applications card click
+function handleApplicationsClick(pendingCount) {
+    if (pendingCount > 0) {
+        if (confirm(`There are ${pendingCount} pending seller applications. Would you like to review them now?`)) {
+            window.location.href = 'manage_sellers.php?filter=pending';
+        }
+    } else {
+        showNotification('No pending applications at the moment. All applications have been reviewed!', 'info');
+    }
+}
+
+// Show active seller details modal
+function showActiveSellerDetails() {
+    const modal = new bootstrap.Modal(document.getElementById('activeSellerModal'));
+    modal.show();
+}
+
+// Show announcement modal
+function showAnnouncementModal() {
+    const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
+    modal.show();
+}
+
+// Enhanced notification system
+function showNotification(message, type = 'info', duration = 5000) {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.custom-notification');
+    existingNotifications.forEach(notification => notification.remove());
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `custom-notification alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        max-width: 400px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border: none;
+        border-radius: 12px;
+        animation: slideInRight 0.5s ease-out;
+    `;
+    
+    const iconMap = {
+        success: 'bi-check-circle-fill',
+        error: 'bi-exclamation-triangle-fill',
+        warning: 'bi-exclamation-circle-fill',
+        info: 'bi-info-circle-fill'
+    };
+    
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi ${iconMap[type] || iconMap.info} me-2 fs-5"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close btn-sm ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after duration
+    if (duration > 0) {
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 300);
             }
-        }
+        }, duration);
+    }
+}
 
-        // Show active seller details modal
-        function showActiveSellerDetails() {
-            const modal = new bootstrap.Modal(document.getElementById('activeSellerModal'));
-            modal.show();
-        }
+// Real-time preview and form handling
+document.addEventListener('DOMContentLoaded', function() {
+    const titleInput = document.getElementById('announcementTitle');
+    const contentInput = document.getElementById('announcementContent');
+    const prioritySelect = document.getElementById('announcementPriority');
+    const targetSelect = document.getElementById('announcementTarget');
+    
+    const previewTitle = document.getElementById('previewTitle');
+    const previewContent = document.getElementById('previewContent');
+    const previewPriority = document.getElementById('previewPriority');
+    const previewTarget = document.getElementById('previewTarget');
 
-        // Show announcement modal
-        function showAnnouncementModal() {
-            const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
-            modal.show();
-        }
+    function updatePreview() {
+        if (!previewTitle || !previewContent || !previewPriority || !previewTarget) return;
+        
+        // Update title
+        previewTitle.textContent = titleInput.value || 'Announcement Title';
+        
+        // Update content
+        const contentText = contentInput.value || 'Announcement content will appear here...';
+        previewContent.textContent = contentText.length > 150 ? contentText.substring(0, 150) + '...' : contentText;
+        
+        // Update priority
+        const priority = prioritySelect.value;
+        previewPriority.textContent = priority.charAt(0).toUpperCase() + priority.slice(1) + ' Priority';
+        previewPriority.className = `priority-badge priority-${priority}`;
+        
+        // Update target
+        const targetText = targetSelect.options[targetSelect.selectedIndex].text;
+        previewTarget.textContent = targetText;
+    }
 
-        // Real-time preview for announcement modal
-        document.addEventListener('DOMContentLoaded', function() {
-            const titleInput = document.getElementById('announcementTitle');
-            const contentInput = document.getElementById('announcementContent');
-            const prioritySelect = document.getElementById('announcementPriority');
-            const targetSelect = document.getElementById('announcementTarget');
+    // Add event listeners for real-time preview
+    if (titleInput) titleInput.addEventListener('input', updatePreview);
+    if (contentInput) contentInput.addEventListener('input', updatePreview);
+    if (prioritySelect) prioritySelect.addEventListener('change', updatePreview);
+    if (targetSelect) targetSelect.addEventListener('change', updatePreview);
+
+    // Enhanced form validation and submission
+    const form = document.getElementById('announcementForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            const previewTitle = document.getElementById('previewTitle');
-            const previewContent = document.getElementById('previewContent');
-            const previewPriority = document.getElementById('previewPriority');
-            const previewTarget = document.getElementById('previewTarget');
-
-            function updatePreview() {
-                // Update title
-                previewTitle.textContent = titleInput.value || 'Announcement Title';
-                
-                // Update content
-                previewContent.textContent = contentInput.value || 'Announcement content will appear here...';
-                
-                // Update priority
-                const priority = prioritySelect.value;
-                previewPriority.textContent = priority.charAt(0).toUpperCase() + priority.slice(1) + ' Priority';
-                previewPriority.className = `priority-badge priority-${priority}`;
-                
-                // Update target
-                const targetText = targetSelect.options[targetSelect.selectedIndex].text;
-                previewTarget.textContent = targetText;
+            // Validate form
+            if (!validateAnnouncementForm()) {
+                return;
             }
-
-            // Add event listeners for real-time preview
-            if (titleInput) titleInput.addEventListener('input', updatePreview);
-            if (contentInput) contentInput.addEventListener('input', updatePreview);
-            if (prioritySelect) prioritySelect.addEventListener('change', updatePreview);
-            if (targetSelect) targetSelect.addEventListener('change', updatePreview);
-
-            // Form validation and submission
-            const form = document.getElementById('announcementForm');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    // Show loading state
-                    const submitBtn = form.querySelector('button[type="submit"]');
-                    const originalText = submitBtn.innerHTML;
-                    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin me-1"></i>Publishing...';
-                    submitBtn.disabled = true;
-                    
-                    // Simulate API call (replace with actual form submission)
-                    setTimeout(() => {
-                        // Show success message
-                        alert('Announcement published successfully!');
-                        
-                        // Close modal and reset form
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('announcementModal'));
-                        modal.hide();
-                        form.reset();
-                        updatePreview(); // Reset preview
-                        
-                        // Reset button
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                        
-                        // You can add actual form submission here
-                        // form.submit();
-                    }, 2000);
-                });
-            }
-
-            // Character counter for inputs
-            function addCharacterCounter(input, maxLength) {
-                const counter = document.createElement('div');
-                counter.className = 'form-text text-end';
-                counter.style.marginTop = '5px';
-                input.parentNode.appendChild(counter);
-                
-                function updateCounter() {
-                    const remaining = maxLength - input.value.length;
-                    counter.textContent = `${input.value.length}/${maxLength} characters`;
-                    counter.className = remaining < 50 ? 'form-text text-end text-danger' : 'form-text text-end text-muted';
+            
+            // Show loading state
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<div class="spinner-border spinner-border-sm me-2" role="status"></div>Publishing...';
+            submitBtn.disabled = true;
+            
+            // Prepare form data
+            const formData = new FormData(form);
+            
+            // Submit form via AJAX
+            fetch('create_announcement.php', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-                
-                input.addEventListener('input', updateCounter);
-                updateCounter();
-            }
-
-            // Add character counters
-            if (titleInput) addCharacterCounter(titleInput, 200);
-            if (contentInput) addCharacterCounter(contentInput, 2000);
-        });
-
-        // Check if chat file exists function
-        function checkChatFile(event) {
-            // You can uncomment this to debug if the file exists
-            // console.log('Attempting to navigate to chat_overview.php');
-        }
-
-        // Add click handlers for chart containers (optional)
-        document.addEventListener('DOMContentLoaded', function() {
-            // Make chart containers clickable
-            const categoryChart = document.querySelector('#categoryChart').closest('.chart-container');
-            if (categoryChart) {
-                categoryChart.style.cursor = 'pointer';
-                categoryChart.addEventListener('click', function() {
-                    window.location.href = 'manage_products.php';
-                });
-            }
-
-            // Add tooltips to cards
-            const cards = document.querySelectorAll('.dashboard-card');
-            cards.forEach(card => {
-                card.setAttribute('title', 'Click to view details');
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    let successMessage = 'Announcement published successfully! 🎉';
+                    if (data.emails_queued > 0) {
+                        successMessage += ` ${data.emails_queued} email notifications have been queued.`;
+                    }
+                    showNotification(successMessage, 'success', 6000);
+                    
+                    // Close modal and reset form
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('announcementModal'));
+                    modal.hide();
+                    form.reset();
+                    updatePreview(); // Reset preview
+                    
+                    // Optional: Add the new announcement to the page without refresh
+                    // addAnnouncementToUI(data);
+                } else {
+                    throw new Error(data.message || 'Failed to create announcement');
+                }
+            })
+            .catch(error => {
+                console.error('Announcement creation error:', error);
+                let errorMessage = 'Failed to create announcement. Please try again.';
+                if (error.message.includes('403')) {
+                    errorMessage = 'You do not have permission to create announcements.';
+                } else if (error.message.includes('400')) {
+                    errorMessage = 'Please check your input and try again.';
+                }
+                showNotification(errorMessage, 'error', 8000);
+            })
+            .finally(() => {
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             });
         });
+    }
 
-        // Fixed Category Distribution Chart
-        document.addEventListener('DOMContentLoaded', function() {
-            const categoryData = <?php echo json_encode(array_column($category_stats, 'product_count')); ?>;
-            const categoryLabels = <?php echo json_encode(array_column($category_stats, 'name')); ?>;
+    // Form validation function
+    function validateAnnouncementForm() {
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+        const expiryDate = document.getElementById('announcementExpiry').value;
+        
+        if (!title) {
+            showNotification('Please enter an announcement title.', 'warning');
+            titleInput.focus();
+            return false;
+        }
+        
+        if (title.length > 200) {
+            showNotification('Title must not exceed 200 characters.', 'warning');
+            titleInput.focus();
+            return false;
+        }
+        
+        if (!content) {
+            showNotification('Please enter announcement content.', 'warning');
+            contentInput.focus();
+            return false;
+        }
+        
+        if (content.length > 2000) {
+            showNotification('Content must not exceed 2000 characters.', 'warning');
+            contentInput.focus();
+            return false;
+        }
+        
+        // Validate expiry date if provided
+        if (expiryDate) {
+            const expiryTimestamp = new Date(expiryDate).getTime();
+            const now = new Date().getTime();
+            
+            if (expiryTimestamp <= now) {
+                showNotification('Expiry date must be in the future.', 'warning');
+                document.getElementById('announcementExpiry').focus();
+                return false;
+            }
+        }
+        
+        return true;
+    }
 
-            // Only create chart if we have data
-            if (categoryData.length > 0 && categoryLabels.length > 0) {
-                const ctx = document.getElementById('categoryChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: categoryLabels,
-                        datasets: [{
-                            data: categoryData,
-                            backgroundColor: [
-                                '#3498db', '#27ae60', '#f39c12', '#e74c3c', 
-                                '#9b59b6', '#1abc9c', '#95a5a6', '#34495e'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff',
-                            hoverBorderWidth: 3
-                        }]
+    // Character counter function
+    function addCharacterCounter(input, maxLength) {
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end';
+        counter.style.marginTop = '5px';
+        input.parentNode.appendChild(counter);
+        
+        function updateCounter() {
+            const remaining = maxLength - input.value.length;
+            const current = input.value.length;
+            const percentage = (current / maxLength) * 100;
+            
+            let color = 'text-muted';
+            let icon = '';
+            
+            if (remaining < 0) {
+                color = 'text-danger';
+                icon = ' <i class="bi bi-exclamation-circle"></i>';
+                input.classList.add('is-invalid');
+            } else if (remaining < 50) {
+                color = 'text-warning';
+                icon = ' <i class="bi bi-exclamation-triangle"></i>';
+                input.classList.remove('is-invalid');
+            } else {
+                input.classList.remove('is-invalid');
+            }
+            
+            counter.innerHTML = `<span class="${color}">${current}/${maxLength}${icon}</span>`;
+            
+            // Progress bar
+            if (current > 0) {
+                counter.innerHTML += `<div class="progress mt-1" style="height: 3px;">
+                    <div class="progress-bar bg-${percentage > 100 ? 'danger' : percentage > 80 ? 'warning' : 'primary'}" 
+                         style="width: ${Math.min(percentage, 100)}%"></div>
+                </div>`;
+            }
+        }
+        
+        input.addEventListener('input', updateCounter);
+        updateCounter();
+    }
+
+    // Add character counters
+    if (titleInput) addCharacterCounter(titleInput, 200);
+    if (contentInput) addCharacterCounter(contentInput, 2000);
+
+    // Initialize preview
+    updatePreview();
+    
+    // Auto-focus title when modal opens
+    const announcementModal = document.getElementById('announcementModal');
+    if (announcementModal) {
+        announcementModal.addEventListener('shown.bs.modal', function() {
+            titleInput.focus();
+        });
+        
+        // Reset form when modal closes
+        announcementModal.addEventListener('hidden.bs.modal', function() {
+            form.reset();
+            updatePreview();
+        });
+    }
+});
+
+// Check if chat file exists function
+function checkChatFile(event) {
+    console.log('Navigating to chat overview...');
+}
+
+// Fixed Category Distribution Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryDataElement = document.getElementById('category-data');
+    const categoryLabelsElement = document.getElementById('category-labels');
+    
+    if (!categoryDataElement || !categoryLabelsElement) {
+        console.warn('Category data not found');
+        return;
+    }
+    
+    const categoryData = JSON.parse(categoryDataElement.textContent || '[]');
+    const categoryLabels = JSON.parse(categoryLabelsElement.textContent || '[]');
+
+    // Only create chart if we have data
+    if (categoryData.length > 0 && categoryLabels.length > 0) {
+        const ctx = document.getElementById('categoryChart');
+        if (!ctx) return;
+        
+        new Chart(ctx.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryData,
+                    backgroundColor: [
+                        '#3498db', '#27ae60', '#f39c12', '#e74c3c', 
+                        '#9b59b6', '#1abc9c', '#95a5a6', '#34495e',
+                        '#16a085', '#2980b9', '#8e44ad', '#d35400'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverBorderWidth: 4,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 1.2,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: {
+                                size: 13,
+                                weight: '500'
+                            }
+                        }
                     },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        aspectRatio: 1.2,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    font: {
-                                        size: 12
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label || '';
-                                        const value = context.parsed;
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((value / total) * 100).toFixed(1);
-                                        return `${label}: ${value} products (${percentage}%)`;
-                                    }
-                                }
-                            }
-                        },
-                        layout: {
-                            padding: {
-                                top: 10,
-                                bottom: 10
-                            }
-                        },
-                        onClick: (event, elements) => {
-                            if (elements.length > 0) {
-                                const elementIndex = elements[0].index;
-                                const categoryName = categoryLabels[elementIndex];
-                                window.location.href = `manage_products.php?category=${encodeURIComponent(categoryName)}`;
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#fff',
+                        borderWidth: 1,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return `📦 ${label}: ${value} products (${percentage}%)`;
                             }
                         }
                     }
-                });
-            } else {
-                // Show message if no data
-                document.getElementById('categoryChart').style.display = 'none';
-                const chartContainer = document.querySelector('.chart-wrapper');
-                chartContainer.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-pie-chart fs-1"></i><br><p class="mt-2">No category data available</p></div>';
+                },
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10
+                    }
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const elementIndex = elements[0].index;
+                        const categoryName = categoryLabels[elementIndex];
+                        showNotification(`Loading ${categoryName} products...`, 'info', 2000);
+                        setTimeout(() => {
+                            window.location.href = `manage_products.php?category=${encodeURIComponent(categoryName)}`;
+                        }, 500);
+                    }
+                },
+                onHover: (event, elements) => {
+                    event.native.target.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                }
             }
         });
-
-        // Add visual feedback for card interactions
-        document.addEventListener('DOMContentLoaded', function() {
-            const clickableCards = document.querySelectorAll('.dashboard-card');
-            
-            clickableCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                });
-                
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-                
-                card.addEventListener('mousedown', function() {
-                    this.style.transform = 'translateY(-4px) scale(0.98)';
-                });
-                
-                card.addEventListener('mouseup', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                });
-            });
-        });
-
-        // Add loading states for navigation
-        function showLoadingState(element) {
-            const originalContent = element.innerHTML;
-            element.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Loading...';
-            element.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                element.innerHTML = originalContent;
-                element.style.pointerEvents = 'auto';
-            }, 1000);
+    } else {
+        // Show message if no data
+        const chartCanvas = document.getElementById('categoryChart');
+        if (chartCanvas) {
+            chartCanvas.style.display = 'none';
+            const chartContainer = chartCanvas.closest('.chart-wrapper');
+            if (chartContainer) {
+                chartContainer.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-pie-chart fs-1 mb-3" style="opacity: 0.5;"></i>
+                        <h6 class="mt-2">No category data available</h6>
+                        <small>Products will appear here once categories are created</small>
+                    </div>
+                `;
+            }
         }
+    }
+});
 
-        // Add CSS for spinning animation
-        const style = document.createElement('style');
-        style.textContent = `
-            .spin {
-                animation: spin 1s linear infinite;
+// Enhanced card interactions
+document.addEventListener('DOMContentLoaded', function() {
+    const clickableCards = document.querySelectorAll('.dashboard-card');
+    
+    clickableCards.forEach(card => {
+        // Add data attributes for stats tracking
+        const statNumber = card.querySelector('.stat-number');
+        if (statNumber) {
+            const cardText = card.querySelector('.stat-label')?.textContent.toLowerCase();
+            if (cardText) {
+                if (cardText.includes('seller')) card.setAttribute('data-stat', 'sellers');
+                else if (cardText.includes('product')) card.setAttribute('data-stat', 'products');
+                else if (cardText.includes('stall')) card.setAttribute('data-stat', 'stalls');
+                else if (cardText.includes('chat')) card.setAttribute('data-stat', 'chats');
+                else if (cardText.includes('application')) card.setAttribute('data-stat', 'applications');
             }
+        }
+        
+        card.addEventListener('mouseenter', function() {
+            if (!this.classList.contains('loading')) {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+                this.style.transition = 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                this.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.15)';
+            }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('loading')) {
+                this.style.transform = 'translateY(0) scale(1)';
+                this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            }
+        });
+        
+        card.addEventListener('mousedown', function() {
+            if (!this.classList.contains('loading')) {
+                this.style.transform = 'translateY(-4px) scale(0.98)';
+            }
+        });
+        
+        card.addEventListener('mouseup', function() {
+            if (!this.classList.contains('loading')) {
+                this.style.transform = 'translateY(-8px) scale(1.02)';
+            }
+        });
+        
+        // Add click handler for navigation cards
+        if (card.href || card.onclick) {
+            card.addEventListener('click', function(e) {
+                if (!this.classList.contains('loading')) {
+                    showLoadingState(this);
+                }
+            });
+        }
+    });
+
+    // Make chart containers clickable
+    const categoryChart = document.querySelector('#categoryChart');
+    if (categoryChart) {
+        const chartContainer = categoryChart.closest('.chart-container');
+        if (chartContainer) {
+            chartContainer.style.cursor = 'pointer';
+            chartContainer.style.transition = 'all 0.3s ease';
             
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-        `;
-        document.head.appendChild(style);
-    </script>
+            chartContainer.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            });
+            
+            chartContainer.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            });
+            
+            chartContainer.addEventListener('click', function() {
+                showNotification('Redirecting to product management...', 'info', 2000);
+                setTimeout(() => {
+                    window.location.href = 'manage_products.php';
+                }, 500);
+            });
+        }
+    }
+});
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+// Enhanced loading state function
+function showLoadingState(element) {
+    if (element.classList.contains('loading')) return;
+    
+    element.classList.add('loading');
+    const isCard = element.classList.contains('dashboard-card');
+    
+    if (isCard) {
+        // For dashboard cards, show loading overlay
+        const cardBody = element.querySelector('.card-body');
+        if (cardBody) {
+            cardBody.style.opacity = '0.3';
+            const loader = document.createElement('div');
+            loader.className = 'loading-overlay';
+            loader.innerHTML = `
+                <div class="d-flex justify-content-center align-items-center h-100">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            loader.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255,255,255,0.9);
+                z-index: 10;
+                border-radius: 15px;
+                animation: fadeIn 0.3s ease-in-out;
+            `;
+            element.style.position = 'relative';
+            element.appendChild(loader);
+        }
+    }
+    
+    // Reset after delay
+    setTimeout(() => {
+        element.classList.remove('loading');
+        const cardBody = element.querySelector('.card-body');
+        const loader = element.querySelector('.loading-overlay');
+        if (cardBody) cardBody.style.opacity = '1';
+        if (loader) loader.remove();
+        element.style.transform = 'translateY(0) scale(1)';
+        element.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    }, 3000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + N = New Announcement
+    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        showAnnouncementModal();
+    }
+    
+    // Escape = Close modals
+    if (e.key === 'Escape') {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {
+            const modalInstance = bootstrap.Modal.getInstance(modal);
+            if (modalInstance) modalInstance.hide();
+        });
+    }
+    
+    // Ctrl/Cmd + R = Refresh dashboard (prevent default browser refresh)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        refreshDashboard();
+    }
+});
+
+// Manual refresh function
+function refreshDashboard() {
+    showNotification('Refreshing dashboard data...', 'info', 2000);
+    
+    // Add subtle loading animation to stats
+    const statNumbers = document.querySelectorAll('.stat-number');
+    statNumbers.forEach(stat => {
+        stat.style.opacity = '0.5';
+        stat.style.transform = 'scale(0.95)';
+    });
+    
+    setTimeout(() => {
+        window.location.reload();
+    }, 1000);
+}
+
+// Initialize dashboard features
+document.addEventListener('DOMContentLoaded', function() {
+    // Show welcome message for new sessions
+    if (sessionStorage.getItem('dashboardWelcomeShown') !== 'true') {
+        setTimeout(() => {
+            showNotification('Welcome to the admin dashboard! 👋<br><small>Use <kbd>Ctrl+N</kbd> to create announcements quickly.</small>', 'info', 10000);
+            sessionStorage.setItem('dashboardWelcomeShown', 'true');
+        }, 1500);
+    }
+    
+    // Add smooth scrolling for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Initialize tooltips if Bootstrap tooltips are available
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Check for urgent notifications on load
+    checkUrgentNotifications();
+    
+    // Add ripple effect to action buttons
+    const actionButtons = document.querySelectorAll('.action-btn');
+    actionButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            createRippleEffect(e, this);
+        });
+    });
+});
+
+// Check for urgent notifications
+function checkUrgentNotifications() {
+    const pendingApps = <?php echo $pending_applications; ?>;
+    const unreadMsgs = <?php echo $unread_messages; ?>;
+    
+    if (pendingApps > 0) {
+        setTimeout(() => {
+            showNotification(`⚠️ You have ${pendingApps} pending seller application${pendingApps > 1 ? 's' : ''} awaiting review.`, 'warning', 8000);
+        }, 3000);
+    }
+    
+    if (unreadMsgs > 0) {
+        setTimeout(() => {
+            showNotification(`💬 You have ${unreadMsgs} unread message${unreadMsgs > 1 ? 's' : ''} from customers.`, 'info', 8000);
+        }, 5000);
+    }
+}
+
+// Ripple effect function
+function createRippleEffect(event, element) {
+    const ripple = document.createElement('span');
+    const rect = element.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = event.clientX - rect.left - size / 2;
+    const y = event.clientY - rect.top - size / 2;
+    
+    ripple.style.cssText = `
+        position: absolute;
+        width: ${size}px;
+        height: ${size}px;
+        left: ${x}px;
+        top: ${y}px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        transform: scale(0);
+        animation: ripple 0.6s linear;
+        pointer-events: none;
+        z-index: 1000;
+    `;
+    
+    element.style.position = 'relative';
+    element.style.overflow = 'hidden';
+    element.appendChild(ripple);
+    
+    setTimeout(() => {
+        ripple.remove();
+    }, 600);
+}
+
+// Utility function for formatting numbers
+function formatNumber(num) {
+    if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toLocaleString();
+}
+
+// Add custom CSS for animations and enhanced styling
+const customStyles = document.createElement('style');
+customStyles.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; transform: translateX(100%); }
+    }
+    
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
+        }
+    }
+    
+    .fade-out {
+        animation: fadeOut 0.3s ease-out forwards;
+    }
+    
+    .dashboard-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        will-change: transform, box-shadow;
+    }
+    
+    .custom-notification {
+        backdrop-filter: blur(10px);
+        border-left: 4px solid;
+    }
+    
+    .custom-notification.alert-success {
+        border-left-color: #27ae60;
+        background: rgba(212, 237, 218, 0.95);
+    }
+    
+    .custom-notification.alert-danger {
+        border-left-color: #e74c3c;
+        background: rgba(248, 215, 218, 0.95);
+    }
+    
+    .custom-notification.alert-warning {
+        border-left-color: #f39c12;
+        background: rgba(255, 243, 205, 0.95);
+    }
+    
+    .custom-notification.alert-info {
+        border-left-color: #3498db;
+        background: rgba(209, 236, 241, 0.95);
+    }
+    
+    .progress {
+        background-color: rgba(0,0,0,0.1);
+    }
+    
+    .chart-container:hover {
+        cursor: pointer;
+    }
+    
+    kbd {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 3px;
+        color: #495057;
+        font-size: 0.875rem;
+        padding: 2px 4px;
+    }
+    
+    .action-btn:active {
+        transform: translateY(1px);
+    }
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+    }
+`;
+document.head.appendChild(customStyles);
+
+// Performance monitoring (optional)
+if (typeof performance !== 'undefined') {
+    window.addEventListener('load', function() {
+        setTimeout(() => {
+            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+            if (loadTime > 3000) { // If page takes more than 3 seconds
+                console.log('Dashboard loaded in', loadTime + 'ms');
+            }
+        }, 100);
+    });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
