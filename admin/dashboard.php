@@ -123,7 +123,8 @@ $occupancy_percentage = $total_stalls > 0 ? round(($occupied_stalls / $total_sta
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - ORO Market</title>
+    <title>Oroquieta Marketplace</title>
+    <link href="../assets/img/logo-removebg.png" rel="icon">
 
     <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

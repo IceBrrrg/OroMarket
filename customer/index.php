@@ -35,7 +35,6 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                             <option value="relevance">Relevance</option>
                             <option value="price-low">Price: Low to High</option>
                             <option value="price-high">Price: High to Low</option>
-                            <option value="rating">Rating</option>
                             <option value="newest">Newest</option>
                             <option value="most_viewed">Most Viewed</option>
                         </select>
@@ -298,21 +297,6 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                                             </div>
                                             <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
                                             <p><?php echo $seller['product_count']; ?> products</p>
-                                            <div class="seller-rating">
-                                                <?php
-                                                $rating = $seller['rating'];
-                                                for ($i = 1; $i <= 5; $i++) {
-                                                    if ($i <= $rating) {
-                                                        echo '<i class="fas fa-star"></i>';
-                                                    } elseif ($i - 0.5 <= $rating) {
-                                                        echo '<i class="fas fa-star-half-alt"></i>';
-                                                    } else {
-                                                        echo '<i class="far fa-star"></i>';
-                                                    }
-                                                }
-                                                ?>
-                                                <span>(<?php echo $rating; ?>)</span>
-                                            </div>
                                             <div class="seller-actions">
                                                 <button class="btn visit-store-btn"
                                                     onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
@@ -379,20 +363,6 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                                             <p><?php echo htmlspecialchars($product['seller_full_name']); ?></p>
                                             <div class="view-count-badge">
                                                 <?php echo $product['view_count']; ?> views
-                                            </div>
-                                            <div class="rating">
-                                                <?php
-                                                $rating = $product['rating'] ?: 4; // Default rating
-                                                for ($i = 1; $i <= 5; $i++) {
-                                                    if ($i <= $rating) {
-                                                        echo '<i class="fas fa-star"></i>';
-                                                    } elseif ($i - 0.5 <= $rating) {
-                                                        echo '<i class="fas fa-star-half-alt"></i>';
-                                                    } else {
-                                                        echo '<i class="far fa-star"></i>';
-                                                    }
-                                                }
-                                                ?>
                                             </div>
                                         </div>
                                         <div class="item-price"><?php echo $product['formatted_price']; ?></div>
@@ -594,38 +564,7 @@ function updateMostViewedSection(products) {
         return;
     }
     
-    let html = '';
-    products.forEach(product => {
-        const rating = product.rating || 4;
-        let stars = '';
-        for (let i = 1; i <= 5; i++) {
-            if (i <= rating) {
-                stars += '<i class="fas fa-star"></i>';
-            } else if (i - 0.5 <= rating) {
-                stars += '<i class="fas fa-star-half-alt"></i>';
-            } else {
-                stars += '<i class="far fa-star"></i>';
-            }
-        }
-        
-        html += `
-            <div class="order-item" onclick="viewProduct(${product.id})">
-                <div class="item-image">
-                    <img src="${product.image_url}" alt="${product.name}"
-                         onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=60&h=60&fit=crop'">
-                </div>
-                <div class="item-info">
-                    <h4>${product.name}</h4>
-                    <p>${product.seller_full_name}</p>
-                    <div class="view-count-badge">${product.view_count} views</div>
-                    <div class="rating">${stars}</div>
-                </div>
-                <div class="item-price">${product.formatted_price}</div>
-            </div>
-        `;
-    });
     
-    orderItems.innerHTML = html;
 }
 </script>
 
