@@ -200,7 +200,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                                 <span>Order Now</span>
                             </button>
                             <button class="btn btn-outline-primary message-btn"
-                                onclick="messageVendor(<?php echo $product['seller_id']; ?>)">
+                                onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
                                 <i class="fas fa-envelope"></i>
                                 <span>Inquire Vendor</span>
                             </button>
@@ -333,6 +333,9 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     </div>
 </div>
 
+<!-- Include Chat CSS -->
+<link rel="stylesheet" href="css/chat.css">
+
 <script>
     // Function to change main product image
     function changeMainImage(src, thumbnailElement) {
@@ -345,14 +348,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         thumbnailElement.classList.add('active');
     }
 
-    // Function to message vendor
-    function messageVendor(sellerId) {
-        // Implement messaging functionality
-        alert('Messaging feature will redirect to contact form for seller ID: ' + sellerId);
-        // You can redirect to a contact form or open a modal
-        // window.location.href = 'contact_seller.php?seller_id=' + sellerId;
-    }
-
     // Function to order product
     function orderProduct(productId) {
         // Implement order functionality
@@ -361,6 +356,9 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         // window.location.href = 'order.php?product_id=' + productId;
     }
 </script>
+
+<!-- Include Chat JavaScript -->
+<script src="js/chat.js"></script>
 
 <style>
     /* Main Layout */
@@ -715,37 +713,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         gap: 1.5rem;
     }
 
-    .similar-product-card {
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e5e7eb;
-        transition: all 0.3s ease;
-    }
-
-    .similar-product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-
-    .similar-product-card .product-image img {
-        width: 100%;
-        height: 200px;
-        object-fit: cover;
-    }
-
-    .similar-product-card .product-content {
-        padding: 1.5rem;
-    }
-
-    .similar-product-card .product-name {
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #1f2937;
-    }
-
     .similar-product-card .product-price {
         font-size: 1.25rem;
         font-weight: 700;
@@ -878,75 +845,78 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         }
     }
 </style>
+
 <script>
+    // Function to change main product image
+    function changeMainImage(src, thumbnailElement) {
+        document.getElementById('main-product-image').src = src;
+
+        // Update thumbnail active state
+        document.querySelectorAll('.thumbnail-container').forEach(container => {
+            container.classList.remove('active');
+        });
+        thumbnailElement.classList.add('active');
+    }
+
+    // Function to order product
+    function orderProduct(productId) {
+        // Implement order functionality
+        alert('Order functionality for product ID: ' + productId);
+        // You can redirect to order form
+        // window.location.href = 'order.php?product_id=' + productId;
+    }
+
+    // Track product view
     document.addEventListener('DOMContentLoaded', function() {
-    // Get product ID from URL or PHP variable
-    const urlParams = new URLSearchParams(window.location.search);
-    const productId = urlParams.get('id') || <?php echo $product_id; ?>;
-    
-    if (productId) {
-        trackProductView(productId);
-    }
-});
-
-// Function to track product view via AJAX
-function trackProductView(productId) {
-    console.log('Tracking view for product ID:', productId);
-    
-    fetch('track_view.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: JSON.stringify({
-            product_id: parseInt(productId),
-            action: 'track_view'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('View tracking response:', data);
+        // Get product ID from URL or PHP variable
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id') || <?php echo $product_id; ?>;
         
-        if (data.success) {
-            console.log('View tracked successfully. New count:', data.new_view_count);
-            
-            // Update view count display if there's an element for it
-            const viewCountElement = document.querySelector('.view-count');
-            if (viewCountElement && data.new_view_count) {
-                viewCountElement.textContent = data.new_view_count + ' views';
-            }
-        } else {
-            console.error('Failed to track view:', data.message);
-            console.error('Debug info:', data.debug);
+        if (productId) {
+            trackProductView(productId);
         }
-    })
-    .catch(error => {
-        console.error('Error tracking view:', error);
     });
-}
 
-// Optional: Add view count display to your product info
-function addViewCountDisplay() {
-    const productInfo = document.querySelector('.product-info-section');
-    if (productInfo && !document.querySelector('.view-count-display')) {
-        const viewCountDiv = document.createElement('div');
-        viewCountDiv.className = 'view-count-display';
-        viewCountDiv.innerHTML = `
-            <div class="view-stats">
-                <i class="fas fa-eye"></i>
-                <span class="view-count">Loading...</span>
-            </div>
-        `;
+    // Function to track product view via AJAX
+    function trackProductView(productId) {
+        console.log('Tracking view for product ID:', productId);
         
-        // Add it after the product header
-        const productHeader = document.querySelector('.product-header');
-        if (productHeader) {
-            productHeader.insertAdjacentElement('afterend', viewCountDiv);
-        }
+        fetch('track_view.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({
+                product_id: parseInt(productId),
+                action: 'track_view'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('View tracking response:', data);
+            
+            if (data.success) {
+                console.log('View tracked successfully. New count:', data.new_view_count);
+                
+                // Update view count display if there's an element for it
+                const viewCountElement = document.querySelector('.view-count');
+                if (viewCountElement && data.new_view_count) {
+                    viewCountElement.textContent = data.new_view_count + ' views';
+                }
+            } else {
+                console.error('Failed to track view:', data.message);
+                console.error('Debug info:', data.debug);
+            }
+        })
+        .catch(error => {
+            console.error('Error tracking view:', error);
+        });
     }
-}
 </script>
+
+<!-- Include Chat JavaScript -->
+<script src="js/chat.js"></script>
 <script src="../customer/js/index.js"></script>
 
 <!-- JavaScript Libraries -->

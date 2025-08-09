@@ -221,6 +221,12 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
             </a>
         </li>
         <li class="nav-item">
+            <a href="seller_messages.php" class="nav-link <?php echo $current_page == 'seller_messages.php' ? 'active' : ''; ?>">
+                <i class="bi bi-chat"></i>
+                <span>Messages</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="products.php" class="nav-link <?php echo $current_page == 'products.php' ? 'active' : ''; ?>">
                 <i class="bi bi-box-seam"></i>
                 <span>My Products</span>
@@ -238,6 +244,7 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
                 <span>Profile Settings</span>
             </a>
         </li>
+
     </ul>
 </div>
 

@@ -43,6 +43,7 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                 </div>
             </div>
 
+            <!-- Include existing styles -->
             <style>
                 .results-info {
                     display: flex;
@@ -95,6 +96,54 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                     color: #6da607;
                 }
 
+                /* Product Card Button Styles - REMOVED CHAT BUTTON STYLES */
+                .product-actions {
+                    display: flex;
+                    gap: 8px;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .view-product-btn {
+                    background-color: #81c408;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    width: 100%;
+                }
+
+                .view-product-btn:hover {
+                    background-color: #72ac07;
+                    transform: translateY(-2px);
+                }
+
+                /* Other existing styles... */
+                .product-description {
+                    color: #666;
+                    font-size: 0.85rem;
+                    line-height: 1.4;
+                    margin: 8px 0;
+                    min-height: 40px;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .view-count-badge {
+                    background-color: rgba(129, 196, 8, 0.1);
+                    color: #81c408;
+                    font-size: 0.75rem;
+                    padding: 2px 6px;
+                    border-radius: 12px;
+                    font-weight: 500;
+                }
+
                 @media (max-width: 768px) {
                     .results-info {
                         flex-direction: column;
@@ -110,143 +159,12 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                         width: 100%;
                     }
 
-                    .sort-options {
+                    .product-actions {
                         width: 100%;
                     }
 
-                    .sort-select {
+                    .view-product-btn {
                         width: 100%;
-                    }
-                }
-
-                /* Product Description Styles */
-                .product-description {
-                    color: #666;
-                    font-size: 0.85rem;
-                    line-height: 1.4;
-                    margin: 8px 0;
-                    min-height: 40px;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                }
-
-                /* Product Card Button Styles */
-                .view-product-btn {
-                    background-color: #81c408;
-                    color: white;
-                    border: none;
-                    padding: 8px 16px;
-                    border-radius: 6px;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    font-size: 0.9rem;
-                    width: 100%;
-                }
-
-                .view-product-btn:hover {
-                    background-color: #72ac07;
-                    transform: translateY(-2px);
-                }
-
-                /* Most Viewed Section Styles */
-                .view-count-badge {
-                    background-color: rgba(129, 196, 8, 0.1);
-                    color: #81c408;
-                    font-size: 0.75rem;
-                    padding: 2px 6px;
-                    border-radius: 12px;
-                    font-weight: 500;
-                }
-
-                .order-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 12px 0;
-                    border-bottom: 1px solid #f0f0f0;
-                    cursor: pointer;
-                    transition: background-color 0.2s ease;
-                }
-
-                .order-item:hover {
-                    background-color: #f9f9f9;
-                    border-radius: 8px;
-                    margin: 0 -8px;
-                    padding: 12px 8px;
-                }
-
-                .order-item:last-child {
-                    border-bottom: none;
-                }
-
-                .item-image {
-                    width: 60px;
-                    height: 60px;
-                    border-radius: 8px;
-                    overflow: hidden;
-                    flex-shrink: 0;
-                }
-
-                .item-image img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-
-                .item-info {
-                    flex: 1;
-                    min-width: 0;
-                }
-
-                .item-info h4 {
-                    margin: 0 0 4px 0;
-                    font-size: 0.9rem;
-                    font-weight: 600;
-                    color: #333;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
-                .item-info p {
-                    margin: 0 0 4px 0;
-                    font-size: 0.8rem;
-                    color: #666;
-                }
-
-                .item-price {
-                    font-weight: 600;
-                    color: #81c408;
-                    font-size: 1rem;
-                    flex-shrink: 0;
-                }
-
-                .rating {
-                    display: flex;
-                    align-items: center;
-                    gap: 1px;
-                }
-
-                .rating i {
-                    font-size: 0.75rem;
-                    color: #ffc107;
-                }
-
-                /* Loading state for most viewed */
-                .loading-skeleton {
-                    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-                    background-size: 200% 100%;
-                    animation: loading 1.5s infinite;
-                }
-
-                @keyframes loading {
-                    0% {
-                        background-position: 200% 0;
-                    }
-                    100% {
-                        background-position: -200% 0;
                     }
                 }
             </style>
@@ -342,11 +260,12 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                                                 <div class="price-section">
                                                     <span class="price"><?php echo $product['formatted_price']; ?></span>
                                                 </div>
+                                                <!-- REMOVED CHAT BUTTON - Only View Details button remains -->
                                                 <div class="product-actions">
                                                     <button class="view-product-btn"
                                                         onclick="viewProduct(<?php echo $product['id']; ?>)"
                                                         title="View product">
-                                                        View product
+                                                        View Details
                                                     </button>
                                                 </div>
                                             </div>
@@ -394,8 +313,11 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                                                 ?>
                                                 <span>(<?php echo $rating; ?>)</span>
                                             </div>
-                                            <button class="btn visit-store-btn"
-                                                onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
+                                            <div class="seller-actions">
+                                                <button class="btn visit-store-btn"
+                                                    onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
+                                                <!-- REMOVED CHAT BUTTON FROM SELLER CARDS TOO -->
+                                            </div>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -522,7 +444,7 @@ function viewProduct(productId) {
     });
     
     // Redirect to product page
-    window.location.href = `product_details.php?id=${productId}`;
+    window.location.href = `view_product.php?id=${productId}`;
 }
 
 // Function to update view count in UI
@@ -541,6 +463,11 @@ function updateViewCount(productId, newCount) {
             productImage.appendChild(badge);
         }
     }
+}
+
+// View seller products function
+function viewSellerProducts(sellerId) {
+    window.location.href = `view_stall.php?seller_id=${sellerId}`;
 }
 
 // Enhanced sort functionality to include most viewed
@@ -575,7 +502,7 @@ document.getElementById('sortBy').addEventListener('change', function() {
     });
 });
 
-// Function to update products grid
+// Function to update products grid - REMOVED CHAT BUTTON FROM GENERATED HTML
 function updateProductsGrid(products) {
     const productsGrid = document.getElementById('productsGrid');
     
@@ -613,7 +540,7 @@ function updateProductsGrid(products) {
                         </div>
                         <div class="product-actions">
                             <button class="view-product-btn" onclick="viewProduct(${product.id})" title="View product">
-                                View product
+                                View Details
                             </button>
                         </div>
                     </div>
@@ -636,12 +563,11 @@ document.querySelectorAll('.nav-dot').forEach(dot => {
         // Add active class to clicked dot
         this.classList.add('active');
         
-        // You can implement slide functionality here if needed
         console.log(`Navigating to slide ${slideIndex}`);
     });
 });
 
-// Auto-refresh most viewed section periodically (optional)
+// Auto-refresh most viewed section periodically
 setInterval(function() {
     fetch('ajax_most_viewed.php')
     .then(response => response.json())
@@ -653,7 +579,7 @@ setInterval(function() {
     .catch(error => {
         console.error('Error refreshing most viewed:', error);
     });
-}, 1000); // Refresh every 1 second
+}, 60000); // Refresh every minute
 
 function updateMostViewedSection(products) {
     const orderItems = document.querySelector('.order-items');
