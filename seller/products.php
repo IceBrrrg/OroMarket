@@ -99,7 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = trim($_POST['description']);
         $price = floatval($_POST['price']);
         $stock_quantity = intval($_POST['stock_quantity']);
-        $sku = trim($_POST['sku']);
         $weight = floatval($_POST['weight']);
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
@@ -114,10 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $check_stmt->execute([$product_id, $seller_id]);
 
             if ($check_stmt->fetch()) {
-                // Update product in database
-                $query = "UPDATE products SET name = ?, description = ?, price = ?, stock_quantity = ?, sku = ?, weight = ?, is_featured = ?, updated_at = NOW() WHERE id = ? AND seller_id = ?";
+                // Update product in database (removed sku from update)
+                $query = "UPDATE products SET name = ?, description = ?, price = ?, stock_quantity = ?, weight = ?, is_featured = ?, updated_at = NOW() WHERE id = ? AND seller_id = ?";
                 $stmt = $pdo->prepare($query);
-                $result = $stmt->execute([$product_name, $description, $price, $stock_quantity, $sku, $weight, $is_featured, $product_id, $seller_id]);
+                $result = $stmt->execute([$product_name, $description, $price, $stock_quantity, $weight, $is_featured, $product_id, $seller_id]);
 
                 if ($result) {
                     $message = "Product updated successfully!";
@@ -970,13 +969,9 @@ $categories = $cat_stmt->fetchAll();
                                     min="0" required>
                             </div>
 
-                            <div class="col-md-6">
-                                <label for="edit_productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="edit_productSKU" name="sku"
-                                    placeholder="e.g., PROD-001">
-                            </div>
+                            <!-- SKU field removed from edit form -->
 
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label for="edit_productWeight" class="form-label">Weight (kg)</label>
                                 <input type="number" class="form-control" id="edit_productWeight" name="weight"
                                     step="0.01" min="0">
@@ -1081,12 +1076,11 @@ $categories = $cat_stmt->fetchAll();
                     if (data.success) {
                         const product = data.product;
 
-                        // Populate edit form
+                        // Populate edit form (removed SKU field)
                         document.getElementById('edit_product_id').value = product.id;
                         document.getElementById('edit_productName').value = product.name;
                         document.getElementById('edit_productPrice').value = product.price;
                         document.getElementById('edit_productStock').value = product.stock_quantity;
-                        document.getElementById('edit_productSKU').value = product.sku || '';
                         document.getElementById('edit_productWeight').value = product.weight || '';
                         document.getElementById('edit_productDescription').value = product.description || '';
                         document.getElementById('edit_productFeatured').checked = product.is_featured == 1;
@@ -1132,7 +1126,7 @@ $categories = $cat_stmt->fetchAll();
             }
         }
 
-        // Auto-generate SKU based on product name
+        // Auto-generate SKU based on product name (only for add form)
         document.getElementById('productName').addEventListener('input', function (e) {
             const skuField = document.getElementById('productSKU');
             if (!skuField.value && e.target.value) {
