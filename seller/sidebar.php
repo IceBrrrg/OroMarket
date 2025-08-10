@@ -149,10 +149,11 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         display: flex;
         align-items: center;
         padding: 1rem 1.5rem;
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
+        color: rgba(255, 255, 255, 0.7) !important;
+        text-decoration: none !important;
         border-radius: var(--border-radius);
         font-weight: 500;
+        font-family: 'Inter', sans-serif !important;
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
@@ -160,20 +161,107 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
 
     .nav-link:hover {
         background: rgba(255, 255, 255, 0.1);
-        color: white;
+        color: white !important;
+        text-decoration: none !important;
         transform: translateX(5px);
     }
 
     .nav-link.active {
         background: linear-gradient(135deg, #22C55E 0%, #16a34a 100%);
-        color: white;
+        color: white !important;
         box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .nav-link:visited,
+    .nav-link:focus {
+        color: rgba(255, 255, 255, 0.7) !important;
+        text-decoration: none !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    .nav-link.active:visited,
+    .nav-link.active:focus {
+        color: white !important;
     }
 
     .nav-link i {
         margin-right: 1rem;
-        font-size: 1.1rem;
-        width: 20px;
+        font-size: 1.2rem;
+        width: 24px;
+        text-align: center;
+        display: inline-block;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        line-height: 1;
+    }
+
+    /* Ensure Bootstrap Icons are properly displayed */
+    .nav-link i.bi::before {
+        font-family: "bootstrap-icons" !important;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Specific fix for profile settings icon */
+    .nav-link i.bi-person-gear::before {
+        content: "\f4fe";
+        font-family: "bootstrap-icons" !important;
+    }
+
+    /* Ensure all Bootstrap Icons render correctly */
+    .bi {
+        font-family: "bootstrap-icons" !important;
+        font-style: normal;
+        font-variant: normal;
+        text-rendering: auto;
+        line-height: 1;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Force consistent styling for all navigation links including Profile Settings */
+    .nav-link,
+    .nav-link span,
+    a[href="profile_settings.php"],
+    a[href="profile_settings.php"] span {
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 500 !important;
+        font-size: 1rem !important;
+        letter-spacing: 0 !important;
+        text-transform: none !important;
+        line-height: 1.5 !important;
+    }
+
+    /* Ensure Profile Settings link matches others exactly */
+    a[href="profile_settings.php"].nav-link {
+        display: flex !important;
+        align-items: center !important;
+        padding: 1rem 1.5rem !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        text-decoration: none !important;
+        border-radius: var(--border-radius) !important;
+        font-weight: 500 !important;
+        font-family: 'Inter', sans-serif !important;
+        transition: all 0.3s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    a[href="profile_settings.php"].nav-link:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        text-decoration: none !important;
+        transform: translateX(5px) !important;
+    }
+
+    a[href="profile_settings.php"].nav-link.active {
+        background: linear-gradient(135deg, #22C55E 0%, #16a34a 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
     }
 
 
@@ -233,13 +321,7 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
             </a>
         </li>
         <li class="nav-item">
-            <a href="#" class="nav-link" onclick="openAddProductModal()">
-                <i class="bi bi-plus-circle"></i>
-                <span>Add Product</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a href="profile.php" class="nav-link <?php echo $current_page == 'profile.php' ? 'active' : ''; ?>">
+            <a href="profile_settings.php" class="nav-link <?php echo $current_page == 'profile_settings.php' ? 'active' : ''; ?>">
                 <i class="bi bi-person"></i>
                 <span>Profile Settings</span>
             </a>

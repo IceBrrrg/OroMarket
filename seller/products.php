@@ -245,7 +245,7 @@ $categories = $cat_stmt->fetchAll();
 
     <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -680,6 +680,36 @@ $categories = $cat_stmt->fetchAll();
             font-weight: 500;
         }
 
+        /* Enhanced Add Product Button */
+        .btn-add-product {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            color: var(--primary) !important;
+            font-weight: 600 !important;
+            padding: 12px 24px !important;
+            border-radius: 50px !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2) !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        .btn-add-product:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            transform: translateY(-2px) scale(1.05) !important;
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3) !important;
+            color: var(--primary) !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .btn-add-product:active {
+            transform: translateY(0) scale(1.02) !important;
+        }
+
+        .btn-add-product i {
+            font-size: 1.1rem !important;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .main-content {
@@ -709,7 +739,7 @@ $categories = $cat_stmt->fetchAll();
                             <?php echo htmlspecialchars($business_name); ?>
                         </p>
                     </div>
-                    <button class="btn btn-light btn-lg" onclick="openAddProductModal()">
+                    <button class="btn btn-add-product btn-lg" onclick="openAddProductModal()">
                         <i class="bi bi-plus-circle me-2"></i>Add New Product
                     </button>
                 </div>
