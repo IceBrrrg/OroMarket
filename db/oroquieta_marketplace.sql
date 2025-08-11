@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 09, 2025 at 02:11 PM
+-- Generation Time: Aug 11, 2025 at 03:22 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -20,26 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `oroquieta_marketplace`
 --
-
--- --------------------------------------------------------
-
---
--- Table structure for table `announcements`
---
-
-CREATE TABLE `announcements` (
-  `id` int(11) NOT NULL,
-  `title` varchar(200) NOT NULL,
-  `content` text NOT NULL,
-  `priority` enum('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
-  `target_audience` enum('all','sellers','customers','admins') NOT NULL DEFAULT 'all',
-  `expiry_date` datetime DEFAULT NULL,
-  `is_pinned` tinyint(1) NOT NULL DEFAULT 0,
-  `is_active` tinyint(1) NOT NULL DEFAULT 1,
-  `created_by` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -67,6 +47,35 @@ CREATE TABLE `admins` (
 
 INSERT INTO `admins` (`id`, `username`, `email`, `password`, `first_name`, `last_name`, `phone`, `profile_image`, `is_active`, `created_at`, `updated_at`) VALUES
 (4, 'admin', '', '$2y$10$WqS4wckzX8YBNJlKNGtXyukb8nfDzIWgVRgQ15lVak4KOezHyy076', NULL, NULL, NULL, NULL, 1, '2025-04-25 08:31:00', '2025-04-25 08:31:00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `announcements`
+--
+
+CREATE TABLE `announcements` (
+  `id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `content` text NOT NULL,
+  `priority` enum('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
+  `target_audience` enum('all','sellers','customers','admins') NOT NULL DEFAULT 'all',
+  `expiry_date` datetime DEFAULT NULL,
+  `is_pinned` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `announcements`
+--
+
+INSERT INTO `announcements` (`id`, `title`, `content`, `priority`, `target_audience`, `expiry_date`, `is_pinned`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 'holiday', 'way klase', 'medium', 'sellers', '2025-08-13 20:51:00', 0, 1, 20, '2025-08-11 12:48:11', '2025-08-11 12:48:11'),
+(2, 'gwapo ko', 'werty', 'medium', 'sellers', '2025-08-20 12:52:00', 0, 1, 20, '2025-08-11 12:48:53', '2025-08-11 12:49:03'),
+(3, 'Consumers Protection', 'Dear consumers, please ayaw mo pauwat sa scam, report to admin if ever naay mag scam!', 'high', 'customers', '2025-09-12 00:00:00', 0, 1, 4, '2025-08-11 13:04:04', '2025-08-11 13:04:04');
 
 -- --------------------------------------------------------
 
@@ -168,6 +177,27 @@ INSERT INTO `conversations` (`id`, `guest_name`, `guest_contact`, `seller_id`, `
 (4, 'earl', '09123456', 24, '2025-08-09 11:47:34', '2025-08-09 11:59:44', 'active', 'klaro ana', NULL, 0),
 (5, 'yami', '09509720086', 24, '2025-08-09 11:50:15', '2025-08-09 11:50:23', 'active', 'okay', NULL, 0),
 (6, '0xletus', 'banaw@gmail.com', 24, '2025-08-09 12:01:43', '2025-08-09 12:03:48', 'active', 'klaro ana', NULL, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `email_queue`
+--
+
+CREATE TABLE `email_queue` (
+  `id` int(11) NOT NULL,
+  `recipient_email` varchar(255) NOT NULL,
+  `recipient_name` varchar(255) DEFAULT NULL,
+  `subject` varchar(255) NOT NULL,
+  `body` text NOT NULL,
+  `template_type` varchar(50) DEFAULT 'default',
+  `status` enum('pending','sent','failed','cancelled') DEFAULT 'pending',
+  `attempts` int(11) DEFAULT 0,
+  `last_attempt` datetime DEFAULT NULL,
+  `sent_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `error_message` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -395,7 +425,9 @@ INSERT INTO `product_views` (`id`, `product_id`, `view_count`, `last_viewed`, `c
 (1, 5, 4, '2025-08-09 18:54:32', '2025-08-08 13:14:28', '2025-08-09 10:54:32'),
 (4, 8, 18, '2025-08-09 16:28:25', '2025-08-08 13:14:28', '2025-08-09 08:28:25'),
 (25, 9, 11, '2025-08-09 19:00:23', '2025-08-08 14:08:52', '2025-08-09 11:00:23'),
-(53, 12, 4, '2025-08-09 20:01:24', '2025-08-09 11:47:25', '2025-08-09 12:01:24');
+(53, 12, 7, '2025-08-09 22:00:03', '2025-08-09 11:47:25', '2025-08-09 14:00:03'),
+(58, 11, 3, '2025-08-11 20:33:48', '2025-08-09 13:43:32', '2025-08-11 12:33:48'),
+(59, 10, 3, '2025-08-09 21:49:05', '2025-08-09 13:43:44', '2025-08-09 13:49:05');
 
 -- --------------------------------------------------------
 
@@ -453,7 +485,16 @@ INSERT INTO `product_view_logs` (`id`, `product_id`, `user_id`, `session_id`, `i
 (56, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:47:25'),
 (57, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:50:10'),
 (58, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 11:58:12'),
-(59, 12, 24, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 12:01:24');
+(59, 12, 24, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 12:01:24'),
+(60, 12, 24, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:43:13'),
+(61, 11, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:43:32'),
+(62, 10, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:43:44'),
+(63, 10, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:44:42'),
+(64, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:44:54'),
+(65, 10, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:49:05'),
+(66, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 14:00:03'),
+(67, 11, NULL, '500t5e4udusrb3bvaclnlrchfl', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-11 12:33:37'),
+(68, 11, NULL, '500t5e4udusrb3bvaclnlrchfl', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-11 12:33:48');
 
 -- --------------------------------------------------------
 
@@ -701,14 +742,7 @@ ALTER TABLE `admins`
 -- Indexes for table `announcements`
 --
 ALTER TABLE `announcements`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_target_audience` (`target_audience`),
-  ADD KEY `idx_priority` (`priority`),
-  ADD KEY `idx_is_active` (`is_active`),
-  ADD KEY `idx_is_pinned` (`is_pinned`),
-  ADD KEY `idx_expiry_date` (`expiry_date`),
-  ADD KEY `idx_created_by` (`created_by`),
-  ADD KEY `idx_created_at` (`created_at`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `categories`
@@ -742,6 +776,15 @@ ALTER TABLE `conversations`
   ADD KEY `idx_seller_status` (`seller_id`,`status`),
   ADD KEY `idx_guest_seller` (`guest_name`,`seller_id`),
   ADD KEY `idx_archived` (`is_archived`);
+
+--
+-- Indexes for table `email_queue`
+--
+ALTER TABLE `email_queue`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_template_type` (`template_type`);
 
 --
 -- Indexes for table `messages`
@@ -866,7 +909,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `announcements`
 --
 ALTER TABLE `announcements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `categories`
@@ -891,6 +934,12 @@ ALTER TABLE `chat_settings`
 --
 ALTER TABLE `conversations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `email_queue`
+--
+ALTER TABLE `email_queue`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -932,13 +981,13 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT for table `product_views`
 --
 ALTER TABLE `product_views`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `product_view_logs`
 --
 ALTER TABLE `product_view_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `sellers`
@@ -985,12 +1034,6 @@ ALTER TABLE `chat_blocks`
 --
 ALTER TABLE `conversations`
   ADD CONSTRAINT `fk_convo_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `announcements`
---
-ALTER TABLE `announcements`
-  ADD CONSTRAINT `announcements_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `messages`

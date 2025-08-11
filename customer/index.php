@@ -8,6 +8,23 @@ $categories = fetchCategories();
 $featured_products = getFeaturedProducts(6);
 $popular_sellers = getSellers(4);
 $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
+
+// Fetch announcements targeted to customers or all users
+try {
+    $stmt = $pdo->prepare(
+        "SELECT title, content, priority, created_at, expiry_date, is_pinned 
+         FROM announcements 
+         WHERE (target_audience = 'customers' OR target_audience = 'all') 
+           AND is_active = 1 
+           AND (expiry_date IS NULL OR expiry_date > NOW()) 
+         ORDER BY is_pinned DESC, created_at DESC"
+    );
+    $stmt->execute();
+    $announcements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Error fetching announcements: " . $e->getMessage());
+    $announcements = [];
+}
 ?>
 
 <!-- Main Content -->
@@ -379,6 +396,42 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
                         </div>
                         <?php endif; ?>
                     </section>
+                </div>
+            </div>
+
+            <!-- Announcements Section -->
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <div class="quick-actions">
+                        <h4><i class="bi bi-megaphone me-2"></i>Announcements</h4>
+                        <?php if (empty($announcements)): ?>
+                            <div class="text-center py-4">
+                                <i class="bi bi-megaphone" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                                <p class="text-muted mt-2">No announcements at the moment.</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($announcements as $announcement): ?>
+                                <div class="announcement-card mb-3 p-3 border rounded" style="background: <?php echo $announcement['is_pinned'] ? '#fffbe6' : '#ffffff'; ?>;">
+                                    <h5 class="mb-1">
+                                        <?php if ($announcement['is_pinned']): ?>
+                                            <i class="bi bi-pin-fill text-warning me-1"></i>
+                                        <?php endif; ?>
+                                        <?php echo htmlspecialchars($announcement['title']); ?>
+                                    </h5>
+                                    <p class="text-muted mb-2 small">
+                                        <i class="bi bi-calendar me-1"></i>
+                                        <?php echo date('M j, Y g:i A', strtotime($announcement['created_at'])); ?>
+                                        <?php if ($announcement['expiry_date']): ?>
+                                            | Expires: <?php echo date('M j, Y', strtotime($announcement['expiry_date'])); ?>
+                                        <?php endif; ?>
+                                    </p>
+                                    <p class="mb-0">
+                                        <?php echo nl2br(htmlspecialchars($announcement['content'])); ?>
+                                    </p>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
