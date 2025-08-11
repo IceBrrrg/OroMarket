@@ -44,7 +44,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $error = "Username or email already exists.";
                     } else {
                         // Move to next step
-                        header("Location: signup.php?step=2");
+                        // Send OTP after successful validation
+                        $_SESSION['signup_data']['email'] = $_POST['email'];
+                        header("Location: send_otp.php");
                         exit();
                     }
                 } catch (PDOException $e) {

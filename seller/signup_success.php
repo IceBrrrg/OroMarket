@@ -1,5 +1,15 @@
 <?php
 session_start();
+
+// Ensure OTP verification is completed
+if (!isset($_SESSION['otp_verified']) || !$_SESSION['otp_verified']) {
+    header("Location: signup.php");
+    exit();
+}
+
+// Clear OTP verification flag
+unset($_SESSION['otp_verified']);
+
 require_once '../includes/db_connect.php';
 
 // Remove the login check since this page should be accessible after registration
