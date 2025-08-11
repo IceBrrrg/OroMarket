@@ -321,6 +321,12 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
             </a>
         </li>
         <li class="nav-item">
+            <a href="announcements.php" class="nav-link <?php echo $current_page == 'announcements.php' ? 'active' : ''; ?>">
+                <i class="bi bi-megaphone"></i>
+                <span>Announcements</span>
+            </a>
+        </li>
+        <li class="nav-item">
             <a href="profile_settings.php" class="nav-link <?php echo $current_page == 'profile_settings.php' ? 'active' : ''; ?>">
                 <i class="bi bi-person"></i>
                 <span>Profile Settings</span>

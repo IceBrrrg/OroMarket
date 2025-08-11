@@ -24,6 +24,26 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `announcements`
+--
+
+CREATE TABLE `announcements` (
+  `id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `content` text NOT NULL,
+  `priority` enum('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
+  `target_audience` enum('all','sellers','customers','admins') NOT NULL DEFAULT 'all',
+  `expiry_date` datetime DEFAULT NULL,
+  `is_pinned` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_by` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `admins`
 --
 
@@ -678,6 +698,19 @@ ALTER TABLE `admins`
   ADD UNIQUE KEY `email` (`email`);
 
 --
+-- Indexes for table `announcements`
+--
+ALTER TABLE `announcements`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_target_audience` (`target_audience`),
+  ADD KEY `idx_priority` (`priority`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_is_pinned` (`is_pinned`),
+  ADD KEY `idx_expiry_date` (`expiry_date`),
+  ADD KEY `idx_created_by` (`created_by`),
+  ADD KEY `idx_created_at` (`created_at`);
+
+--
 -- Indexes for table `categories`
 --
 ALTER TABLE `categories`
@@ -830,6 +863,12 @@ ALTER TABLE `admins`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `announcements`
+--
+ALTER TABLE `announcements`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
@@ -946,6 +985,12 @@ ALTER TABLE `chat_blocks`
 --
 ALTER TABLE `conversations`
   ADD CONSTRAINT `fk_convo_seller` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `announcements`
+--
+ALTER TABLE `announcements`
+  ADD CONSTRAINT `announcements_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `admins` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `messages`

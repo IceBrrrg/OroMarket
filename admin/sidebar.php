@@ -61,15 +61,31 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </li>
         <li class="nav-item mb-2">
-            <a class="nav-link <?php echo $current_page == 'manage_products.php' ? 'active' : 'text-white'; ?>"
-                href="manage_products.php">
-                <i class="bi bi-box-seam me-2"></i> Manage Products
-            </a>
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" role="button" id="productsDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-box-seam me-2"></i> Manage Products
+                </a>
+                <ul class="dropdown-menu bg-dark" aria-labelledby="productsDropdown">
+                    <li>
+                        <a class="dropdown-item text-white <?php echo $current_page == 'manage_products.php' ? 'active bg-primary' : ''; ?>"
+                            href="manage_products.php">
+                            <i class="bi bi-box-seam me-2"></i> Products
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-white <?php echo $current_page == 'categories.php' ? 'active bg-primary' : ''; ?>"
+                            href="categories.php">
+                            <i class="bi bi-tags me-2"></i> Categories
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </li>
         <li class="nav-item mb-2">
-            <a class="nav-link <?php echo $current_page == 'categories.php' ? 'active' : 'text-white'; ?>"
-                href="categories.php">
-                <i class="bi bi-tags me-2"></i> Categories
+            <a class="nav-link <?php echo $current_page == 'announcements.php' ? 'active' : 'text-white'; ?>"
+                href="announcements.php">
+                <i class="bi bi-megaphone me-2"></i> Announcements
             </a>
         </li>
         <li class="nav-item mb-2">
