@@ -160,6 +160,143 @@ try {
                     font-weight: 500;
                 }
 
+                /* Announcements Section Styles */
+                .announcements-section {
+                    background: #fff;
+                    border-radius: 12px;
+                    padding: 20px;
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                    margin-top: 20px;
+                }
+
+                .announcements-section h2 {
+                    color: #333;
+                    font-size: 1.25rem;
+                    font-weight: 600;
+                    margin-bottom: 15px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+
+                .announcements-section h2::before {
+                    content: '📢';
+                    font-size: 1.1rem;
+                }
+
+                .announcements-container {
+                    max-height: 400px;
+                    overflow-y: auto;
+                }
+
+                .announcement-item {
+                    background: #f8f9fa;
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin-bottom: 12px;
+                    border-left: 4px solid #81c408;
+                    transition: all 0.3s ease;
+                }
+
+                .announcement-item:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                }
+
+                .announcement-item.pinned {
+                    background: #fffbe6;
+                    border-left-color: #ffc107;
+                }
+
+                .announcement-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 8px;
+                }
+
+                .announcement-title {
+                    font-size: 0.95rem;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                }
+
+                .pinned-icon {
+                    color: #ffc107;
+                    font-size: 0.8rem;
+                }
+
+                .announcement-priority {
+                    font-size: 0.7rem;
+                    padding: 2px 6px;
+                    border-radius: 10px;
+                    font-weight: 500;
+                    text-transform: uppercase;
+                }
+
+                .priority-low {
+                    background: #e3f2fd;
+                    color: #1976d2;
+                }
+
+                .priority-medium {
+                    background: #fff3e0;
+                    color: #f57c00;
+                }
+
+                .priority-high {
+                    background: #ffebee;
+                    color: #d32f2f;
+                }
+
+                .priority-urgent {
+                    background: #f3e5f5;
+                    color: #7b1fa2;
+                }
+
+                .announcement-content {
+                    font-size: 0.85rem;
+                    line-height: 1.4;
+                    color: #555;
+                    margin-bottom: 8px;
+                }
+
+                .announcement-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .announcement-date {
+                    color: #666;
+                    font-size: 0.75rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                }
+
+                .no-announcements-message {
+                    text-align: center;
+                    padding: 30px 20px;
+                    color: #666;
+                }
+
+                .no-announcements-message i {
+                    font-size: 2.5rem;
+                    color: #ccc;
+                    margin-bottom: 10px;
+                    display: block;
+                }
+
+                .no-announcements-message p {
+                    margin: 0;
+                    font-size: 0.9rem;
+                }
+
                 @media (max-width: 768px) {
                     .results-info {
                         flex-direction: column;
@@ -181,6 +318,21 @@ try {
 
                     .view-product-btn {
                         width: 100%;
+                    }
+
+                    .announcements-section {
+                        margin-top: 15px;
+                        padding: 15px;
+                    }
+
+                    .announcements-container {
+                        max-height: 300px;
+                    }
+
+                    .announcement-header {
+                        flex-direction: column;
+                        align-items: flex-start;
+                        gap: 5px;
                     }
                 }
             </style>
@@ -396,42 +548,48 @@ try {
                         </div>
                         <?php endif; ?>
                     </section>
-                </div>
-            </div>
 
-            <!-- Announcements Section -->
-            <div class="row g-4 mb-4">
-                <div class="col-12">
-                    <div class="quick-actions">
-                        <h4><i class="bi bi-megaphone me-2"></i>Announcements</h4>
-                        <?php if (empty($announcements)): ?>
-                            <div class="text-center py-4">
-                                <i class="bi bi-megaphone" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                                <p class="text-muted mt-2">No announcements at the moment.</p>
-                            </div>
-                        <?php else: ?>
-                            <?php foreach ($announcements as $announcement): ?>
-                                <div class="announcement-card mb-3 p-3 border rounded" style="background: <?php echo $announcement['is_pinned'] ? '#fffbe6' : '#ffffff'; ?>;">
-                                    <h5 class="mb-1">
-                                        <?php if ($announcement['is_pinned']): ?>
-                                            <i class="bi bi-pin-fill text-warning me-1"></i>
-                                        <?php endif; ?>
-                                        <?php echo htmlspecialchars($announcement['title']); ?>
-                                    </h5>
-                                    <p class="text-muted mb-2 small">
-                                        <i class="bi bi-calendar me-1"></i>
-                                        <?php echo date('M j, Y g:i A', strtotime($announcement['created_at'])); ?>
-                                        <?php if ($announcement['expiry_date']): ?>
-                                            | Expires: <?php echo date('M j, Y', strtotime($announcement['expiry_date'])); ?>
-                                        <?php endif; ?>
-                                    </p>
-                                    <p class="mb-0">
-                                        <?php echo nl2br(htmlspecialchars($announcement['content'])); ?>
-                                    </p>
+                    <!-- Announcements Section -->
+                    <section class="announcements-section">
+                        <h2>Announcements</h2>
+                        
+                        <div class="announcements-container">
+                            <?php if (empty($announcements)): ?>
+                                <div class="no-announcements-message">
+                                    <i class="fas fa-megaphone"></i>
+                                    <p>No announcements at the moment</p>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
+                            <?php else: ?>
+                                <?php foreach ($announcements as $announcement): ?>
+                                    <div class="announcement-item <?php echo $announcement['is_pinned'] ? 'pinned' : ''; ?>">
+                                        <div class="announcement-header">
+                                            <h4 class="announcement-title">
+                                                <?php if ($announcement['is_pinned']): ?>
+                                                    <i class="fas fa-thumbtack pinned-icon"></i>
+                                                <?php endif; ?>
+                                                <?php echo htmlspecialchars($announcement['title']); ?>
+                                            </h4>
+                                            <span class="announcement-priority priority-<?php echo $announcement['priority']; ?>">
+                                                <?php echo ucfirst($announcement['priority']); ?>
+                                            </span>
+                                        </div>
+                                        <div class="announcement-content">
+                                            <?php echo nl2br(htmlspecialchars($announcement['content'])); ?>
+                                        </div>
+                                        <div class="announcement-footer">
+                                            <small class="announcement-date">
+                                                <i class="fas fa-calendar"></i>
+                                                <?php echo date('M j, Y', strtotime($announcement['created_at'])); ?>
+                                                <?php if ($announcement['expiry_date']): ?>
+                                                    | Expires: <?php echo date('M j, Y', strtotime($announcement['expiry_date'])); ?>
+                                                <?php endif; ?>
+                                            </small>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </section>
                 </div>
             </div>
         </div>
@@ -634,5 +792,7 @@ function updateMostViewedSection(products) {
 
 <!-- Template Javascript -->
 <script src="../assets/js/main.js"></script>
+
+
 </body>
 </html>
