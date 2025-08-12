@@ -31,10 +31,11 @@ try {
 <div class="main-content">
     <!-- Main Container with Sidebar -->
     <div class="main-container">
+        <?php include 'sidebar.php'; ?>
 
         <!-- Main Content Area -->
         <div class="content-area">
-            <!-- Results Info and Sort -->
+            <!-- Results Info and Sort --> 
             <div class="results-info">
                 <div class="results-count">
                     <span id="resultsCount">Showing <?php echo count($products); ?> products</span>
@@ -61,6 +62,154 @@ try {
 
             <!-- Include existing styles -->
             <style>
+                /* Products Grid - Fixed 3 Column Layout */
+                .products-grid {
+                    display: grid;
+                    grid-template-columns: repeat(3, 1fr);
+                    gap: 20px;
+                    padding: 20px 0;
+                }
+
+                .product-card {
+                    background: #fff;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    overflow: hidden;
+                    transition: all 0.3s ease;
+                    display: flex;
+                    flex-direction: column;
+                    height: 100%;
+                }
+
+                .product-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                }
+
+                .product-image {
+                    position: relative;
+                    width: 100%;
+                    height: 200px;
+                    overflow: hidden;
+                }
+
+                .product-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.3s ease;
+                }
+
+                .product-card:hover .product-image img {
+                    transform: scale(1.05);
+                }
+
+                .featured-badge {
+                    position: absolute;
+                    top: 10px;
+                    left: 10px;
+                    background: #ff6b35;
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    z-index: 2;
+                }
+
+
+
+                .product-info {
+                    padding: 15px;
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                }
+
+                .product-name {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #333;
+                    margin: 0 0 8px 0;
+                    line-height: 1.3;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .stall-name {
+                    color: #81c408;
+                    font-size: 0.9rem;
+                    font-weight: 500;
+                    margin-bottom: 8px;
+                }
+
+                .product-description {
+                    color: #666;
+                    font-size: 0.85rem;
+                    line-height: 1.4;
+                    margin: 8px 0;
+                    flex: 1;
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+
+                .product-footer {
+                    margin-top: auto;
+                    padding-top: 10px;
+                }
+
+                .price-section {
+                    margin-bottom: 12px;
+                }
+
+                .price {
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: #81c408;
+                }
+
+                /* Responsive Design */
+                @media (max-width: 992px) {
+                    .products-grid {
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 15px;
+                    }
+                }
+
+                @media (max-width: 576px) {
+                    .products-grid {
+                        grid-template-columns: 1fr;
+                        gap: 15px;
+                    }
+                }
+
+                /* No products state */
+                .no-products {
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 60px 20px;
+                }
+
+                .no-products-content {
+                    color: #666;
+                }
+
+                .no-products-content i {
+                    font-size: 3rem;
+                    color: #ddd;
+                    margin-bottom: 20px;
+                }
+
+                .no-products-content h3 {
+                    font-size: 1.5rem;
+                    margin-bottom: 10px;
+                    color: #333;
+                }
+
                 .results-info {
                     display: flex;
                     justify-content: space-between;
@@ -337,47 +486,7 @@ try {
                 }
             </style>
 
-            <!-- Categories Section -->
-            <section class="categories-section">
-                <div class="section-header">
-                    <h2>Categories</h2>
-                    <div class="controls">
-                        <div class="nav-arrows">
-                            <button class="arrow-btn prev"><i class="fas fa-chevron-left"></i></button>
-                            <button class="arrow-btn next"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="categories-grid">
-                    <?php foreach ($categories as $category): ?>
-                        <div class="category-item" data-category-id="<?php echo $category['id']; ?>">
-                            <div class="category-icon">
-                                <?php
-                                // Map category names to emojis
-                                $category_emojis = [
-                                    'fruits' => '🍎',
-                                    'vegetables' => '🥬',
-                                    'meat' => '🥩',
-                                    'fish' => '🐟',
-                                    'bread' => '🍞',
-                                    'drinks' => '🥤',
-                                    'seafood' => '🦐',
-                                    'dairy' => '🥛',
-                                    'grains' => '🌾',
-                                    'herbs' => '🌿'
-                                ];
-                                $category_name_lower = strtolower($category['name']);
-                                echo isset($category_emojis[$category_name_lower]) ? $category_emojis[$category_name_lower] : '🛒';
-                                ?>
-                            </div>
-                            <span><?php echo htmlspecialchars($category['name']); ?></span>
-                            <small>(<?php echo $category['product_count']; ?>)</small>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </section>
-
+        
             <!-- Main Grid -->
             <div class="main-grid">
                 <!-- Left Column -->
@@ -433,7 +542,7 @@ try {
                                                     <button class="view-product-btn"
                                                         onclick="viewProduct(<?php echo $product['id']; ?>)"
                                                         title="View product">
-                                                        View Details
+                                                        <i class="fas fa-solid fa-eye"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -478,34 +587,7 @@ try {
                         </div>
                     </section>
 
-                    <!-- Top Items -->
-                    <section class="top-items">
-                        <div class="section-header">
-                            <h2>Top Items</h2>
-                            <div class="nav-arrows">
-                                <button class="arrow-btn prev"><i class="fas fa-chevron-left"></i></button>
-                                <button class="arrow-btn next"><i class="fas fa-chevron-right"></i></button>
-                            </div>
-                        </div>
 
-                        <div class="top-items-grid">
-                            <div class="top-item green">
-                                <div class="item-content">
-                                    <h3>Fresh Fruits</h3>
-                                </div>
-                            </div>
-                            <div class="top-item red">
-                                <div class="item-content">
-                                    <h3>Vegetables</h3>
-                                </div>
-                            </div>
-                            <div class="top-item orange">
-                                <div class="item-content">
-                                    <h3>Bakery</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                 </div>
 
                 <!-- Right Column -->
@@ -792,7 +874,6 @@ function updateMostViewedSection(products) {
 
 <!-- Template Javascript -->
 <script src="../assets/js/main.js"></script>
-
 
 </body>
 </html>

@@ -195,10 +195,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
                 <div class="product-actions">
                      <?php if ($product['stock_quantity'] > 0): ?>
-                            <button class="btn btn-primary order-btn" onclick="orderProduct(<?php echo $product['id']; ?>)">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>Order Now</span>
-                            </button>
                             <button class="btn btn-outline-primary message-btn"
                                 onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
                                 <i class="fas fa-envelope"></i>

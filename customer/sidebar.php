@@ -2,48 +2,11 @@
 <div class="sidebar">
     <h4 class="sidebar-title">Filter Options</h4>
 
-    <!-- Search Bar -->
-    <div class="search-bar">
-        <i class="fas fa-search"></i>
-        <input type="text" placeholder="Search products..." id="searchInput">
-    </div>
-
     <!-- Categories Filter -->
     <div class="filter-section">
         <h5>Categories</h5>
         <div class="filter-options">
-            <div class="filter-option">
-                <input type="checkbox" id="fruits" value="fruits">
-                <label for="fruits">🍎 Fruits</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="vegetables" value="vegetables">
-                <label for="vegetables">🥬 Vegetables</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="meat" value="meat">
-                <label for="meat">🥩 Meat</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="fish" value="fish">
-                <label for="fish">🐟 Fish</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="dairy" value="dairy">
-                <label for="dairy">🥛 Dairy</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="grains" value="grains">
-                <label for="grains">🌾 Grains</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="beverages" value="beverages">
-                <label for="beverages">🥤 Beverages</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="bakery" value="bakery">
-                <label for="bakery">🍞 Bakery</label>
-            </div>
+            
         </div>
     </div>
 
@@ -74,24 +37,6 @@
         </select>
     </div>
 
-    <!-- Availability Filter -->
-    <div class="filter-section">
-        <h5>Availability</h5>
-        <div class="filter-options">
-            <div class="filter-option">
-                <input type="checkbox" id="inStock" value="inStock">
-                <label for="inStock">In Stock</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="onSale" value="onSale">
-                <label for="onSale">On Sale</label>
-            </div>
-            <div class="filter-option">
-                <input type="checkbox" id="organic" value="organic">
-                <label for="organic">Organic</label>
-            </div>
-        </div>
-    </div>
 
     <!-- Apply Filters Button -->
     <button class="apply-filters-btn" onclick="applyFilters()">
