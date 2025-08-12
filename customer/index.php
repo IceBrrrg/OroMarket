@@ -35,6 +35,15 @@ try {
 
         <!-- Main Content Area -->
         <div class="content-area">
+            <!-- Adjusted Price Ticker Bar with PHP Peso Sign -->
+            <div class="price-ticker-wrapper">
+                <div class="price-ticker">
+                    <div class="ticker-content" id="priceTickerContent">
+                        <!-- Prices will be dynamically loaded here -->
+                    </div>
+                </div>
+            </div>
+
             <!-- Results Info and Sort --> 
             <div class="results-info">
                 <div class="results-count">
@@ -136,6 +145,7 @@ try {
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    line-clamp: 2;
                 }
 
                 .stall-name {
@@ -155,6 +165,7 @@ try {
                     -webkit-line-clamp: 3;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    line-clamp: 3;
                 }
 
                 .product-footer {
@@ -170,6 +181,48 @@ try {
                     font-size: 1.2rem;
                     font-weight: 700;
                     color: #81c408;
+                }
+
+                /* Adjusted Price Ticker Styles */
+                .price-ticker-wrapper {
+                    width: 100%;
+                    background-color: #f8f9fa;
+                    border-bottom: 1px solid #ddd;
+                    position: relative;
+                    z-index: 10;
+                }
+
+                .price-ticker {
+                    overflow: hidden;
+                    white-space: nowrap;
+                    padding: 10px 0;
+                    font-size: 0.9rem;
+                    color: #333;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .ticker-content {
+                    display: inline-block;
+                    animation: ticker-scroll 15s linear infinite;
+                }
+
+                .ticker-item {
+                    display: inline-flex;
+                    align-items: center;
+                    margin-right: 30px;
+                }
+
+                .ticker-item img {
+                    width: 12px;
+                    height: 12px;
+                    margin-right: 5px;
+                }
+
+                @keyframes ticker-scroll {
+                    0% { transform: translateY(0); }
+                    100% { transform: translateY(-100%); }
                 }
 
                 /* Responsive Design */
@@ -298,6 +351,7 @@ try {
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
                     overflow: hidden;
+                    line-clamp: 2;
                 }
 
                 .view-count-badge {
@@ -677,6 +731,71 @@ try {
         </div>
     </div>
 </div>
+
+<script>
+// Fetch and update price ticker with product images
+function fetchPriceTicker() {
+    fetch('api/price_ticker.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tickerContent = document.getElementById('priceTickerContent');
+                tickerContent.innerHTML = '';
+
+                data.data.forEach(item => {
+                    const tickerItem = document.createElement('div');
+                    tickerItem.className = 'ticker-item';
+
+                    const productImage = document.createElement('img');
+                    productImage.src = item.image_url;
+                    productImage.alt = item.name;
+                    productImage.className = 'ticker-product-image';
+
+                    const icon = document.createElement('img');
+                    if (item.change === 'up') {
+                        icon.src = '../assets/img/up-arrow.png'; // Local green arrow
+                    } else if (item.change === 'down') {
+                        icon.src = '../assets/img/down-arrow.png'; // Local red arrow
+                    } else {
+                        icon.src = '../assets/img/no-change.png'; // Local gray dash
+                    }
+
+                    const text = document.createTextNode(`${item.name}: ₱${item.price}`);
+
+                    tickerItem.appendChild(productImage);
+                    tickerItem.appendChild(icon);
+                    tickerItem.appendChild(text);
+                    tickerContent.appendChild(tickerItem);
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching price ticker:', error));
+}
+
+// Refresh ticker every 30 seconds
+setInterval(fetchPriceTicker, 30000);
+fetchPriceTicker();
+
+// Update the ticker animation for a smooth upward transition
+function updateTickerAnimation() {
+    const tickerContent = document.getElementById('priceTickerContent');
+    const firstChild = tickerContent.firstElementChild;
+    const tickerHeight = firstChild.offsetHeight;
+
+    tickerContent.style.transition = 'transform 1s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Smooth easing
+    tickerContent.style.transform = `translateY(-${tickerHeight}px)`;
+
+    // Reset the position after the animation completes
+    setTimeout(() => {
+        tickerContent.style.transition = 'none';
+        tickerContent.style.transform = 'translateY(0)';
+        tickerContent.appendChild(firstChild);
+    }, 1000); // Match the transition duration
+}
+
+// Ensure the animation runs every 3 seconds
+setInterval(updateTickerAnimation, 3000);
+</script>
 
 <script>
 // Enhanced JavaScript for view tracking and most viewed functionality
