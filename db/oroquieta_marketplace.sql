@@ -720,6 +720,23 @@ INSERT INTO `stall_applications` (`id`, `stall_id`, `seller_id`, `application_da
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `complaints`
+--
+
+CREATE TABLE `complaints` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `complainant_name` varchar(100) NOT NULL,
+  `complainant_email` varchar(100) NOT NULL,
+  `seller_id` int(11) NOT NULL,
+  `status` enum('pending','resolved') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure for view `seller_message_stats`
 --
 DROP TABLE IF EXISTS `seller_message_stats`;
@@ -764,6 +781,14 @@ ALTER TABLE `chat_blocks`
 ALTER TABLE `chat_settings`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `setting_key` (`setting_key`);
+
+--
+-- Indexes for table `complaints`
+--
+ALTER TABLE `complaints`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_complaints_seller` (`seller_id`),
+  ADD KEY `idx_complaints_status` (`status`);
 
 --
 -- Indexes for table `conversations`
@@ -930,6 +955,12 @@ ALTER TABLE `chat_settings`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `complaints`
+--
+ALTER TABLE `complaints`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
@@ -1028,6 +1059,12 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `chat_blocks`
   ADD CONSTRAINT `chat_blocks_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `complaints`
+--
+ALTER TABLE `complaints`
+  ADD CONSTRAINT `complaints_ibfk_1` FOREIGN KEY (`seller_id`) REFERENCES `sellers` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `conversations`

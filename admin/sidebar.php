@@ -83,10 +83,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
             </div>
         </li>
         <li class="nav-item mb-2">
-            <a class="nav-link <?php echo $current_page == 'announcements.php' ? 'active' : 'text-white'; ?>"
-                href="announcements.php">
-                <i class="bi bi-megaphone me-2"></i> Announcements
-            </a>
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" role="button" id="communicationDropdown"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-chat-dots me-2"></i> Communication
+                </a>
+                <ul class="dropdown-menu bg-dark" aria-labelledby="communicationDropdown">
+                    <li>
+                        <a class="dropdown-item text-white <?php echo $current_page == 'announcements.php' ? 'active bg-primary' : ''; ?>"
+                            href="announcements.php">
+                            <i class="bi bi-megaphone me-2"></i> Announcements
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-white <?php echo $current_page == 'complaints.php' ? 'active bg-primary' : ''; ?>"
+                            href="complaints.php">
+                            <i class="bi bi-exclamation-triangle me-2"></i> Customer Complaints
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item text-white <?php echo $current_page == 'chat_overview.php' ? 'active bg-primary' : ''; ?>"
+                            href="chat_overview.php">
+                            <i class="bi bi-chat-square-dots me-2"></i> Chat Overview
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </li>
         <li class="nav-item mb-2">
             <a class="nav-link <?php echo $current_page == 'signup.php' ? 'active bg-primary' : 'text-white'; ?>"

@@ -109,9 +109,7 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                             class="text-white">Barrientos St, Oroquieta City, Misamis Occidental</a></small>
                 </div>
                 <div class="top-link pe-2">
-                    <a href="#" class="text-white"><small class="text-white mx-2">Privacy Policy</small>/</a>
-                    <a href="#" class="text-white"><small class="text-white mx-2">Terms of Use</small>/</a>
-                    <a href="#" class="text-white"><small class="text-white ms-2">Sales and Refunds</small></a>
+                    <i class="fas fa-solid fa-flag text-warning"></i><a href="submit_complaint.php" class="text-white" data-bs-toggle="modal" data-bs-target="#complaintModal"><small class="text-white mx-2">Report Complaint</small></a>
                 </div>
             </div>
         </div>
@@ -336,6 +334,91 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
         </div>
     </div>
     <!-- Announcement Details Modal End -->
+
+    <!-- Complaint Modal Start -->
+    <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-dark">
+                    <h5 class="modal-title" id="complaintModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Report Complaint
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="complaintForm" action="submit_complaint.php" method="POST">
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Please provide details about your complaint. Our admin team will review it promptly.
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="complainant_name" class="form-label">Your Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="complainant_name" name="complainant_name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="complainant_email" class="form-label">Your Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="complainant_email" name="complainant_email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="seller_id" class="form-label">Select Seller <span class="text-danger">*</span></label>
+                            <select class="form-select" id="seller_id" name="seller_id" required>
+                                <option value="">Choose a seller...</option>
+                                <?php
+                                // Fetch sellers for dropdown
+                                if (isset($pdo)) {
+                                    try {
+                                        $stmt = $pdo->prepare("
+                                            SELECT s.id, s.first_name, s.last_name, sa.business_name 
+                                            FROM sellers s 
+                                            LEFT JOIN seller_applications sa ON s.id = sa.seller_id 
+                                            WHERE s.status = 'approved' AND s.is_active = 1 
+                                            ORDER BY s.first_name, s.last_name
+                                        ");
+                                        $stmt->execute();
+                                        $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        
+                                        foreach ($sellers as $seller) {
+                                            echo '<option value="' . $seller['id'] . '">';
+                                            echo htmlspecialchars($seller['first_name'] . ' ' . $seller['last_name']);
+                                            if ($seller['business_name']) {
+                                                echo ' - ' . htmlspecialchars($seller['business_name']);
+                                            }
+                                            echo '</option>';
+                                        }
+                                    } catch (Exception $e) {
+                                        echo '<option value="">No sellers available</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Complaint Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="title" name="title" required placeholder="Brief summary of your complaint">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required placeholder="Please describe your complaint in detail..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-1"></i>Submit Complaint
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Complaint Modal End -->
 
     <script>
         function showAnnouncementModal(announcement) {
