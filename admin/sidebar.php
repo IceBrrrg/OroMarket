@@ -96,8 +96,8 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item text-white <?php echo $current_page == 'complaints.php' ? 'active bg-primary' : ''; ?>"
-                            href="complaints.php">
+                        <a class="dropdown-item text-white <?php echo $current_page == 'complaint_manager.php' ? 'active bg-primary' : ''; ?>"
+                            href="complaint_manager.php">
                             <i class="bi bi-exclamation-triangle me-2"></i> Customer Complaints
                         </a>
                     </li>

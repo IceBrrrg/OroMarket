@@ -35,29 +35,23 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
     <meta content="" name="keywords">
     <meta content="" name="description">
 
-    <!-- Google Web Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Raleway:wght@600;800&display=swap"
         rel="stylesheet">
 
-    <!-- Icon Font Stylesheet -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Libraries Stylesheet -->
     <link href="../assets/lib/lightbox/css/lightbox.min.css" rel="stylesheet">
     <link href="../assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
 
-    <!-- Customized Bootstrap Stylesheet -->
     <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom CSS -->
     <link href="css/sellers.css" rel="stylesheet">
     <link href="css/view_product.css" rel="stylesheet">
     <link href="css/view_stall.css" rel="stylesheet">
-    <!-- Template Stylesheet -->
     <link href="../assets/css/style.css" rel="stylesheet">
     <link href="../assets/img/logo-removebg.png" rel="icon">
     <link rel="stylesheet" href="css/index.css">
@@ -89,18 +83,69 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                 margin: 5px 10px;
             }
         }
+        
+        /* Style for the new Floating Action Button */
+        .complaint-fab {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 60px;
+            background-color: #81c408; /* Primary color */
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 1050; /* Above most content, below modals */
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .complaint-fab:hover {
+            background-color: #45a049; /* Darker shade on hover */
+            transform: scale(1.1);
+            color: white;
+        }
+
+        /* Center the complaint modal */
+        #complaintModal .modal-dialog {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 1rem);
+            margin: 0.5rem auto;
+        }
+
+        /* Seller info card styling */
+        .seller-info-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #81c408;
+        }
+
+        .seller-info-card .seller-name {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .seller-info-card .seller-details {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Spinner Start -->
     <div id="spinner"
         class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
         <div class="spinner-grow text-primary" role="status"></div>
     </div>
-    <!-- Spinner End -->
-
-    <!-- Navbar start -->
     <div class="container-fluid fixed-top">
         <div class="container topbar bg-primary d-none d-lg-block">
             <div class="d-flex justify-content-between">
@@ -108,10 +153,7 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                     <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#"
                             class="text-white">Barrientos St, Oroquieta City, Misamis Occidental</a></small>
                 </div>
-                <div class="top-link pe-2">
-                    <i class="fas fa-solid fa-flag text-warning"></i><a href="submit_complaint.php" class="text-white" data-bs-toggle="modal" data-bs-target="#complaintModal"><small class="text-white mx-2">Report Complaint</small></a>
                 </div>
-            </div>
         </div>
         <div class="container px-0">
             <nav class="navbar navbar-light bg-white navbar-expand-xl">
@@ -131,7 +173,6 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                         <a href="../customer/index.php" class="nav-link me-4">
                             <i class="fas fa-shopping-basket me-1"></i>Market
                         </a>
-                        <!-- Announcements Dropdown -->
                         <div class="dropdown">
                             <a href="#" class="my-auto position-relative" id="announcementsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-bell fa-2x text-primary"></i>
@@ -221,9 +262,6 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             </nav>
         </div>
     </div>
-    <!-- Navbar End -->
-
-    <!-- Modal Search Start -->
     <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content rounded-0">
@@ -241,9 +279,6 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             </div>
         </div>
     </div>
-    <!-- Modal Search End -->
-
-    <!-- Announcement Details Modal -->
     <div class="modal fade" id="announcementModal" tabindex="-1" aria-labelledby="announcementModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -279,8 +314,7 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                             <i class="fas fa-align-left me-2"></i>Content
                         </h6>
                         <div id="modalContent" class="border-start border-3 border-primary ps-3 mb-4">
-                            <!-- Content will be inserted here -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="row">
@@ -333,17 +367,18 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             </div>
         </div>
     </div>
-    <!-- Announcement Details Modal End -->
+    <a class="complaint-fab" onclick="openComplaintModal()" title="Report a Complaint">
+        <i class="fas fa-flag"></i>
+    </a>
 
-    <!-- Complaint Modal Start -->
     <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-dark">
+                <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title" id="complaintModalLabel">
                         <i class="fas fa-exclamation-triangle me-2"></i>Report Complaint
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="complaintForm" action="submit_complaint.php" method="POST">
                     <div class="modal-body">
@@ -351,6 +386,20 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                             <i class="fas fa-info-circle me-2"></i>
                             Please provide details about your complaint. Our admin team will review it promptly.
                         </div>
+
+                        <!-- Seller Information Card -->
+                        <div id="sellerInfoCard" class="seller-info-card" style="display: none;">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-tie me-2 text-primary"></i>
+                                <div>
+                                    <div class="seller-name">Filing complaint against: <span id="selectedSellerName"></span></div>
+                                    <div class="seller-details" id="selectedSellerDetails"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden input for seller_id -->
+                        <input type="hidden" id="seller_id" name="seller_id" value="">
                         
                         <div class="mb-3">
                             <label for="complainant_name" class="form-label">Your Name <span class="text-danger">*</span></label>
@@ -360,40 +409,6 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                         <div class="mb-3">
                             <label for="complainant_email" class="form-label">Your Email <span class="text-danger">*</span></label>
                             <input type="email" class="form-control" id="complainant_email" name="complainant_email" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="seller_id" class="form-label">Select Seller <span class="text-danger">*</span></label>
-                            <select class="form-select" id="seller_id" name="seller_id" required>
-                                <option value="">Choose a seller...</option>
-                                <?php
-                                // Fetch sellers for dropdown
-                                if (isset($pdo)) {
-                                    try {
-                                        $stmt = $pdo->prepare("
-                                            SELECT s.id, s.first_name, s.last_name, sa.business_name 
-                                            FROM sellers s 
-                                            LEFT JOIN seller_applications sa ON s.id = sa.seller_id 
-                                            WHERE s.status = 'approved' AND s.is_active = 1 
-                                            ORDER BY s.first_name, s.last_name
-                                        ");
-                                        $stmt->execute();
-                                        $sellers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                        
-                                        foreach ($sellers as $seller) {
-                                            echo '<option value="' . $seller['id'] . '">';
-                                            echo htmlspecialchars($seller['first_name'] . ' ' . $seller['last_name']);
-                                            if ($seller['business_name']) {
-                                                echo ' - ' . htmlspecialchars($seller['business_name']);
-                                            }
-                                            echo '</option>';
-                                        }
-                                    } catch (Exception $e) {
-                                        echo '<option value="">No sellers available</option>';
-                                    }
-                                }
-                                ?>
-                            </select>
                         </div>
                         
                         <div class="mb-3">
@@ -407,7 +422,7 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                             <i class="fas fa-times me-1"></i>Cancel
                         </button>
                         <button type="submit" class="btn btn-primary">
@@ -418,8 +433,6 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             </div>
         </div>
     </div>
-    <!-- Complaint Modal End -->
-
     <script>
         function showAnnouncementModal(announcement) {
             // Set modal title
@@ -485,7 +498,7 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             // Set target audience
             const targetBadge = document.getElementById('modalTargetAudience');
             const audienceText = announcement.target_audience === 'all' ? 'All Users' : 
-                                announcement.target_audience.charAt(0).toUpperCase() + announcement.target_audience.slice(1);
+                                 announcement.target_audience.charAt(0).toUpperCase() + announcement.target_audience.slice(1);
             targetBadge.textContent = audienceText;
             
             // Set created date
@@ -517,6 +530,58 @@ $urgent_count = count(array_filter($announcements, function($a) { return $a['pri
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('announcementModal'));
             modal.show();
+        }
+
+        // Function to open complaint modal and fetch seller info if on product page
+        function openComplaintModal() {
+            // Check if we're on a product page and get seller info
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            
+            if (productId && window.location.pathname.includes('view_product.php')) {
+                // Fetch seller information for this product
+                fetchSellerInfo(productId);
+            } else {
+                // Show modal without seller info (general complaint)
+                document.getElementById('sellerInfoCard').style.display = 'none';
+                const modal = new bootstrap.Modal(document.getElementById('complaintModal'));
+                modal.show();
+            }
+        }
+
+        // Function to fetch seller information
+        function fetchSellerInfo(productId) {
+            fetch('get_seller_info.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.seller) {
+                    // Populate seller information
+                    document.getElementById('seller_id').value = data.seller.seller_id;
+                    document.getElementById('selectedSellerName').textContent = data.seller.seller_name;
+                    document.getElementById('selectedSellerDetails').textContent = data.seller.details;
+                    document.getElementById('sellerInfoCard').style.display = 'block';
+                } else {
+                    // Hide seller info card if no seller found
+                    document.getElementById('sellerInfoCard').style.display = 'none';
+                }
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('complaintModal'));
+                modal.show();
+            })
+            .catch(error => {
+                console.error('Error fetching seller info:', error);
+                // Show modal without seller info
+                document.getElementById('sellerInfoCard').style.display = 'none';
+                const modal = new bootstrap.Modal(document.getElementById('complaintModal'));
+                modal.show();
+            });
         }
 
         // Auto-refresh announcements every 5 minutes

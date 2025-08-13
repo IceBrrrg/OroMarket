@@ -1,6 +1,8 @@
 /* WhatsApp-Style Chat System */
 
-/* Chat Trigger Button */
+/* Chat Trigger Button - REMOVED */
+/* Commenting out the entire chat trigger section */
+/*
 .chat-trigger {
     position: fixed;
     bottom: 30px;
@@ -44,6 +46,7 @@
     font-weight: bold;
     border: 2px solid white;
 }
+*/
 
 /* Chat Popup */
 .chat-popup {
@@ -547,10 +550,7 @@
         bottom: 10px;
     }
 
-    .chat-trigger {
-        bottom: 20px;
-        right: 20px;
-    }
+    /* Removed chat-trigger mobile styles */
 
     .message-content {
         max-width: 80%;

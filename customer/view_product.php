@@ -117,7 +117,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
 <div class="main-content">
     <div class="container py-5">
-        <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="index.php">Market</a></li>
@@ -128,7 +127,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
         </nav>
 
         <div class="product-details-container">
-            <!-- Product Images Section -->
             <div class="product-images-section">
                 <div class="main-image-container">
                     <?php
@@ -152,7 +150,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                 <?php endif; ?>
             </div>
 
-            <!-- Product Info Section -->
             <div class="product-info-section">
                 <div class="product-header">
                     <h1 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h1>
@@ -194,7 +191,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                 <?php endif; ?>
 
                 <div class="product-actions">
-                     <?php if ($product['stock_quantity'] > 0): ?>
+                       <?php if ($product['stock_quantity'] > 0): ?>
                             <button class="btn btn-outline-primary message-btn"
                                 onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
                                 <i class="fas fa-envelope"></i>
@@ -208,7 +205,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <?php endif; ?>
                 </div>
 
-                <!-- Product Details -->
                 <div class="product-details">
                     <h3>Product Details</h3>
                     <div class="details-grid">
@@ -240,7 +236,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
             </div>
         </div>
 
-        <!-- Store Information Section -->
         <div class="store-section">
             <h2>About the Seller</h2>
             <div class="store-card">
@@ -286,7 +281,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
             </div>
         </div>
 
-        <!-- Similar Products Section -->
         <?php if (!empty($similar_products)): ?>
                 <div class="similar-products-section">
                     <h2>Similar Products</h2>
@@ -319,7 +313,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     </div>
 </div>
 
-<!-- Include Chat CSS -->
 <link rel="stylesheet" href="css/chat.css">
 
 <script>
@@ -343,494 +336,9 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     }
 </script>
 
-<!-- Include Chat JavaScript -->
 <script src="js/chat.js"></script>
+<link rel="stylesheet" href="css/view_product.css">
 
-<style>
-    /* Main Layout */
-    .product-details-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 3rem;
-        margin-bottom: 3rem;
-    }
-
-    /* Product Images Section */
-    .product-images-section {
-        position: sticky;
-        top: 2rem;
-    }
-
-    .main-image-container {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1rem;
-    }
-
-    .main-product-image {
-        width: 100%;
-        height: 400px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .main-product-image:hover {
-        transform: scale(1.02);
-    }
-
-    .image-thumbnails {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-    }
-
-    .thumbnail-container {
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: all 0.3s ease;
-    }
-
-    .thumbnail-container.active {
-        border-color: #82c408;
-    }
-
-    .thumbnail-img {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-
-    .thumbnail-container:hover .thumbnail-img {
-        transform: scale(1.05);
-    }
-
-    /* Product Info Section */
-    .product-info-section {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-
-    .product-header {
-        border-bottom: 1px solid #e5e7eb;
-        padding-bottom: 1.5rem;
-    }
-
-    .product-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-        line-height: 1.2;
-    }
-
-    .product-category {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #6b7280;
-        font-size: 1rem;
-    }
-
-    .category-icon {
-        font-size: 1.2rem;
-    }
-
-    .product-price-section {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        border-radius: 12px;
-    }
-
-    .price-display {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .price-amount {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #059669;
-    }
-
-    .price-unit {
-        font-size: 0.9rem;
-        color: #6b7280;
-        font-weight: 500;
-    }
-
-    .stock-status {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .stock-status.in-stock {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .stock-status.out-of-stock {
-        background: #fee2e2;
-        color: #dc2626;
-    }
-
-    .product-description {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .product-description h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #1f2937;
-    }
-
-    .product-description p {
-        color: #4b5563;
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    .product-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .order-btn,
-    .message-btn {
-        flex: 1;
-        min-width: 150px;
-        padding: 1rem 2rem;
-        border-radius: 12px;
-        font-weight: 600;
-        font-size: 1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .order-btn {
-        background: linear-gradient(135deg, #82c408 0%, #72ac07 100%);
-        border: none;
-        color: white;
-    }
-
-    .order-btn:hover {
-        background: linear-gradient(135deg, #72ac07 0%, #659806 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(130, 196, 8, 0.3);
-    }
-
-    .message-btn {
-        border: 2px solid #82c408;
-        color: #82c408;
-        background: white;
-    }
-
-    .message-btn:hover {
-        background: #82c408;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .product-details {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-    }
-
-    .product-details h3 {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #1f2937;
-    }
-
-    .details-grid {
-        display: grid;
-        gap: 1rem;
-    }
-
-    .detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .detail-item:last-child {
-        border-bottom: none;
-    }
-
-    .detail-label {
-        font-weight: 600;
-        color: #6b7280;
-    }
-
-    .detail-value {
-        color: #1f2937;
-        font-weight: 500;
-    }
-
-    /* Store Section */
-    .store-section {
-        margin-bottom: 3rem;
-    }
-
-    .store-section h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #1f2937;
-    }
-
-    .store-card {
-        background: white;
-        border-radius: 16px;
-        padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border: 1px solid #e5e7eb;
-    }
-
-    .store-header {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .store-avatar img {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #82c408;
-    }
-
-    .store-info {
-        flex: 1;
-    }
-
-    .store-name {
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #1f2937;
-    }
-
-    .store-location {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #6b7280;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .store-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .stars {
-        color: #fbbf24;
-    }
-
-    .rating-text {
-        color: #6b7280;
-        font-size: 0.9rem;
-    }
-
-    .store-actions {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .store-actions .btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: all 0.3s ease;
-    }
-
-    /* Similar Products Section */
-    .similar-products-section {
-        margin-top: 3rem;
-    }
-
-    .similar-products-section h2 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        color: #1f2937;
-    }
-
-    .similar-products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .similar-product-card .product-price {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #059669;
-        margin-bottom: 1rem;
-    }
-
-    .seller-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .seller-avatar {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .seller-name {
-        font-size: 0.9rem;
-        color: #6b7280;
-    }
-
-    /* Breadcrumb */
-    .breadcrumb {
-        background: transparent;
-        padding: 0;
-        margin: 0;
-    }
-
-    .breadcrumb-item a {
-        color: #82c408;
-        text-decoration: none;
-    }
-
-    .breadcrumb-item.active {
-        color: #6b7280;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 1024px) {
-        .product-details-container {
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-
-        .product-images-section {
-            position: static;
-        }
-
-        .main-product-image {
-            height: 350px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .container {
-            padding: 1rem;
-        }
-
-        .product-title {
-            font-size: 2rem;
-        }
-
-        .price-amount {
-            font-size: 2rem;
-        }
-
-        .product-price-section {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: flex-start;
-        }
-
-        .product-actions {
-            flex-direction: column;
-        }
-
-        .order-btn,
-        .message-btn {
-            width: 100%;
-        }
-
-        .store-header {
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-        }
-
-        .store-actions {
-            justify-content: center;
-        }
-
-        .similar-products-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .main-product-image {
-            height: 300px;
-        }
-
-        .thumbnail-img {
-            width: 60px;
-            height: 60px;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .product-title {
-            font-size: 1.75rem;
-        }
-
-        .price-amount {
-            font-size: 1.75rem;
-        }
-
-        .main-product-image {
-            height: 250px;
-        }
-
-        .store-card {
-            padding: 1.5rem;
-        }
-
-        .similar-product-card .product-content {
-            padding: 1rem;
-        }
-    }
-</style>
 
 <script>
     // Function to change main product image
@@ -901,11 +409,9 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     }
 </script>
 
-<!-- Include Chat JavaScript -->
 <script src="js/chat.js"></script>
 <script src="../customer/js/index.js"></script>
 
-<!-- JavaScript Libraries -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/lib/easing/easing.min.js"></script>
@@ -913,7 +419,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 <script src="../assets/lib/lightbox/js/lightbox.min.js"></script>
 <script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
 
-<!-- Template Javascript -->
 <script src="../assets/js/main.js"></script>
 </body>
 
