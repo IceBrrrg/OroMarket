@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 11, 2025 at 03:22 PM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Generation Time: Aug 13, 2025 at 08:11 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -150,6 +150,23 @@ INSERT INTO `chat_settings` (`id`, `setting_key`, `setting_value`, `created_at`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `complaints`
+--
+
+CREATE TABLE `complaints` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `complainant_name` varchar(100) NOT NULL,
+  `complainant_email` varchar(100) NOT NULL,
+  `seller_id` int(11) NOT NULL,
+  `status` enum('pending','resolved') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `conversations`
 --
 
@@ -171,7 +188,7 @@ CREATE TABLE `conversations` (
 --
 
 INSERT INTO `conversations` (`id`, `guest_name`, `guest_contact`, `seller_id`, `created_at`, `updated_at`, `status`, `last_message_preview`, `guest_ip_address`, `is_archived`) VALUES
-(1, 'earl', '09509720086', 20, '2025-08-09 07:56:46', '2025-08-09 08:19:23', 'active', 'ulol', NULL, 0),
+(1, 'earl', '09509720086', 20, '2025-08-09 07:56:46', '2025-08-13 06:03:08', 'active', 'Hi! I\'m interested in your product: tenderloin', NULL, 0),
 (2, 'yami', '09123456', 23, '2025-08-09 08:19:55', '2025-08-09 08:28:30', 'active', 'Hi! I\'m interested in your product: tuna', NULL, 0),
 (3, 'yami', '09123456', 20, '2025-08-09 08:20:22', '2025-08-09 08:24:38', 'active', 'okay', NULL, 0),
 (4, 'earl', '09123456', 24, '2025-08-09 11:47:34', '2025-08-09 11:59:44', 'active', 'klaro ana', NULL, 0),
@@ -251,7 +268,8 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_type`, `sender_name`, `
 (27, 6, 'guest', '0xletus', 'luh', '2025-08-09 12:01:56', 1, 'text', NULL),
 (28, 6, 'guest', '0xletus', 'si Kurt Cobain', '2025-08-09 12:02:04', 1, 'text', NULL),
 (29, 6, 'guest', '0xletus', 'online ampt, kusog signal langit?', '2025-08-09 12:02:44', 1, 'text', NULL),
-(30, 6, 'seller', 'Kurt Cobain', 'klaro ana', '2025-08-09 12:03:48', 1, 'text', NULL);
+(30, 6, 'seller', 'Kurt Cobain', 'klaro ana', '2025-08-09 12:03:48', 1, 'text', NULL),
+(31, 1, 'guest', 'earl', 'Hi! I\'m interested in your product: tenderloin', '2025-08-13 06:03:08', 0, 'text', NULL);
 
 --
 -- Triggers `messages`
@@ -341,6 +359,8 @@ CREATE TABLE `products` (
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
+  `price_change` enum('up','down','no_change') DEFAULT 'no_change',
+  `previous_price` decimal(10,2) DEFAULT NULL,
   `stock_quantity` int(11) NOT NULL DEFAULT 0,
   `weight` decimal(10,2) DEFAULT NULL,
   `is_featured` tinyint(1) DEFAULT 0,
@@ -353,13 +373,26 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `stock_quantity`, `weight`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
-(5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
-(8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43'),
-(9, 20, 3, 'malunggay', '\"Ang Ultimate Pinoy Superfood nga Dili Ka Makalingaw\" - Malunggay ba, ang dahon nga makahimo nimog healthy pero ang lami sama sa kinang-kinang na papel!\r\nUsahay gitawag sab nila og \"Popeye\'s Jealousy Plant\" kay mas healthy pa ni sa spinach pero ang problema lang, murag nag-kaon ka og grass sa bukid!\r\nO kaha \"Ang Plant nga Gi-bless sa Lola Nimo\" - pirmi jud na isulti sa mga lola nga \"Kaon ana nak, healthy na!\" Pero ikaw naman, \"Ay Lola, bitter man!\"\r\n\"Ang Green Medicina nga Murag Laway sa Iro\" kung lutoon nimo siya sa sabaw - slimy kaayo pero healthy daw!\r\nPero seriously though, grabe ka-healthy ani. Daghan vitamins ug minerals. Maong daghan mga Pinoy nagtanom ani sa likod sa balay - \"Ang Backyard Pharmacy\" ba!\r\nNindot sab ibutang sa tinola, monggo, o kaha sa mga soup. Basta timan-i lang, dili ni lami kung raw - kinahanglan lutoon jud!', 5.00, 20, 0.00, 0, 1, '2025-08-08 14:08:38', '2025-08-08 14:08:38'),
-(10, 20, 3, 'calamansi', 'calamansi', 5.00, 120000, 20.00, 0, 1, '2025-08-09 11:36:05', '2025-08-09 11:36:05'),
-(11, 20, 2, 'pandesal ni aling nina', 'init pa ang pan tehh!', 5.00, 50, 0.00, 0, 1, '2025-08-09 11:38:29', '2025-08-09 11:38:29'),
-(12, 24, 7, 'Lumyagan', 'Lumyagan sa Oroquieta', 130.00, 69, 500.00, 0, 1, '2025-08-09 11:47:13', '2025-08-09 11:47:13');
+INSERT INTO `products` (`id`, `seller_id`, `category_id`, `name`, `description`, `price`, `price_change`, `previous_price`, `stock_quantity`, `weight`, `is_featured`, `is_active`, `created_at`, `updated_at`) VALUES
+(5, 20, NULL, 'tenderloin', 'fresh beefds', 369.00, 'no_change', NULL, 45, 50.00, 0, 1, '2025-08-04 12:33:06', '2025-08-04 12:44:00'),
+(8, 23, 4, 'tuna', 'dlil dubok nga tuna', 240.00, 'no_change', NULL, 5, 50.00, 0, 1, '2025-08-06 12:30:43', '2025-08-06 12:30:43'),
+(9, 20, 3, 'malunggay', '\"Ang Ultimate Pinoy Superfood nga Dili Ka Makalingaw\" - Malunggay ba, ang dahon nga makahimo nimog healthy pero ang lami sama sa kinang-kinang na papel!\r\nUsahay gitawag sab nila og \"Popeye\'s Jealousy Plant\" kay mas healthy pa ni sa spinach pero ang problema lang, murag nag-kaon ka og grass sa bukid!\r\nO kaha \"Ang Plant nga Gi-bless sa Lola Nimo\" - pirmi jud na isulti sa mga lola nga \"Kaon ana nak, healthy na!\" Pero ikaw naman, \"Ay Lola, bitter man!\"\r\n\"Ang Green Medicina nga Murag Laway sa Iro\" kung lutoon nimo siya sa sabaw - slimy kaayo pero healthy daw!\r\nPero seriously though, grabe ka-healthy ani. Daghan vitamins ug minerals. Maong daghan mga Pinoy nagtanom ani sa likod sa balay - \"Ang Backyard Pharmacy\" ba!\r\nNindot sab ibutang sa tinola, monggo, o kaha sa mga soup. Basta timan-i lang, dili ni lami kung raw - kinahanglan lutoon jud!', 5.00, 'no_change', NULL, 20, 0.00, 0, 1, '2025-08-08 14:08:38', '2025-08-08 14:08:38'),
+(10, 20, 3, 'calamansi', 'calamansi', 5.00, 'no_change', NULL, 120000, 20.00, 0, 1, '2025-08-09 11:36:05', '2025-08-09 11:36:05'),
+(11, 20, 2, 'pandesal ni aling nina', 'init pa ang pan tehh!', 5.00, 'no_change', NULL, 50, 0.00, 0, 1, '2025-08-09 11:38:29', '2025-08-09 11:38:29'),
+(12, 24, 7, 'Lumyagan', 'Lumyagan sa Oroquieta', 130.00, 'no_change', NULL, 69, 500.00, 0, 1, '2025-08-09 11:47:13', '2025-08-09 11:47:13');
+
+--
+-- Triggers `products`
+--
+DELIMITER $$
+CREATE TRIGGER `log_price_changes` BEFORE UPDATE ON `products` FOR EACH ROW BEGIN
+    IF OLD.price != NEW.price THEN
+        INSERT INTO product_price_history (product_id, old_price, new_price) 
+        VALUES (NEW.id, OLD.price, NEW.price);
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -405,6 +438,20 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_primary`, `d
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `product_price_history`
+--
+
+CREATE TABLE `product_price_history` (
+  `id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `old_price` decimal(10,2) NOT NULL,
+  `new_price` decimal(10,2) NOT NULL,
+  `changed_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `product_views`
 --
 
@@ -422,12 +469,12 @@ CREATE TABLE `product_views` (
 --
 
 INSERT INTO `product_views` (`id`, `product_id`, `view_count`, `last_viewed`, `created_at`, `updated_at`) VALUES
-(1, 5, 4, '2025-08-09 18:54:32', '2025-08-08 13:14:28', '2025-08-09 10:54:32'),
+(1, 5, 5, '2025-08-13 14:02:53', '2025-08-08 13:14:28', '2025-08-13 06:02:53'),
 (4, 8, 18, '2025-08-09 16:28:25', '2025-08-08 13:14:28', '2025-08-09 08:28:25'),
 (25, 9, 11, '2025-08-09 19:00:23', '2025-08-08 14:08:52', '2025-08-09 11:00:23'),
-(53, 12, 7, '2025-08-09 22:00:03', '2025-08-09 11:47:25', '2025-08-09 14:00:03'),
+(53, 12, 9, '2025-08-13 14:02:00', '2025-08-09 11:47:25', '2025-08-13 06:02:00'),
 (58, 11, 3, '2025-08-11 20:33:48', '2025-08-09 13:43:32', '2025-08-11 12:33:48'),
-(59, 10, 3, '2025-08-09 21:49:05', '2025-08-09 13:43:44', '2025-08-09 13:49:05');
+(59, 10, 4, '2025-08-13 14:03:57', '2025-08-09 13:43:44', '2025-08-13 06:03:57');
 
 -- --------------------------------------------------------
 
@@ -494,7 +541,11 @@ INSERT INTO `product_view_logs` (`id`, `product_id`, `user_id`, `session_id`, `i
 (65, 10, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 13:49:05'),
 (66, 12, NULL, '43olo9tsom772en7oce8i8bkvv', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-09 14:00:03'),
 (67, 11, NULL, '500t5e4udusrb3bvaclnlrchfl', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-11 12:33:37'),
-(68, 11, NULL, '500t5e4udusrb3bvaclnlrchfl', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-11 12:33:48');
+(68, 11, NULL, '500t5e4udusrb3bvaclnlrchfl', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-11 12:33:48'),
+(69, 12, NULL, 'hkfjgk6g8vk8nke8dinh6kfgh0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-13 06:01:47'),
+(70, 12, NULL, 'hkfjgk6g8vk8nke8dinh6kfgh0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-13 06:02:00'),
+(71, 5, NULL, 'hkfjgk6g8vk8nke8dinh6kfgh0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-13 06:02:53'),
+(72, 10, NULL, 'hkfjgk6g8vk8nke8dinh6kfgh0', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36', '2025-08-13 06:03:57');
 
 -- --------------------------------------------------------
 
@@ -720,23 +771,6 @@ INSERT INTO `stall_applications` (`id`, `stall_id`, `seller_id`, `application_da
 -- --------------------------------------------------------
 
 --
--- Table structure for table `complaints`
---
-
-CREATE TABLE `complaints` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `complainant_name` varchar(100) NOT NULL,
-  `complainant_email` varchar(100) NOT NULL,
-  `seller_id` int(11) NOT NULL,
-  `status` enum('pending','resolved') NOT NULL DEFAULT 'pending',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Structure for view `seller_message_stats`
 --
 DROP TABLE IF EXISTS `seller_message_stats`;
@@ -866,6 +900,13 @@ ALTER TABLE `product_images`
   ADD KEY `product_id` (`product_id`);
 
 --
+-- Indexes for table `product_price_history`
+--
+ALTER TABLE `product_price_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_product_date` (`product_id`,`changed_at`);
+
+--
 -- Indexes for table `product_views`
 --
 ALTER TABLE `product_views`
@@ -976,7 +1017,7 @@ ALTER TABLE `email_queue`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1009,16 +1050,22 @@ ALTER TABLE `product_images`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT for table `product_price_history`
+--
+ALTER TABLE `product_price_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `product_views`
 --
 ALTER TABLE `product_views`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
 
 --
 -- AUTO_INCREMENT for table `product_view_logs`
 --
 ALTER TABLE `product_view_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `sellers`
@@ -1096,6 +1143,12 @@ ALTER TABLE `product_attributes`
 --
 ALTER TABLE `product_images`
   ADD CONSTRAINT `product_images_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `product_price_history`
+--
+ALTER TABLE `product_price_history`
+  ADD CONSTRAINT `product_price_history_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `product_views`

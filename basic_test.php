@@ -1,4 +1,4 @@
-<?php
+4<?php
 echo "Starting basic test...\n";
 
 require_once 'includes/db_connect.php';
