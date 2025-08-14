@@ -58,7 +58,6 @@ CREATE TABLE `announcements` (
   `id` int(11) NOT NULL,
   `title` varchar(200) NOT NULL,
   `content` text NOT NULL,
-  `priority` enum('low','medium','high','urgent') NOT NULL DEFAULT 'medium',
   `target_audience` enum('all','sellers','customers','admins') NOT NULL DEFAULT 'all',
   `expiry_date` datetime DEFAULT NULL,
   `is_pinned` tinyint(1) NOT NULL DEFAULT 0,
@@ -72,10 +71,10 @@ CREATE TABLE `announcements` (
 -- Dumping data for table `announcements`
 --
 
-INSERT INTO `announcements` (`id`, `title`, `content`, `priority`, `target_audience`, `expiry_date`, `is_pinned`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
-(1, 'holiday', 'way klase', 'medium', 'sellers', '2025-08-13 20:51:00', 0, 1, 20, '2025-08-11 12:48:11', '2025-08-11 12:48:11'),
-(2, 'gwapo ko', 'werty', 'medium', 'sellers', '2025-08-20 12:52:00', 0, 1, 20, '2025-08-11 12:48:53', '2025-08-11 12:49:03'),
-(3, 'Consumers Protection', 'Dear consumers, please ayaw mo pauwat sa scam, report to admin if ever naay mag scam!', 'high', 'customers', '2025-09-12 00:00:00', 0, 1, 4, '2025-08-11 13:04:04', '2025-08-11 13:04:04');
+INSERT INTO `announcements` (`id`, `title`, `content`, `target_audience`, `expiry_date`, `is_pinned`, `is_active`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 'holiday', 'way klase', 'sellers', '2025-08-13 20:51:00', 0, 1, 20, '2025-08-11 12:48:11', '2025-08-11 12:48:11'),
+(2, 'gwapo ko', 'werty', 'sellers', '2025-08-20 12:52:00', 0, 1, 20, '2025-08-11 12:48:53', '2025-08-11 12:49:03'),
+(3, 'Consumers Protection', 'Dear consumers, please ayaw mo pauwat sa scam, report to admin if ever naay mag scam!', 'customers', '2025-09-12 00:00:00', 0, 1, 4, '2025-08-11 13:04:04', '2025-08-11 13:04:04');
 
 -- --------------------------------------------------------
 

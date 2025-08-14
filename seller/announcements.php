@@ -41,9 +41,8 @@ try {
 
 // Get statistics
 $total_announcements = count($announcements);
-$urgent_announcements = count(array_filter($announcements, function($a) { return $a['priority'] === 'urgent'; }));
-$high_priority = count(array_filter($announcements, function($a) { return $a['priority'] === 'high'; }));
 $pinned_announcements = count(array_filter($announcements, function($a) { return $a['is_pinned']; }));
+
 ?>
 
 <!DOCTYPE html>
@@ -239,33 +238,6 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
             line-height: 1.4;
         }
 
-        .priority-badge {
-            padding: 0.25rem 0.65rem;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .priority-low { 
-            background-color: #e8f5e8; 
-            color: #2e7d32; 
-        }
-        .priority-medium { 
-            background-color: #fff3e0; 
-            color: #f57c00; 
-        }
-        .priority-high { 
-            background-color: #ffebee; 
-            color: #d32f2f; 
-        }
-        .priority-urgent { 
-            background-color: var(--danger); 
-            color: white;
-            animation: pulse 2s infinite;
-        }
-
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
@@ -387,30 +359,13 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
         <!-- Statistics Cards -->
         <div class="stats-cards">
             <div class="row g-3">
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-6 col-md-6">
                     <div class="stat-card total">
                         <div class="stat-number" style="color: var(--primary);"><?php echo $total_announcements; ?></div>
                         <div class="stat-label">Total Announcements</div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card urgent">
-                        <div class="stat-number text-danger">
-                            <?php echo $urgent_announcements; ?>
-                            <?php if ($urgent_announcements > 0): ?>
-                                <span class="notification-dot"></span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="stat-label">Urgent Announcements</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-card high">
-                        <div class="stat-number text-warning"><?php echo $high_priority; ?></div>
-                        <div class="stat-label">High Priority</div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-6 col-md-6">
                     <div class="stat-card pinned">
                         <div class="stat-number text-info"><?php echo $pinned_announcements; ?></div>
                         <div class="stat-label">Pinned Announcements</div>
@@ -433,9 +388,8 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
                         <thead class="table-header">
                             <tr>
                                 <th width="5%"><i class="bi bi-pin"></i></th>
-                                <th width="40%">Title</th>
-                                <th width="15%">Priority</th>
-                                <th width="15%">Created By</th>
+                                <th width="50%">Title</th>
+                                <th width="20%">Created By</th>
                                 <th width="15%">Date</th>
                                 <th width="10%">Status</th>
                             </tr>
@@ -443,7 +397,6 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
                         <tbody>
                             <?php foreach ($announcements as $announcement): ?>
                                 <?php
-                                $priorityClass = 'priority-' . $announcement['priority'];
                                 $isNew = strtotime($announcement['created_at']) > strtotime('-3 days');
                                 $isExpired = $announcement['expiry_date'] && strtotime($announcement['expiry_date']) < time();
                                 ?>
@@ -463,11 +416,6 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
                                                 <span class="new-badge">New</span>
                                             <?php endif; ?>
                                         </div>
-                                    </td>
-                                    <td>
-                                        <span class="priority-badge <?php echo $priorityClass; ?>">
-                                            <?php echo ucfirst($announcement['priority']); ?>
-                                        </span>
                                     </td>
                                     <td>
                                         <small class="text-muted">
@@ -493,7 +441,7 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="6" class="p-0">
+                                    <td colspan="5" class="p-0">
                                         <div class="collapse" id="announcement-<?php echo $announcement['id']; ?>">
                                             <div class="announcement-details">
                                                 <div class="row">
@@ -564,19 +512,7 @@ $pinned_announcements = count(array_filter($announcements, function($a) { return
                 location.reload();
             }, 300000); // 5 minutes
 
-            // Mark urgent announcements as viewed
-            const urgentRows = document.querySelectorAll('.priority-urgent');
-            urgentRows.forEach(badge => {
-                const row = badge.closest('tr');
-                if (row) {
-                    row.addEventListener('click', function() {
-                        const notificationDot = document.querySelector('.notification-dot');
-                        if (notificationDot) {
-                            notificationDot.style.opacity = '0.5';
-                        }
-                    });
-                }
-            });
+
         });
     </script>
 </body>

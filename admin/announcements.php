@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
 // Include database connection
 require_once '../includes/db_connect.php';
 
-$success = '';
-$error = '';
+$success = $_GET['success'] ?? '';
+$error = $_GET['error'] ?? '';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -212,18 +212,6 @@ $expired_announcements = count(array_filter($announcements, function($a) {
             margin-bottom: 1rem;
         }
 
-        .priority-badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .priority-low { background-color: #d1ecf1; color: #0c5460; }
-        .priority-medium { background-color: #fff3cd; color: #856404; }
-        .priority-high { background-color: #f8d7da; color: #721c24; }
-        .priority-urgent { background-color: #721c24; color: white; }
-
         .audience-badge {
             padding: 0.25rem 0.75rem;
             border-radius: 50px;
@@ -366,10 +354,7 @@ $expired_announcements = count(array_filter($announcements, function($a) {
                 </div>
             <?php else: ?>
                 <?php foreach ($announcements as $announcement): ?>
-                    <?php
-                    $isExpired = $announcement['expiry_date'] && strtotime($announcement['expiry_date']) < time();
-                    $priorityClass = 'priority-' . $announcement['priority'];
-                    ?>
+                    <?php $isExpired = $announcement['expiry_date'] && strtotime($announcement['expiry_date']) < time(); ?>
                     <div class="announcement-card <?php echo !$announcement['is_active'] ? 'opacity-50' : ''; ?>">
                         <div class="announcement-header">
                             <div class="flex-grow-1">
@@ -390,10 +375,7 @@ $expired_announcements = count(array_filter($announcements, function($a) {
                                     <?php endif; ?>
                                 </div>
                                 <div class="mb-2">
-                                    <span class="priority-badge <?php echo $priorityClass; ?>">
-                                        <?php echo ucfirst($announcement['priority']); ?> Priority
-                                    </span>
-                                    <span class="audience-badge ms-2">
+                                    <span class="audience-badge">
                                         <?php echo ucfirst($announcement['target_audience']); ?>
                                     </span>
                                 </div>
@@ -474,18 +456,6 @@ $expired_announcements = count(array_filter($announcements, function($a) {
                             </div>
                             
                             <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label for="announcementPriority" class="form-label fw-bold">
-                                        <i class="bi bi-exclamation-triangle text-warning me-1"></i>Priority
-                                    </label>
-                                    <select class="form-select" id="announcementPriority" name="priority">
-                                        <option value="low">Low</option>
-                                        <option value="medium" selected>Medium</option>
-                                        <option value="high">High</option>
-                                        <option value="urgent">Urgent</option>
-                                    </select>
-                                </div>
-                                
                                 <div class="mb-3">
                                     <label for="announcementTarget" class="form-label fw-bold">
                                         <i class="bi bi-people text-info me-1"></i>Target Audience

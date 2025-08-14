@@ -12,7 +12,7 @@ $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
 // Fetch announcements targeted to customers or all users
 try {
     $stmt = $pdo->prepare(
-        "SELECT title, content, priority, created_at, expiry_date, is_pinned 
+        "SELECT title, content, target_audience, created_at, expiry_date, is_pinned 
          FROM announcements 
          WHERE (target_audience = 'customers' OR target_audience = 'all') 
            AND is_active = 1 
@@ -237,8 +237,8 @@ try {
                                                 <?php endif; ?>
                                                 <?php echo htmlspecialchars($announcement['title']); ?>
                                             </h4>
-                                            <span class="announcement-priority priority-<?php echo $announcement['priority']; ?>">
-                                                <?php echo ucfirst($announcement['priority']); ?>
+                                            <span class="announcement-audience">
+                                                <?php echo $announcement['target_audience'] === 'all' ? 'All Users' : ucfirst($announcement['target_audience']); ?>
                                             </span>
                                         </div>
                                         <div class="announcement-content">
