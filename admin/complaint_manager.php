@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+// Check if user is logged in and is an admin
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
+    header("Location: ../authenticator.php");
+    exit();
+}
+
 // Database connection
 $host = 'localhost';
 $dbname = 'oroquieta_marketplace';
@@ -16,13 +22,12 @@ try {
 
 // Handle AJAX request for complaint details
 if (isset($_GET['action']) && $_GET['action'] === 'get_complaint_details') {
-    // Check if complaint_id is provided
     if (!isset($_GET['complaint_id']) || empty($_GET['complaint_id'])) {
         echo json_encode(['success' => false, 'message' => 'Complaint ID is required']);
         exit;
     }
     
-    $complaint_id = intval($_GET['complaint_id']); // Ensure it's an integer
+    $complaint_id = intval($_GET['complaint_id']);
     
     try {
         $stmt = $pdo->prepare("
@@ -59,7 +64,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'update_status') {
         $complaint_id = intval($_POST['complaint_id']);
         $new_status = $_POST['status'];
         
-        // Validate status
         if (!in_array($new_status, ['pending', 'resolved'])) {
             $message = "Invalid status value";
             $message_type = "error";
@@ -111,7 +115,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete') {
 
 // Handle sending message to seller
 if (isset($_POST['action']) && $_POST['action'] === 'send_message') {
-    // Validate required fields
     if (!isset($_POST['seller_id']) || !isset($_POST['message_text'])) {
         echo json_encode(['success' => false, 'message' => 'Missing required fields (seller_id, message_text)']);
         exit;
@@ -121,7 +124,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'send_message') {
     $message_text = trim($_POST['message_text']);
     $admin_name = $_POST['admin_name'] ?? 'Admin';
     
-    // Validate inputs
     if ($seller_id <= 0) {
         echo json_encode(['success' => false, 'message' => 'Invalid seller ID']);
         exit;
@@ -133,7 +135,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'send_message') {
     }
     
     try {
-        // First, check if seller exists
         $stmt = $pdo->prepare("SELECT id FROM sellers WHERE id = ?");
         $stmt->execute([$seller_id]);
         if (!$stmt->fetch()) {
@@ -141,13 +142,11 @@ if (isset($_POST['action']) && $_POST['action'] === 'send_message') {
             exit;
         }
         
-        // Check if conversation already exists
         $stmt = $pdo->prepare("SELECT id FROM conversations WHERE guest_name = ? AND seller_id = ?");
         $stmt->execute([$admin_name, $seller_id]);
         $conversation = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if (!$conversation) {
-            // Create new conversation
             $stmt = $pdo->prepare("INSERT INTO conversations (guest_name, guest_contact, seller_id, status, created_at) VALUES (?, ?, ?, 'active', NOW())");
             $stmt->execute([$admin_name, 'admin@oroquieta-marketplace.com', $seller_id]);
             $conversation_id = $pdo->lastInsertId();
@@ -155,7 +154,6 @@ if (isset($_POST['action']) && $_POST['action'] === 'send_message') {
             $conversation_id = $conversation['id'];
         }
         
-        // Insert message
         $stmt = $pdo->prepare("INSERT INTO messages (conversation_id, sender_type, sender_name, message_text, sent_at) VALUES (?, 'guest', ?, ?, NOW())");
         $stmt->execute([$conversation_id, $admin_name, $message_text]);
         
@@ -251,182 +249,620 @@ try {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complaint Manager - Oroquieta Marketplace</title>
+    <title>Oroquieta Marketplace - Complaint Manager</title>
+    <link href="../assets/img/logo-removebg.png" rel="icon">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/complaints.css">
-</head>
-<body>
     
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, .1);
+            --border-radius: 8px;
+        }
 
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1><i class="fas fa-exclamation-triangle"></i> Complaint Manager</h1>
-            <p>Manage and resolve customer complaints efficiently</p>
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .stats-cards {
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.2s ease;
+            border-left: 4px solid;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card.total { border-left-color: var(--primary-color); }
+        .stat-card.pending { border-left-color: var(--warning-color); }
+        .stat-card.resolved { border-left-color: var(--success-color); }
+        .stat-card.sellers { border-left-color: var(--info-color); }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .controls-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .complaints-container {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        .complaints-table {
+            overflow-x: auto;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: #2f6186;
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 1rem;
+            vertical-align: middle;
+            border-color: #e9ecef;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-resolved {
+            background-color: #d1eddd;
+            color: #0f5132;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1050;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        .close:hover {
+            color: #ccc;
+        }
+
+        #modalBody {
+            padding: 2rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Chat Modal Styles */
+        .chat-modal {
+            display: none;
+            position: fixed;
+            z-index: 1055;
+            right: 20px;
+            bottom: 20px;
+            width: 400px;
+            height: 500px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideInUp 0.3s ease-out;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .chat-close:hover {
+            color: #ccc;
+        }
+
+        .chat-messages {
+            height: 350px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #f8f9fa;
+        }
+
+        .message-bubble {
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            border-radius: var(--border-radius);
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message-admin {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message-seller {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+        }
+
+        .chat-input {
+            padding: 1rem;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+        }
+
+        .chat-send {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+        }
+
+        .chat-send:hover {
+            opacity: 0.9;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .loading-spinner i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .chat-loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        /* Animations */
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+
+            .chat-modal {
+                right: 10px;
+                bottom: 10px;
+                width: calc(100vw - 20px);
+                max-width: 350px;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Additional utility styles */
+        .complaint-title {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .seller-info {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            border-color: var(--info-color);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+
+        .table-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <?php include 'sidebar.php'; ?>
+
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Complaint Manager</h1>
+                    <p class="mb-0 opacity-75">Manage and resolve customer complaints efficiently</p>
+                </div>
+            </div>
         </div>
 
-        <!-- Display messages -->
-        <?php if (isset($message)): ?>
-            <div class="message <?php echo $message_type; ?>">
+        <!-- Success/Error Messages -->
+        <?php if (isset($message) && isset($message_type)): ?>
+            <div class="alert alert-<?php echo $message_type === 'success' ? 'success' : 'danger'; ?> alert-dismissible fade show" role="alert">
+                <i class="bi bi-<?php echo $message_type === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
                 <?php echo htmlspecialchars($message); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
-        <!-- Display error if any -->
         <?php if (isset($error)): ?>
-            <div class="message error">
-                <?php echo htmlspecialchars($error); ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i><?php echo htmlspecialchars($error); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
-        <!-- Statistics -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon total"><i class="fas fa-clipboard-list"></i></div>
-                <div class="stat-number total"><?php echo $stats['total_complaints']; ?></div>
-                <div class="stat-label">Total Complaints</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
-                <div class="stat-number pending"><?php echo $stats['pending_complaints']; ?></div>
-                <div class="stat-label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon resolved"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-number resolved"><?php echo $stats['resolved_complaints']; ?></div>
-                <div class="stat-label">Resolved</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon sellers"><i class="fas fa-store"></i></div>
-                <div class="stat-number sellers"><?php echo $stats['sellers_with_complaints']; ?></div>
-                <div class="stat-label">Sellers with Complaints</div>
+        <!-- Statistics Cards -->
+        <div class="stats-cards">
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card total">
+                        <div class="stat-number text-primary"><?php echo $stats['total_complaints']; ?></div>
+                        <div class="stat-label">Total Complaints</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card pending">
+                        <div class="stat-number text-warning"><?php echo $stats['pending_complaints']; ?></div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card resolved">
+                        <div class="stat-number text-success"><?php echo $stats['resolved_complaints']; ?></div>
+                        <div class="stat-label">Resolved</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="stat-card sellers">
+                        <div class="stat-number text-info"><?php echo $stats['sellers_with_complaints']; ?></div>
+                        <div class="stat-label">Sellers with Complaints</div>
+                    </div>
+                </div>
             </div>
         </div>
 
         <!-- Controls -->
-        <div class="controls">
-            <form method="GET" class="controls-row">
-                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" 
-                       placeholder="Search complaints..." class="search-box">
-                
-                <select name="status" class="filter-select">
-                    <option value="all" <?php echo $filter_status === 'all' ? 'selected' : ''; ?>>All Status</option>
-                    <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                    <option value="resolved" <?php echo $filter_status === 'resolved' ? 'selected' : ''; ?>>Resolved</option>
-                </select>
-                
-                <button type="submit" class="btn">
-                    <i class="fas fa-search"></i> Filter
-                </button>
-                
-                <a href="complaint_manager.php" class="btn">
-                    <i class="fas fa-refresh"></i> Reset
-                </a>
+        <div class="controls-container">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-6">
+                    <label for="search" class="form-label fw-bold">
+                        <i class="bi bi-search text-primary me-1"></i>Search Complaints
+                    </label>
+                    <input type="text" id="search" name="search" class="form-control" 
+                           value="<?php echo htmlspecialchars($search); ?>" 
+                           placeholder="Search by title, complainant, or seller...">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label fw-bold">
+                        <i class="bi bi-filter text-primary me-1"></i>Filter by Status
+                    </label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="all" <?php echo $filter_status === 'all' ? 'selected' : ''; ?>>All Status</option>
+                        <option value="pending" <?php echo $filter_status === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                        <option value="resolved" <?php echo $filter_status === 'resolved' ? 'selected' : ''; ?>>Resolved</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search me-1"></i> Filter
+                        </button>
+                        <a href="complaint_manager.php" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                        </a>
+                    </div>
+                </div>
             </form>
         </div>
 
-        <!-- Complaints Table -->
-        <div class="complaints-table">
+        <!-- Complaints List -->
+        <div class="complaints-container">
             <div class="table-header">
-                <h2><i class="fas fa-list"></i> Complaints List</h2>
+                <h2><i class="bi bi-list-ul me-2"></i>Complaints List</h2>
             </div>
             
             <?php if (empty($complaints)): ?>
-                <div class="no-complaints">
-                    <i class="fas fa-inbox" style="font-size: 3em; color: #ccc; margin-bottom: 20px;"></i>
-                    <p>No complaints found matching your criteria.</p>
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h4>No Complaints Found</h4>
+                    <p>No complaints match your current filter criteria.</p>
                 </div>
             <?php else: ?>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>Complainant</th>
-                            <th>Seller</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($complaints as $complaint): ?>
-                            <tr>
-                                <td><?php echo $complaint['id']; ?></td>
-                                <td>
-                                    <div class="complaint-details" title="<?php echo htmlspecialchars($complaint['title']); ?>">
-                                        <strong><?php echo htmlspecialchars($complaint['title']); ?></strong>
-                                    </div>
-                                </td>
-                                <td>
-                                    <strong><?php echo htmlspecialchars($complaint['complainant_name']); ?></strong><br>
-                                    <small class="seller-info"><?php echo htmlspecialchars($complaint['complainant_email']); ?></small>
-                                </td>
-                                <td>
-                                    <strong><?php echo htmlspecialchars(trim($complaint['seller_name']) ?: 'Unknown'); ?></strong><br>
-                                    <small class="seller-info"><?php echo htmlspecialchars($complaint['seller_username'] ?? 'N/A'); ?></small>
-                                </td>
-                                <td>
-                                    <span class="status-badge status-<?php echo $complaint['status']; ?>">
-                                        <?php echo ucfirst($complaint['status']); ?>
-                                    </span>
-                                </td>
-                                <td><?php echo date('M d, Y', strtotime($complaint['created_at'])); ?></td>
-                                <td>
-                                    <div class="actions">
-                                        <button onclick="viewComplaint(<?php echo $complaint['id']; ?>)" 
-                                                class="btn btn-sm" title="View Details">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        
-                                        <?php if ($complaint['seller_id']): ?>
-                                            <button onclick="openChat(<?php echo $complaint['seller_id']; ?>, '<?php echo htmlspecialchars(trim($complaint['seller_name']) ?: 'Unknown Seller'); ?>')" 
-                                                    class="btn btn-sm btn-info" title="Chat with Seller">
-                                                <i class="fas fa-comments"></i>
-                                            </button>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($complaint['status'] === 'pending'): ?>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="action" value="update_status">
-                                                <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
-                                                <input type="hidden" name="status" value="resolved">
-                                                <button type="submit" class="btn btn-sm btn-success" 
-                                                        title="Mark as Resolved"
-                                                        onclick="return confirm('Mark this complaint as resolved?')">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                        <?php else: ?>
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="action" value="update_status">
-                                                <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
-                                                <input type="hidden" name="status" value="pending">
-                                                <button type="submit" class="btn btn-sm" 
-                                                        title="Mark as Pending"
-                                                        onclick="return confirm('Mark this complaint as pending?')">
-                                                    <i class="fas fa-undo"></i>
-                                                </button>
-                                            </form>
-                                        <?php endif; ?>
-                                        
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="action" value="delete">
-                                            <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger" 
-                                                    title="Delete Complaint"
-                                                    onclick="return confirm('Are you sure you want to delete this complaint? This action cannot be undone.')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="complaints-table">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Complainant</th>
+                <th>Seller</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($complaints as $complaint): ?>
+                <tr>
+                    <td><span class="badge bg-secondary">#<?php echo $complaint['id']; ?></span></td>
+                    <td>
+                        <div class="complaint-title" title="<?php echo htmlspecialchars($complaint['title']); ?>">
+                            <?php echo htmlspecialchars(strlen($complaint['title']) > 30 ? substr($complaint['title'], 0, 30) . '...' : $complaint['title']); ?>
+                        </div>
+                    </td>
+                    <td>
+                        <strong><?php echo htmlspecialchars($complaint['complainant_name']); ?></strong><br>
+                        <small class="seller-info"><?php echo htmlspecialchars($complaint['complainant_email']); ?></small>
+                    </td>
+                    <td>
+                        <strong><?php echo htmlspecialchars(trim($complaint['seller_name']) ?: 'Unknown'); ?></strong><br>
+                        <small class="seller-info"><?php echo htmlspecialchars($complaint['seller_username'] ?? 'N/A'); ?></small>
+                    </td>
+                    <td>
+                        <span class="status-badge status-<?php echo $complaint['status']; ?>">
+                            <?php echo ucfirst($complaint['status']); ?>
+                        </span>
+                    </td>
+                    <td>
+                        <i class="bi bi-calendar me-1"></i>
+                        <?php echo date('M d, Y', strtotime($complaint['created_at'])); ?>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button onclick="viewComplaint(<?php echo $complaint['id']; ?>)" 
+                                    class="btn btn-sm btn-outline-primary" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            
+                            <?php if ($complaint['seller_id']): ?>
+                                <button onclick="openChat(<?php echo $complaint['seller_id']; ?>, '<?php echo htmlspecialchars(trim($complaint['seller_name']) ?: 'Unknown Seller'); ?>')" 
+                                        class="btn btn-sm btn-info" title="Chat with Seller">
+                                    <i class="bi bi-chat-dots"></i>
+                                </button>
+                            <?php endif; ?>
+                            
+                            <?php if ($complaint['status'] === 'pending'): ?>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="update_status">
+                                    <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
+                                    <input type="hidden" name="status" value="resolved">
+                                    <button type="submit" class="btn btn-sm btn-success" 
+                                            title="Mark as Resolved"
+                                            onclick="return confirm('Mark this complaint as resolved?')">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="update_status">
+                                    <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
+                                    <input type="hidden" name="status" value="pending">
+                                    <button type="submit" class="btn btn-sm btn-warning" 
+                                            title="Mark as Pending"
+                                            onclick="return confirm('Mark this complaint as pending?')">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                            
+                            <form method="POST" class="d-inline">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="complaint_id" value="<?php echo $complaint['id']; ?>">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                        title="Delete Complaint"
+                                        onclick="return confirm('Are you sure you want to delete this complaint? This action cannot be undone.')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        </tbody>
+    </table>
+</div>
             <?php endif; ?>
         </div>
     </div>
@@ -435,12 +871,13 @@ try {
     <div id="complaintModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Complaint Details</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
+                <h2><i class="bi bi-file-text me-2"></i>Complaint Details</h2>
+                <button class="close" onclick="closeModal()">&times;</button>
             </div>
             <div id="modalBody">
                 <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i> Loading complaint details...
+                    <i class="bi bi-hourglass-split"></i>
+                    <p>Loading complaint details...</p>
                 </div>
             </div>
         </div>
@@ -449,28 +886,33 @@ try {
     <!-- Chat Modal -->
     <div id="chatModal" class="chat-modal">
         <div class="chat-header">
-            <h3 id="chatSellerName">Chat with Seller</h3>
+            <h3 id="chatSellerName"><i class="bi bi-chat-dots me-2"></i>Chat with Seller</h3>
             <button class="chat-close" onclick="closeChat()">&times;</button>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="chat-loading">Loading conversation...</div>
+            <div class="chat-loading">
+                <i class="bi bi-hourglass-split"></i>
+                <p>Loading conversation...</p>
+            </div>
         </div>
         <div class="chat-input">
-            <input type="text" id="chatInput" placeholder="Type your message..." maxlength="500">
+            <input type="text" id="chatInput" class="form-control" placeholder="Type your message..." maxlength="500">
             <button class="chat-send" onclick="sendMessage()">
-                <i class="fas fa-paper-plane"></i>
+                <i class="bi bi-send"></i>
             </button>
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <script>
         let currentSellerId = null;
         let chatUpdateInterval = null;
         let currentComplaintData = null;
-        const adminName = 'Admin'; // You can make this dynamic based on logged-in admin
+        const adminName = 'Admin';
 
         function viewComplaint(complaintId) {
-            // Validate complaint ID
             if (!complaintId || complaintId <= 0) {
                 alert('Invalid complaint ID');
                 return;
@@ -479,11 +921,11 @@ try {
             document.getElementById('complaintModal').style.display = 'block';
             document.getElementById('modalBody').innerHTML = `
                 <div class="loading-spinner">
-                    <i class="fas fa-spinner fa-spin"></i> Loading complaint details...
+                    <i class="bi bi-hourglass-split"></i>
+                    <p>Loading complaint details...</p>
                 </div>
             `;
             
-            // Fetch complaint details via AJAX
             fetch(`?action=get_complaint_details&complaint_id=${encodeURIComponent(complaintId)}`)
                 .then(response => {
                     if (!response.ok) {
@@ -497,8 +939,8 @@ try {
                         displayComplaintDetails(data.complaint);
                     } else {
                         document.getElementById('modalBody').innerHTML = `
-                            <div style="text-align: center; color: #e74c3c;">
-                                <i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 10px;"></i>
+                            <div class="text-center text-danger">
+                                <i class="bi bi-exclamation-triangle" style="font-size: 2em; margin-bottom: 10px;"></i>
                                 <p>Error loading complaint details: ${escapeHtml(data.message)}</p>
                             </div>
                         `;
@@ -507,9 +949,9 @@ try {
                 .catch(error => {
                     console.error('Error:', error);
                     document.getElementById('modalBody').innerHTML = `
-                        <div style="text-align: center; color: #e74c3c;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 2em; margin-bottom: 10px;"></i>
-                            <p>Error loading complaint details. Please check the console for more information.</p>
+                        <div class="text-center text-danger">
+                            <i class="bi bi-exclamation-triangle" style="font-size: 2em; margin-bottom: 10px;"></i>
+                            <p>Error loading complaint details. Please try again.</p>
                         </div>
                     `;
                 });
@@ -521,46 +963,80 @@ try {
             let chatButton = '';
             if (complaint.seller_id) {
                 chatButton = `
-                    <div class="modal-actions">
+                    <div class="mt-4">
                         <button onclick="openChatFromModal(${complaint.seller_id}, '${escapeHtml(complaint.seller_name || 'Unknown Seller')}')" 
                                 class="btn btn-info">
-                            <i class="fas fa-comments"></i> Chat with Seller
+                            <i class="bi bi-chat-dots me-2"></i>Chat with Seller
                         </button>
                     </div>
                 `;
             }
             
             modalBody.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <h3>${escapeHtml(complaint.title)}</h3>
-                    <p><strong>Status:</strong> <span class="status-badge status-${complaint.status}">${complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1)}</span></p>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4><i class="fas fa-user"></i> Complainant Information</h4>
-                    <p><strong>Name:</strong> ${escapeHtml(complaint.complainant_name)}</p>
-                    <p><strong>Email:</strong> ${escapeHtml(complaint.complainant_email)}</p>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4><i class="fas fa-store"></i> Seller Information</h4>
-                    <p><strong>Name:</strong> ${escapeHtml(complaint.seller_name || 'Unknown')}</p>
-                    <p><strong>Username:</strong> ${escapeHtml(complaint.seller_username || 'N/A')}</p>
-                    <p><strong>Email:</strong> ${escapeHtml(complaint.seller_email || 'N/A')}</p>
-                    <p><strong>Phone:</strong> ${escapeHtml(complaint.seller_phone || 'N/A')}</p>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4><i class="fas fa-file-alt"></i> Complaint Description</h4>
-                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; white-space: pre-wrap; border-left: 4px solid #667eea;">
-                        ${escapeHtml(complaint.description)}
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h3 class="text-primary">${escapeHtml(complaint.title)}</h3>
+                            <span class="status-badge status-${complaint.status}">${complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1)}</span>
+                        </div>
                     </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <h4><i class="fas fa-calendar"></i> Additional Information</h4>
-                    <p><strong>Date Filed:</strong> ${new Date(complaint.created_at).toLocaleString()}</p>
-                    <p><strong>Complaint ID:</strong> #${complaint.id}</p>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0"><i class="bi bi-person me-2"></i>Complainant Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Name:</strong> ${escapeHtml(complaint.complainant_name)}</p>
+                                <p><strong>Email:</strong> ${escapeHtml(complaint.complainant_email)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0"><i class="bi bi-shop me-2"></i>Seller Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>Name:</strong> ${escapeHtml(complaint.seller_name || 'Unknown')}</p>
+                                <p><strong>Username:</strong> ${escapeHtml(complaint.seller_username || 'N/A')}</p>
+                                <p><strong>Email:</strong> ${escapeHtml(complaint.seller_email || 'N/A')}</p>
+                                <p><strong>Phone:</strong> ${escapeHtml(complaint.seller_phone || 'N/A')}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 mb-4">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="card-title mb-0"><i class="bi bi-file-text me-2"></i>Complaint Description</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="bg-light p-3 rounded" style="white-space: pre-wrap;">
+                                    ${escapeHtml(complaint.description)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="card-title mb-0"><i class="bi bi-info-circle me-2"></i>Additional Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Date Filed:</strong> ${new Date(complaint.created_at).toLocaleString()}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Complaint ID:</strong> <span class="badge bg-secondary">#${complaint.id}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 ${chatButton}
@@ -573,36 +1049,32 @@ try {
         }
 
         function openChatFromModal(sellerId, sellerName) {
-            closeModal(); // Close the complaint modal first
+            closeModal();
             openChat(sellerId, sellerName);
         }
 
         function openChat(sellerId, sellerName) {
-            // Validate seller ID
             if (!sellerId || sellerId <= 0) {
                 alert('Invalid seller ID');
                 return;
             }
             
             currentSellerId = sellerId;
-            document.getElementById('chatSellerName').textContent = `Chat with ${sellerName}`;
+            document.getElementById('chatSellerName').innerHTML = `<i class="bi bi-chat-dots me-2"></i>Chat with ${sellerName}`;
             document.getElementById('chatModal').style.display = 'block';
             
-            // Load messages
             loadChatMessages();
             
-            // Start auto-refresh
             if (chatUpdateInterval) {
                 clearInterval(chatUpdateInterval);
             }
-            chatUpdateInterval = setInterval(loadChatMessages, 3000); // Refresh every 3 seconds
+            chatUpdateInterval = setInterval(loadChatMessages, 3000);
         }
 
         function closeChat() {
             document.getElementById('chatModal').style.display = 'none';
             currentSellerId = null;
             
-            // Stop auto-refresh
             if (chatUpdateInterval) {
                 clearInterval(chatUpdateInterval);
                 chatUpdateInterval = null;
@@ -625,8 +1097,8 @@ try {
                     } else {
                         console.error('Error loading messages:', data.message);
                         document.getElementById('chatMessages').innerHTML = `
-                            <div style="text-align: center; padding: 20px; color: #e74c3c;">
-                                <i class="fas fa-exclamation-triangle"></i>
+                            <div class="text-center text-danger p-3">
+                                <i class="bi bi-exclamation-triangle"></i>
                                 <p>Error loading messages: ${escapeHtml(data.message)}</p>
                             </div>
                         `;
@@ -635,8 +1107,8 @@ try {
                 .catch(error => {
                     console.error('Error:', error);
                     document.getElementById('chatMessages').innerHTML = `
-                        <div style="text-align: center; padding: 20px; color: #e74c3c;">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div class="text-center text-danger p-3">
+                            <i class="bi bi-exclamation-triangle"></i>
                             <p>Error loading messages. Please try again.</p>
                         </div>
                     `;
@@ -648,8 +1120,8 @@ try {
             
             if (messages.length === 0 || !messages[0].id) {
                 chatMessages.innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: #666;">
-                        <i class="fas fa-comments" style="font-size: 2em; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <div class="text-center text-muted p-4">
+                        <i class="bi bi-chat-dots" style="font-size: 2em; margin-bottom: 10px; opacity: 0.5;"></i>
                         <p>No messages yet. Start the conversation!</p>
                     </div>
                 `;
@@ -692,7 +1164,6 @@ try {
                 return;
             }
             
-            // Disable input while sending
             input.disabled = true;
             
             const formData = new FormData();
@@ -714,7 +1185,7 @@ try {
             .then(data => {
                 if (data.success) {
                     input.value = '';
-                    loadChatMessages(); // Refresh messages
+                    loadChatMessages();
                 } else {
                     alert('Error sending message: ' + data.message);
                 }
@@ -724,7 +1195,7 @@ try {
                 alert('Error sending message. Please try again.');
             })
             .finally(() => {
-                input.disabled = false; // Re-enable input
+                input.disabled = false;
                 input.focus();
             });
         }
@@ -765,30 +1236,6 @@ try {
                     }
                 });
             }
-        });
-
-        // Add some basic error handling for missing elements
-        function handleError(message) {
-            console.error(message);
-            alert(message);
-        }
-
-        // Validate that required elements exist
-        document.addEventListener('DOMContentLoaded', function() {
-            const requiredElements = [
-                'complaintModal',
-                'chatModal', 
-                'modalBody',
-                'chatMessages',
-                'chatInput',
-                'chatSellerName'
-            ];
-            
-            requiredElements.forEach(id => {
-                if (!document.getElementById(id)) {
-                    console.error(`Required element with ID '${id}' not found`);
-                }
-            });
         });
     </script>
 </body>
