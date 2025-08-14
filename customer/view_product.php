@@ -148,6 +148,74 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                             <?php endforeach; ?>
                         </div>
                 <?php endif; ?>
+
+                <div class="price-history-section mt-4">
+                    <h3><i class="fas fa-chart-line"></i> Price History & Analytics</h3>
+                    
+                    <div class="price-stats-grid">
+                        <div class="price-stat-card">
+                            <div class="stat-icon"><i class="fas fa-arrow-trend-up text-success"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="highest-price">-</span>
+                                <span class="stat-label">Highest Price</span>
+                            </div>
+                        </div>
+                        
+                        <div class="price-stat-card">
+                            <div class="stat-icon"><i class="fas fa-arrow-trend-down text-danger"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="lowest-price">-</span>
+                                <span class="stat-label">Lowest Price</span>
+                            </div>
+                        </div>
+                        
+                        <div class="price-stat-card">
+                            <div class="stat-icon"><i class="fas fa-calculator text-info"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="average-price">-</span>
+                                <span class="stat-label">Average Price</span>
+                            </div>
+                        </div>
+                        
+                        <div class="price-stat-card">
+                            <div class="stat-icon"><i class="fas fa-exchange-alt text-warning"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="price-changes">-</span>
+                                <span class="stat-label">Price Changes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-chart-container">
+                        <div class="price-period-tabs">
+                            <button class="price-period-btn active" data-days="7">7 Days</button>
+                            <button class="price-period-btn" data-days="30">30 Days</button>
+                            <button class="price-period-btn" data-days="90">90 Days</button>
+                        </div>
+                        <div style="position: relative; height: 400px; width: 100%;">
+                            <canvas id="price-history-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="price-history-table">
+                        <h4>Recent Price Changes</h4>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Old Price</th>
+                                        <th>New Price</th>
+                                        <th>Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="price-history-tbody">
+                                    <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="product-info-section">
@@ -314,32 +382,8 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 </div>
 
 <link rel="stylesheet" href="css/chat.css">
-
-<script>
-    // Function to change main product image
-    function changeMainImage(src, thumbnailElement) {
-        document.getElementById('main-product-image').src = src;
-
-        // Update thumbnail active state
-        document.querySelectorAll('.thumbnail-container').forEach(container => {
-            container.classList.remove('active');
-        });
-        thumbnailElement.classList.add('active');
-    }
-
-    // Function to order product
-    function orderProduct(productId) {
-        // Implement order functionality
-        alert('Order functionality for product ID: ' + productId);
-        // You can redirect to order form
-        // window.location.href = 'order.php?product_id=' + productId;
-    }
-</script>
-
-<script src="js/chat.js"></script>
 <link rel="stylesheet" href="css/view_product.css">
 
-
 <script>
     // Function to change main product image
     function changeMainImage(src, thumbnailElement) {
@@ -350,14 +394,6 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
             container.classList.remove('active');
         });
         thumbnailElement.classList.add('active');
-    }
-
-    // Function to order product
-    function orderProduct(productId) {
-        // Implement order functionality
-        alert('Order functionality for product ID: ' + productId);
-        // You can redirect to order form
-        // window.location.href = 'order.php?product_id=' + productId;
     }
 
     // Track product view
@@ -407,6 +443,282 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
             console.error('Error tracking view:', error);
         });
     }
+</script>
+
+<!-- Chart.js for price monitoring charts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+<!-- Price Monitoring JavaScript -->
+<script>
+// price-monitoring.js - Client-side price monitoring functionality
+
+class PriceMonitor {
+    constructor() {
+        this.apiBase = 'price_history_api.php';
+        this.chartInstances = new Map();
+        this.init();
+    }
+
+    init() {
+        this.addPriceHistorySection();
+        this.loadPriceData();
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        // Price history tab switching
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('price-period-btn')) {
+                this.switchPricePeriod(e.target);
+            }
+        });
+    }
+
+    addPriceHistorySection() {
+        // Price history section is already in the HTML, no need to add dynamically
+    }
+
+    async loadPriceData() {
+        const productId = this.getProductId();
+        if (!productId) return;
+
+        try {
+            // Load price statistics
+            await this.loadPriceStatistics(productId);
+            
+            // Load price chart
+            await this.loadPriceChart(productId, 30);
+            
+            // Load price history table
+            await this.loadPriceHistory(productId);
+            
+        } catch (error) {
+            console.error('Error loading price data:', error);
+        }
+    }
+
+    async loadPriceStatistics(productId) {
+        try {
+            const response = await fetch(`${this.apiBase}?action=statistics&product_id=${productId}&period=30`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                const stats = result.data;
+                document.getElementById('highest-price').textContent = `₱${parseFloat(stats.highest_price || 0).toFixed(2)}`;
+                document.getElementById('lowest-price').textContent = `₱${parseFloat(stats.lowest_price || 0).toFixed(2)}`;
+                document.getElementById('average-price').textContent = `₱${parseFloat(stats.average_price || 0).toFixed(2)}`;
+                document.getElementById('price-changes').textContent = stats.total_changes || 0;
+            }
+        } catch (error) {
+            console.error('Error loading price statistics:', error);
+        }
+    }
+
+    async loadPriceChart(productId, days = 30) {
+        try {
+            const response = await fetch(`${this.apiBase}?action=chart_data&product_id=${productId}&days=${days}`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                this.renderPriceChart(result.data);
+            }
+        } catch (error) {
+            console.error('Error loading price chart:', error);
+        }
+    }
+
+    renderPriceChart(data) {
+        const ctx = document.getElementById('price-history-chart');
+        if (!ctx) return;
+
+        // Destroy existing chart if it exists
+        if (this.chartInstances.has('priceChart')) {
+            this.chartInstances.get('priceChart').destroy();
+        }
+
+        // Sort data by date to ensure proper chronological order
+        const sortedData = data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+
+        const labels = sortedData.map(item => {
+            const date = new Date(item.datetime);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+
+        const prices = sortedData.map(item => parseFloat(item.price));
+
+        // Calculate min and max for better Y-axis scaling
+        const minPrice = Math.min(...prices);
+        const maxPrice = Math.max(...prices);
+        const padding = (maxPrice - minPrice) * 0.1; // 10% padding
+
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Price (₱)',
+                    data: prices,
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.2,
+                    pointBackgroundColor: '#007bff',
+                    pointBorderColor: '#007bff',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Price History'
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        min: Math.max(0, minPrice - padding),
+                        max: maxPrice + padding,
+                        ticks: {
+                            callback: function(value) {
+                                return '₱' + value.toFixed(2);
+                            }
+                        }
+                    },
+                    x: {
+                        reverse: false // Ensure chronological order
+                    }
+                }
+            }
+        });
+
+        this.chartInstances.set('priceChart', chart);
+    }
+
+    async loadPriceHistory(productId) {
+        try {
+            const response = await fetch(`${this.apiBase}?action=history&product_id=${productId}&days=30`);
+            const result = await response.json();
+
+            if (result.success && result.data) {
+                this.renderPriceHistoryTable(result.data);
+            }
+        } catch (error) {
+            console.error('Error loading price history:', error);
+        }
+    }
+
+    renderPriceHistoryTable(history) {
+        const tbody = document.getElementById('price-history-tbody');
+        if (!tbody) return;
+
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No price changes recorded</td></tr>';
+            return;
+        }
+
+        const rows = history.map(item => {
+            const changeValue = parseFloat(item.new_price) - parseFloat(item.old_price);
+            const changePercent = parseFloat(item.percentage_change);
+            const changeClass = changeValue > 0 ? 'text-success' : 'text-danger';
+            const changeIcon = changeValue > 0 ? '↑' : '↓';
+            
+            return `
+                <tr>
+                    <td>${new Date(item.changed_at).toLocaleDateString()}</td>
+                    <td>₱${parseFloat(item.old_price).toFixed(2)}</td>
+                    <td>₱${parseFloat(item.new_price).toFixed(2)}</td>
+                    <td class="${changeClass}">
+                        ${changeIcon} ₱${Math.abs(changeValue).toFixed(2)} 
+                        (${Math.abs(changePercent).toFixed(2)}%)
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        tbody.innerHTML = rows;
+    }
+
+    switchPricePeriod(button) {
+        // Update active button
+        document.querySelectorAll('.price-period-btn').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // Reload chart with new period
+        const days = parseInt(button.dataset.days);
+        const productId = this.getProductId();
+        if (productId) {
+            this.loadPriceChart(productId, days);
+        }
+    }
+
+    getProductId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id') || null;
+    }
+
+    // Method to update price in real-time (if needed)
+    async refreshCurrentPrice() {
+        const productId = this.getProductId();
+        if (!productId) return;
+
+        try {
+            const response = await fetch(`get_product.php?id=${productId}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const currentPriceElement = document.querySelector('.price-amount');
+                if (currentPriceElement) {
+                    currentPriceElement.textContent = `₱${parseFloat(result.data.price).toFixed(2)}`;
+                }
+                
+                // Update price change indicator
+                this.updatePriceChangeIndicator(result.data);
+            }
+        } catch (error) {
+            console.error('Error refreshing price:', error);
+        }
+    }
+
+    updatePriceChangeIndicator(productData) {
+        const priceSection = document.querySelector('.product-price-section');
+        if (!priceSection || !productData.previous_price) return;
+
+        // Remove existing indicator
+        const existingIndicator = priceSection.querySelector('.price-change-indicator');
+        if (existingIndicator) {
+            existingIndicator.remove();
+        }
+
+        if (productData.price_change !== 'no_change') {
+            const changePercentage = productData.price_change_percentage || 0;
+            const isIncrease = productData.price_change === 'up';
+            
+            const indicator = document.createElement('div');
+            indicator.className = `price-change-indicator ${isIncrease ? 'price-up' : 'price-down'}`;
+            indicator.innerHTML = `
+                <i class="fas fa-arrow-${isIncrease ? 'up' : 'down'}"></i>
+                <span>${Math.abs(changePercentage).toFixed(2)}%</span>
+                <small>vs last price</small>
+            `;
+            
+            priceSection.appendChild(indicator);
+        }
+    }
+}
+
+// Initialize price monitoring when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize price monitor on product pages
+    if (document.querySelector('.product-details-container')) {
+        window.priceMonitor = new PriceMonitor();
+    }
+});
 </script>
 
 <script src="js/chat.js"></script>
