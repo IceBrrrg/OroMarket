@@ -420,7 +420,32 @@ $categories = $cat_stmt->fetchAll();
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            flex-grow: 1;
+            height: 300px;
+        }
+
+        .product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-details {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .product-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .action-buttons {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
         }
 
         .card-title {
@@ -967,6 +992,55 @@ $categories = $cat_stmt->fetchAll();
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-labelledby="deleteProductModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteProductModalLabel">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Confirm Delete
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete "<span id="deleteProductName"></span>"? This action cannot be
+                        undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                        <i class="bi bi-trash me-2"></i>Delete Product
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toggle Status Modal -->
+    <div class="modal fade" id="toggleStatusModal" tabindex="-1" aria-labelledby="toggleStatusModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="toggleStatusModalLabel">
+                        <i class="bi bi-toggle-on me-2"></i>Confirm Status Change
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to <span id="toggleActionText"></span> this product?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="confirmToggleBtn">
+                        <i class="bi bi-toggle-on me-2"></i>Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Product Modal -->
     <div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductModalLabel"
         aria-hidden="true">
@@ -1059,6 +1133,16 @@ $categories = $cat_stmt->fetchAll();
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Check URL parameters and open modal if needed
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'add') {
+                openAddProductModal();
+                // Clean up the URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
         // Modal Functions
         function openAddProductModal() {
             const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
@@ -1143,17 +1227,29 @@ $categories = $cat_stmt->fetchAll();
 
         function toggleProductStatus(productId, newStatus) {
             const action = newStatus === 'true' ? 'activate' : 'deactivate';
-            if (confirm(`Are you sure you want to ${action} this product?`)) {
+            const modal = new bootstrap.Modal(document.getElementById('toggleStatusModal'));
+            document.getElementById('toggleActionText').textContent = action;
+
+            // Set up the confirm button handler
+            document.getElementById('confirmToggleBtn').onclick = function () {
                 document.getElementById('toggle_product_id').value = productId;
                 document.getElementById('toggleStatusForm').submit();
-            }
+            };
+
+            modal.show();
         }
 
         function deleteProduct(productId, productName) {
-            if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteProductModal'));
+            document.getElementById('deleteProductName').textContent = productName;
+
+            // Set up the confirm button handler
+            document.getElementById('confirmDeleteBtn').onclick = function () {
                 document.getElementById('delete_product_id').value = productId;
                 document.getElementById('deleteProductForm').submit();
-            }
+            };
+
+            modal.show();
         }
 
         // Auto-generate SKU based on product name (only for add form)
@@ -1220,6 +1316,7 @@ $categories = $cat_stmt->fetchAll();
             });
         });
     </script>
+
 </body>
 
 </html>

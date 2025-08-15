@@ -16,63 +16,40 @@ $stmt = $pdo->prepare("SELECT * FROM sellers WHERE id = ?");
 $stmt->execute([$seller_id]);
 $seller = $stmt->fetch();
 
-// Get seller application info for business name
-$stmt = $pdo->prepare("SELECT business_name FROM seller_applications WHERE seller_id = ? AND status = 'approved'");
+// Get seller application info for business name and stall info
+$stmt = $pdo->prepare("
+    SELECT sa.business_name, st.stall_number, st.section 
+    FROM seller_applications sa
+    LEFT JOIN stalls st ON sa.seller_id = st.current_seller_id 
+    WHERE sa.seller_id = ? AND sa.status = 'approved'
+");
 $stmt->execute([$seller_id]);
 $application = $stmt->fetch();
 $business_name = $application ? $application['business_name'] : ($seller['first_name'] . ' ' . $seller['last_name']);
+$stall_number = $application['stall_number'] ?? null;
+$section = $application['section'] ?? null;
 
 // Get total products
-$query = "SELECT COUNT(*) as total FROM products WHERE seller_id = ?";
+$query = "SELECT COUNT(*) as total FROM products WHERE seller_id = ? AND is_active = 1";
 $stmt = $pdo->prepare($query);
 $stmt->execute([$seller_id]);
 $row = $stmt->fetch();
 $total_products = $row['total'];
 
-// Get total orders
-$query = "SELECT COUNT(*) as total FROM orders WHERE seller_id = ?";
+// Get recent products for stall preview (limit 6)
+$query = "
+    SELECT p.*, pi.image_path
+    FROM products p
+    LEFT JOIN product_images pi ON p.id = pi.product_id AND pi.is_primary = 1
+    WHERE p.seller_id = ? AND p.is_active = 1
+    ORDER BY p.created_at DESC
+    LIMIT 6
+";
 $stmt = $pdo->prepare($query);
 $stmt->execute([$seller_id]);
-$row = $stmt->fetch();
-$total_orders = $row['total'];
+$recent_products = $stmt->fetchAll();
 
-// Get total revenue
-$query = "SELECT SUM(total_amount) as total FROM orders WHERE seller_id = ? AND payment_status = 'paid'";
-$stmt = $pdo->prepare($query);
-$stmt->execute([$seller_id]);
-$row = $stmt->fetch();
-$total_revenue = $row['total'] ? $row['total'] : 0;
-
-// Get recent activities (last 5)
-$query = "SELECT 'order' as type, order_number as title, created_at FROM orders WHERE seller_id = ? 
-          UNION ALL 
-          SELECT 'product' as type, name as title, created_at FROM products WHERE seller_id = ? 
-          ORDER BY created_at DESC LIMIT 5";
-$stmt = $pdo->prepare($query);
-$stmt->execute([$seller_id, $seller_id]);
-$recent_activities = $stmt->fetchAll();
 try {
-    // Get total products (update the existing query)
-    $query = "SELECT COUNT(*) as total FROM products WHERE seller_id = ? AND is_active = 1";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([$seller_id]);
-    $row = $stmt->fetch();
-    $total_products = $row['total'];
-
-    // Get total orders (keep existing)
-    $query = "SELECT COUNT(*) as total FROM orders WHERE seller_id = ?";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([$seller_id]);
-    $row = $stmt->fetch();
-    $total_orders = $row['total'];
-
-    // Get total revenue (keep existing)
-    $query = "SELECT SUM(total_amount) as total FROM orders WHERE seller_id = ? AND payment_status = 'paid'";
-    $stmt = $pdo->prepare($query);
-    $stmt->execute([$seller_id]);
-    $row = $stmt->fetch();
-    $total_revenue = $row['total'] ? $row['total'] : 0;
-
     // Get recent activities with products and orders
     $query = "
         SELECT 'order' as type, order_number as title, created_at FROM orders WHERE seller_id = ? 
@@ -104,12 +81,21 @@ try {
 } catch (PDOException $e) {
     error_log("Database error in dashboard: " . $e->getMessage());
     // Use default values if database error occurs
-    $total_products = 0;
-    $total_orders = 0;
-    $total_revenue = 0;
     $recent_activities = [];
     $categories = [];
     $announcements = [];
+}
+
+// Helper function to get seller display name
+function getSellerDisplayName($seller, $business_name)
+{
+    if (!empty($business_name)) {
+        return $business_name;
+    } elseif (!empty($seller['first_name']) && !empty($seller['last_name'])) {
+        return $seller['first_name'] . ' ' . $seller['last_name'];
+    } else {
+        return $seller['username'] ?? 'Unknown Seller';
+    }
 }
 ?>
 
@@ -135,7 +121,6 @@ try {
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../seller/assets/css/dashboard_1.css" />
-  
 </head>
 
 <body data-seller-id="<?php echo htmlspecialchars($seller_id); ?>">
@@ -150,9 +135,9 @@ try {
                 <p>Here's what's happening with your store today. Keep up the great work!</p>
             </div>
 
-            <!-- Stats Cards -->
+            <!-- Stats Cards - Updated to 2 cards instead of 3 -->
             <div class="row g-4 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="dashboard-card">
                         <div class="card-body">
                             <div class="card-icon products">
@@ -166,31 +151,32 @@ try {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="dashboard-card">
+                <div class="col-md-6">
+                    <div class="dashboard-card stall-preview-card">
                         <div class="card-body">
-                            <div class="card-icon orders">
-                                <i class="bi bi-bag-check"></i>
+                            <div class="card-icon stall-preview">
+                                <i class="bi bi-shop"></i>
                             </div>
-                            <div class="stat-number"><?php echo $total_orders; ?></div>
-                            <div class="stat-label">Total Orders</div>
-                            <a href="orders.php" class="btn btn-primary">
-                                <i class="bi bi-arrow-right me-2"></i>View Orders
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="dashboard-card">
-                        <div class="card-body">
-                            <div class="card-icon revenue">
-                                <i class="bi bi-currency-dollar"></i>
+                            <div class="stat-label">Your Stall</div>
+                            <div class="stall-info">
+                                <?php if ($stall_number): ?>
+                                    <div class="stall-location">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>
+                                        Stall <?php echo htmlspecialchars($stall_number); ?> - <?php echo htmlspecialchars($section); ?>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="stall-location text-muted">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        Location TBA
+                                    </div>
+                                <?php endif; ?>
+                                <div class="stall-minidesc">
+                                    A quick preview of your market page 
+                                </div>
                             </div>
-                            <div class="stat-number">₱<?php echo number_format($total_revenue, 2); ?></div>
-                            <div class="stat-label">Total Revenue</div>
-                            <a href="analytics.php" class="btn btn-primary">
-                                <i class="bi bi-arrow-right me-2"></i>View Analytics
-                            </a>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#stallPreviewModal">
+                                <i class="bi bi-eye me-2"></i>View My Market Page
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -223,16 +209,7 @@ try {
                                 </a>
                             </div>
                             <div class="col-md-6">
-                                <a href="orders.php" class="action-btn">
-                                    <div class="action-icon">
-                                        <i class="bi bi-receipt"></i>
-                                    </div>
-                                    <h5>View Orders</h5>
-                                    <p class="text-muted mb-0">Check and manage your customer orders</p>
-                                </a>
-                            </div>
-                            <div class="col-md-6">
-                                <a href="profile.php" class="action-btn">
+                                <a href="profile_settings.php" class="action-btn">
                                     <div class="action-icon">
                                         <i class="bi bi-person-gear"></i>
                                     </div>
@@ -358,6 +335,125 @@ try {
         </div>
     </div>
 
+    <!-- Stall Preview Modal -->
+    <div class="modal fade" id="stallPreviewModal" tabindex="-1" aria-labelledby="stallPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stallPreviewModalLabel">
+                        <i class="bi bi-shop me-2"></i>Your Stall Preview
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Seller Profile Banner Preview -->
+                    <div class="seller-profile-banner-preview">
+                        <div class="profile-info">
+                            <div class="profile-image">
+                                <img src="<?php echo !empty($seller['profile_image']) ? '../' . htmlspecialchars($seller['profile_image']) : '../assets/img/avatar.jpg'; ?>" 
+                                     alt="<?php echo htmlspecialchars(getSellerDisplayName($seller, $business_name)); ?>" 
+                                     class="rounded-circle">
+                            </div>
+                            <div class="profile-details">
+                                <h2 class="seller-name">
+                                    <?php echo htmlspecialchars(getSellerDisplayName($seller, $business_name)); ?>
+                                </h2>
+                                <div class="seller-meta">
+                                    <div class="location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span><?php echo $stall_number ? 'Stall ' . htmlspecialchars($stall_number) . ' - ' . htmlspecialchars($section) : 'Location TBA'; ?></span>
+                                    </div>
+                                    <div class="seller-actions">
+                                        <button class="btn btn-light" disabled>
+                                            <i class="fas fa-envelope me-2"></i>Message Seller
+                                        </button>
+                                        <?php if (!empty($seller['facebook_url'])): ?>
+                                        <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank"
+                                            class="btn btn-light btn-outline-primary">
+                                            <i class="fab fa-facebook"></i>
+                                            Facebook
+                                        </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Section Preview -->
+                    <div class="products-section-preview p-4">
+                        <div class="section-header">
+                            <h3>Products (<?php echo $total_products; ?>)</h3>
+                            <small class="text-muted">This is how customers will see your products</small>
+                        </div>
+
+                        <?php if (empty($recent_products)): ?>
+                            <div class="no-products text-center py-5">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <h4 class="text-muted">No Products Yet</h4>
+                                <p class="text-muted">Add some products to see how your stall will look to customers!</p>
+                                <button class="btn btn-primary" onclick="closeModalAndAddProduct()">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Your First Product
+                                </button>
+                            </div>
+                        <?php else: ?>
+                            <div class="products-grid-preview">
+                                <?php foreach ($recent_products as $product): ?>
+                                    <div class="product-card-preview">
+                                        <div class="product-image">
+                                            <img src="<?php echo !empty($product['image_path']) ? '../' . htmlspecialchars($product['image_path']) : '../assets/img/default-product.jpg'; ?>" 
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>">
+                                            <?php if ($product['is_featured']): ?>
+                                                <span class="featured-badge">Featured</span>
+                                            <?php endif; ?>
+                                            <?php if ($product['stock_quantity'] <= 0): ?>
+                                                <span class="out-of-stock-badge">Out of Stock</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="product-info">
+                                            <h5 class="product-name"><?php echo htmlspecialchars($product['name']); ?></h5>
+                                            <p class="product-price">₱<?php echo number_format($product['price'], 2); ?></p>
+                                            <p class="product-description">
+                                                <?php echo htmlspecialchars(substr($product['description'] ?: 'No description available', 0, 60)); ?>
+                                                <?php echo strlen($product['description'] ?: '') > 60 ? '...' : ''; ?>
+                                            </p>
+                                            <div class="product-stock">
+                                                <small class="text-muted">
+                                                    <?php if ($product['stock_quantity'] > 0): ?>
+                                                        <?php echo $product['stock_quantity']; ?> in stock
+                                                    <?php else: ?>
+                                                        Out of stock
+                                                    <?php endif; ?>
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                            
+                            <?php if ($total_products > 6): ?>
+                                <div class="text-center mt-4">
+                                    <p class="text-muted">
+                                        Showing 6 of <?php echo $total_products; ?> products. 
+                                        <a href="../customer/view_stall.php?seller_id=<?php echo $seller_id; ?>" target="_blank" class="text-decoration-none">
+                                            View full stall page <i class="bi bi-arrow-up-right-square"></i>
+                                        </a>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="../customer/view_stall.php?seller_id=<?php echo $seller_id; ?>" target="_blank" class="btn btn-primary">
+                        <i class="bi bi-arrow-up-right-square me-2"></i>View Live Stall Page
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Add Product Modal -->
     <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -440,331 +536,259 @@ try {
 
     <!-- PRICE CHANGES DASHBOARD INTEGRATION -->
     <script>
-        /**
-         * Price Changes Dashboard Integration
-         * Integrated directly into the seller dashboard
-         */
-/**
- * Simplified Price Changes Dashboard Integration
- * Focus: Show simple list of price changes like "Seller 1 changed the price of fish: from 150 to 200"
- */
-/**
- * Fixed Price Changes Dashboard Integration
- * This replaces the existing PriceChangesDashboard class in your dashboard.php
- */
-class PriceChangesDashboard {
-    constructor() {
-        // FIX 1: Use correct path for your project structure
-        this.apiBaseUrl = '/OroMarket/seller/price-changes.php';
+        class PriceChangesDashboard {
+            constructor() {
+                this.apiBaseUrl = '/OroMarket/seller/price-changes.php';
+                this.sellerId = this.getCurrentSellerId();
+                this.isLoading = false;
+                this.refreshInterval = null;
+                this.init();
+            }
 
-        this.sellerId = this.getCurrentSellerId();
-        this.isLoading = false;
-        this.refreshInterval = null;
-        this.init();
-    }
+            init() {
+                this.createPriceChangesSection();
+                this.loadPriceChanges();
+                this.setupEventListeners();
+                this.startAutoRefresh();
+            }
 
-    /**
-     * Initialize the price changes dashboard
-     */
-    init() {
-        this.createPriceChangesSection();
-        this.loadPriceChanges();
-        this.setupEventListeners();
-        this.startAutoRefresh();
-    }
+            getCurrentSellerId() {
+                return document.body.dataset.sellerId || <?php echo $seller_id; ?>;
+            }
 
-    /**
-     * Get current seller ID from session or DOM
-     */
-    getCurrentSellerId() {
-        return document.body.dataset.sellerId || <?php echo $seller_id; ?>;
-    }
+            createPriceChangesSection() {
+                const dashboardContainer = document.querySelector('.container-fluid');
+                if (!dashboardContainer) return;
 
-    /**
-     * Create simplified price changes section
-     */
-    createPriceChangesSection() {
-        const dashboardContainer = document.querySelector('.container-fluid');
-        if (!dashboardContainer) return;
-
-        const priceChangesSection = document.createElement('div');
-        priceChangesSection.className = 'row g-4 mb-4';
-        priceChangesSection.id = 'price-changes-section';
-        
-        priceChangesSection.innerHTML = `
-            <div class="col-12">
-                <div class="quick-actions">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4>
-                            <i class="bi bi-graph-up-arrow me-2"></i>
-                            Price Changes
-                        </h4>
-                        <button class="btn btn-outline-primary btn-sm" id="refresh-btn">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh
-                        </button>
+                const priceChangesSection = document.createElement('div');
+                priceChangesSection.className = 'row g-4 mb-4';
+                priceChangesSection.id = 'price-changes-section';
+                
+                priceChangesSection.innerHTML = `
+                    <div class="col-12">
+                        <div class="quick-actions">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h4>
+                                    <i class="bi bi-graph-up-arrow me-2"></i>
+                                    Price Changes
+                                </h4>
+                                <button class="btn btn-outline-primary btn-sm" id="refresh-btn">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
+                            </div>
+                            
+                            <div id="price-changes-list">
+                                <div class="text-center py-4" id="loading-state">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2 text-muted">Loading price changes...</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                `;
+
+                const statsSection = dashboardContainer.querySelector('.row.g-4.mb-4');
+                if (statsSection && statsSection.nextElementSibling) {
+                    dashboardContainer.insertBefore(priceChangesSection, statsSection.nextElementSibling);
+                } else {
+                    dashboardContainer.appendChild(priceChangesSection);
+                }
+            }
+
+            setupEventListeners() {
+                document.getElementById('refresh-btn')?.addEventListener('click', () => {
+                    this.loadPriceChanges();
+                });
+            }
+
+            async loadPriceChanges() {
+                if (this.isLoading) return;
+                
+                this.isLoading = true;
+                this.showLoadingState();
+
+                try {
+                    const params = {
+                        seller_id: this.sellerId,
+                        limit: 10,
+                        days: 7
+                    };
                     
-                    <!-- Price Changes List -->
-                    <div id="price-changes-list">
-                        <div class="text-center py-4" id="loading-state">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                    const response = await this.fetchPriceChanges(params);
+
+                    if (response && response.success) {
+                        this.renderPriceChanges(response.data);
+                    } else {
+                        this.showErrorState(response?.message || 'Failed to load price changes');
+                    }
+                } catch (error) {
+                    console.error('Error loading price changes:', error);
+                    this.showErrorState('Network error occurred: ' + error.message);
+                } finally {
+                    this.isLoading = false;
+                    this.hideLoadingState();
+                }
+            }
+
+            async fetchPriceChanges(params) {
+                const url = new URL(this.apiBaseUrl, window.location.origin);
+                url.searchParams.append('endpoint', 'changes');
+                
+                Object.keys(params).forEach(key => {
+                    if (params[key] !== null && params[key] !== undefined) {
+                        url.searchParams.append(key, params[key]);
+                    }
+                });
+
+                console.log('Fetching from URL:', url.toString());
+
+                const response = await fetch(url.toString());
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response received:', text.substring(0, 200));
+                    throw new Error('Server returned HTML instead of JSON - check if price-changes.php exists');
+                }
+                
+                return await response.json();
+            }
+
+            renderPriceChanges(priceChanges) {
+                const listContainer = document.getElementById('price-changes-list');
+                if (!listContainer) return;
+
+                if (!priceChanges || priceChanges.length === 0) {
+                    listContainer.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="bi bi-graph-up" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                            <p class="text-muted mt-2">No recent price changes</p>
+                            <small class="text-muted">Price changes from the last 7 days will appear here</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const changesHtml = priceChanges.map(change => {
+                    const sellerName = change.seller?.name || 'Unknown Seller';
+                    const productName = change.product?.name || 'Unknown Product';
+                    const oldPrice = change.price_change?.old_price || '0';
+                    const newPrice = change.price_change?.new_price || '0';
+                    const timeAgo = change.time_ago || 'Recently';
+                    
+                    const priceDirection = parseFloat(newPrice) > parseFloat(oldPrice) ? 'up' : 'down';
+                    const priceColor = priceDirection === 'up' ? 'text-success' : 'text-danger';
+                    const priceIcon = priceDirection === 'up' ? 'bi-arrow-up' : 'bi-arrow-down';
+                    
+                    return `
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi ${priceIcon} ${priceColor} me-2"></i>
+                                    <div>
+                                        <strong>${sellerName}</strong> changed the price of <strong>${productName}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            From <span class="text-decoration-line-through">₱${parseFloat(oldPrice).toFixed(2)}</span> 
+                                            to <span class="fw-bold ${priceColor}">₱${parseFloat(newPrice).toFixed(2)}</span>
+                                        </small>
+                                    </div>
+                                </div>
                             </div>
-                            <p class="mt-2 text-muted">Loading price changes...</p>
+                            <small class="text-muted text-nowrap ms-2">${timeAgo}</small>
+                        </div>
+                    `;
+                }).join('');
+
+                listContainer.innerHTML = `
+                    <div class="bg-light rounded p-3">
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Showing recent price changes from the last 7 days
+                            </small>
+                        </div>
+                        ${changesHtml}
+                    </div>
+                `;
+            }
+
+            showLoadingState() {
+                const loadingState = document.getElementById('loading-state');
+                const refreshBtn = document.getElementById('refresh-btn');
+                
+                if (loadingState) {
+                    loadingState.style.display = 'block';
+                }
+                
+                if (refreshBtn) {
+                    refreshBtn.disabled = true;
+                    refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
+                }
+            }
+
+            hideLoadingState() {
+                const loadingState = document.getElementById('loading-state');
+                const refreshBtn = document.getElementById('refresh-btn');
+                
+                if (loadingState) {
+                    loadingState.style.display = 'none';
+                }
+                
+                if (refreshBtn) {
+                    refreshBtn.disabled = false;
+                    refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
+                }
+            }
+
+            showErrorState(message) {
+                const listContainer = document.getElementById('price-changes-list');
+                if (!listContainer) return;
+
+                listContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">${message}</p>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary btn-sm me-2" onclick="priceChangesDashboard.loadPriceChanges()">
+                                <i class="bi bi-arrow-clockwise me-1"></i>Try Again
+                            </button>
                         </div>
                     </div>
-                </div>
-            </div>
-        `;
-
-        // Insert after the stats cards but before quick actions
-        const statsSection = dashboardContainer.querySelector('.row.g-4.mb-4');
-        if (statsSection && statsSection.nextElementSibling) {
-            dashboardContainer.insertBefore(priceChangesSection, statsSection.nextElementSibling);
-        } else {
-            dashboardContainer.appendChild(priceChangesSection);
-        }
-    }
-
-    /**
-     * Setup event listeners
-     */
-    setupEventListeners() {
-        // Refresh button
-        document.getElementById('refresh-btn')?.addEventListener('click', () => {
-            this.loadPriceChanges();
-        });
-    }
-
-    /**
-     * Load price changes from API
-     */
-    async loadPriceChanges() {
-        if (this.isLoading) return;
-        
-        this.isLoading = true;
-        this.showLoadingState();
-
-        try {
-            const params = {
-                seller_id: this.sellerId,
-                limit: 10,
-                days: 7
-            };
-            
-            const response = await this.fetchPriceChanges(params);
-
-            if (response && response.success) {
-                this.renderPriceChanges(response.data);
-            } else {
-                this.showErrorState(response?.message || 'Failed to load price changes');
+                `;
             }
-        } catch (error) {
-            console.error('Error loading price changes:', error);
-            this.showErrorState('Network error occurred: ' + error.message);
-        } finally {
-            this.isLoading = false;
-            this.hideLoadingState();
-        }
-    }
 
-    /**
-     * Fetch price changes from API
-     * FIX 2: Improved URL construction and error handling
-     */
-    async fetchPriceChanges(params) {
-        // FIX 3: Use window.location.origin for proper base URL
-        const url = new URL(this.apiBaseUrl, window.location.origin);
-        url.searchParams.append('endpoint', 'changes');
-        
-        Object.keys(params).forEach(key => {
-            if (params[key] !== null && params[key] !== undefined) {
-                url.searchParams.append(key, params[key]);
+            startAutoRefresh() {
+                this.refreshInterval = setInterval(() => {
+                    this.loadPriceChanges();
+                }, 2 * 60 * 1000);
             }
-        });
 
-        console.log('Fetching from URL:', url.toString()); // Debug log
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                }
+            }
 
-        const response = await fetch(url.toString());
-        
-        // FIX 4: Better error handling
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Non-JSON response received:', text.substring(0, 200));
-            throw new Error('Server returned HTML instead of JSON - check if price-changes.php exists');
-        }
-        
-        return await response.json();
-    }
-
-    /**
-     * Render simple price changes list
-     */
-    renderPriceChanges(priceChanges) {
-        const listContainer = document.getElementById('price-changes-list');
-        if (!listContainer) return;
-
-        if (!priceChanges || priceChanges.length === 0) {
-            listContainer.innerHTML = `
-                <div class="text-center py-4">
-                    <i class="bi bi-graph-up" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                    <p class="text-muted mt-2">No recent price changes</p>
-                    <small class="text-muted">Price changes from the last 7 days will appear here</small>
-                </div>
-            `;
-            return;
+            destroy() {
+                this.stopAutoRefresh();
+                const section = document.getElementById('price-changes-section');
+                if (section) {
+                    section.remove();
+                }
+            }
         }
 
-        // Create simple list of price changes
-        const changesHtml = priceChanges.map(change => {
-            const sellerName = change.seller?.name || 'Unknown Seller';
-            const productName = change.product?.name || 'Unknown Product';
-            const oldPrice = change.price_change?.old_price || '0';
-            const newPrice = change.price_change?.new_price || '0';
-            const timeAgo = change.time_ago || 'Recently';
-            
-            const priceDirection = parseFloat(newPrice) > parseFloat(oldPrice) ? 'up' : 'down';
-            const priceColor = priceDirection === 'up' ? 'text-success' : 'text-danger';
-            const priceIcon = priceDirection === 'up' ? 'bi-arrow-up' : 'bi-arrow-down';
-            
-            return `
-                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center">
-                            <i class="bi ${priceIcon} ${priceColor} me-2"></i>
-                            <div>
-                                <strong>${sellerName}</strong> changed the price of <strong>${productName}</strong>
-                                <br>
-                                <small class="text-muted">
-                                    From <span class="text-decoration-line-through">₱${parseFloat(oldPrice).toFixed(2)}</span> 
-                                    to <span class="fw-bold ${priceColor}">₱${parseFloat(newPrice).toFixed(2)}</span>
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                    <small class="text-muted text-nowrap ms-2">${timeAgo}</small>
-                </div>
-            `;
-        }).join('');
-
-        listContainer.innerHTML = `
-            <div class="bg-light rounded p-3">
-                <div class="mb-2">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Showing recent price changes from the last 7 days
-                    </small>
-                </div>
-                ${changesHtml}
-            </div>
-        `;
-    }
-
-    /**
-     * Show loading state
-     */
-    showLoadingState() {
-        const loadingState = document.getElementById('loading-state');
-        const refreshBtn = document.getElementById('refresh-btn');
-        
-        if (loadingState) {
-            loadingState.style.display = 'block';
-        }
-        
-        if (refreshBtn) {
-            refreshBtn.disabled = true;
-            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
-        }
-    }
-
-    /**
-     * Hide loading state
-     */
-    hideLoadingState() {
-        const loadingState = document.getElementById('loading-state');
-        const refreshBtn = document.getElementById('refresh-btn');
-        
-        if (loadingState) {
-            loadingState.style.display = 'none';
-        }
-        
-        if (refreshBtn) {
-            refreshBtn.disabled = false;
-            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
-        }
-    }
-
-    /**
-     * Show error state
-     */
-    showErrorState(message) {
-        const listContainer = document.getElementById('price-changes-list');
-        if (!listContainer) return;
-
-        listContainer.innerHTML = `
-            <div class="text-center py-4">
-                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                <p class="text-muted mt-2">${message}</p>
-                <div class="mt-3">
-                    <button class="btn btn-outline-primary btn-sm me-2" onclick="priceChangesDashboard.loadPriceChanges()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Try Again
-                    </button>
-                    <button class="btn btn-outline-secondary btn-sm" onclick="console.log('Debug info:', priceChangesDashboard)">
-                        <i class="bi bi-bug me-1"></i>Debug Info
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    /**
-     * Start auto refresh every 2 minutes
-     */
-    startAutoRefresh() {
-        this.refreshInterval = setInterval(() => {
-            this.loadPriceChanges();
-        }, 2 * 60 * 1000);
-    }
-
-    /**
-     * Stop auto refresh
-     */
-    stopAutoRefresh() {
-        if (this.refreshInterval) {
-            clearInterval(this.refreshInterval);
-            this.refreshInterval = null;
-        }
-    }
-
-    /**
-     * Destroy the dashboard instance
-     */
-    destroy() {
-        this.stopAutoRefresh();
-        const section = document.getElementById('price-changes-section');
-        if (section) {
-            section.remove();
-        }
-    }
-}
-// Initialize Price Changes Dashboard when DOM is ready
-
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', function() {
-    if (window.priceChangesDashboard) {
-        window.priceChangesDashboard.destroy();
-    }
-});
         // Initialize Price Changes Dashboard when DOM is ready
         let priceChangesDashboard;
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Price Changes Dashboard
             priceChangesDashboard = new PriceChangesDashboard();
             window.priceChangesDashboard = priceChangesDashboard;
         });
@@ -777,8 +801,182 @@ window.addEventListener('beforeunload', function() {
         });
     </script>
 
-    <!-- Price Changes Custom Styles -->
+    <!-- Custom Styles -->
     <style>
+        /* Stall Preview Card Styling */
+        .stall-preview-card .card-icon.stall-preview {
+            background: linear-gradient(135deg, #82c408 0%, #72ac07 100%);
+        }
+        
+        .stall-info {
+            margin: 1rem 0;
+        }
+        
+        .stall-location {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stall-minidesc {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        /* Modal Stall Preview Styling */
+        .seller-profile-banner-preview {
+            background: linear-gradient(135deg, #82c408 0%, #72ac07 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .seller-profile-banner-preview .profile-info {
+            display: flex;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .seller-profile-banner-preview .profile-image img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border: 4px solid white;
+        }
+
+        .seller-profile-banner-preview .profile-details {
+            margin-left: 2rem;
+            flex: 1;
+        }
+
+        .seller-profile-banner-preview .seller-name {
+            margin-bottom: 0.5rem;
+            font-size: 1.8rem;
+            color: white;
+            font-weight: 700;
+        }
+
+        .seller-profile-banner-preview .seller-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .seller-profile-banner-preview .location {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .seller-profile-banner-preview .seller-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .seller-profile-banner-preview .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            border: 2px solid white;
+        }
+
+        .products-section-preview .section-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .products-grid-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .product-card-preview {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .product-card-preview:hover {
+            transform: translateY(-2px);
+        }
+
+        .product-card-preview .product-image {
+            position: relative;
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .product-card-preview .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .featured-badge, .out-of-stock-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .featured-badge {
+            background: #82c408;
+            color: white;
+        }
+
+        .out-of-stock-badge {
+            background: #dc3545;
+            color: white;
+        }
+
+        .product-card-preview .product-info {
+            padding: 1rem;
+        }
+
+        .product-card-preview .product-name {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .product-card-preview .product-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #059669;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-card-preview .product-description {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .product-card-preview .product-stock {
+            font-size: 0.75rem;
+        }
+
+        .no-products {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #f9fafb;
+            border-radius: 12px;
+        }
+
+        /* Price Changes Styling */
         .hover-lift {
             transition: all 0.3s ease;
         }
@@ -786,35 +984,6 @@ window.addEventListener('beforeunload', function() {
         .hover-lift:hover {
             transform: translateY(-5px);
             box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #0056b3) 100%);
-        }
-
-        .bg-gradient-danger {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-        }
-
-        .bg-gradient-info {
-            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-        }
-
-        .bg-gradient-success {
-            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-        }
-
-        .spinner-border-sm {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .price-change-info .old-price {
-            font-size: 0.8rem;
-        }
-
-        .price-change-info .new-price {
-            font-size: 1.1rem;
         }
 
         @keyframes fadeInUp {
@@ -832,15 +1001,31 @@ window.addEventListener('beforeunload', function() {
             animation: fadeInUp 0.6s ease-out;
         }
 
-        /* Responsive adjustments */
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .d-flex.gap-2 {
+            .seller-profile-banner-preview .profile-info {
                 flex-direction: column;
-                gap: 0.5rem !important;
+                text-align: center;
             }
             
-            .col-md-3 {
-                margin-bottom: 1rem;
+            .seller-profile-banner-preview .profile-details {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+            
+            .seller-profile-banner-preview .seller-meta {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .products-grid-preview {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .seller-profile-banner-preview .seller-name {
+                font-size: 1.4rem;
             }
         }
     </style>
@@ -850,8 +1035,6 @@ window.addEventListener('beforeunload', function() {
         // Global variables
         let products = [];
         let totalProducts = <?php echo $total_products; ?>;
-        let totalOrders = <?php echo $total_orders; ?>;
-        let totalRevenue = <?php echo $total_revenue; ?>;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function () {
@@ -860,11 +1043,8 @@ window.addEventListener('beforeunload', function() {
         });
 
         function initializeDashboard() {
-            // Animate counter numbers
             animateCounters();
-            // Add hover effects to dashboard cards
             addCardHoverEffects();
-            // Setup notification system
             setupNotifications();
         }
 
@@ -882,12 +1062,7 @@ window.addEventListener('beforeunload', function() {
                             current = target;
                             clearInterval(timer);
                         }
-
-                        if (counter.innerText.includes('₱')) {
-                            counter.innerText = '₱' + Math.floor(current).toLocaleString() + '.00';
-                        } else {
-                            counter.innerText = Math.floor(current).toLocaleString();
-                        }
+                        counter.innerText = Math.floor(current).toLocaleString();
                     }, 20);
                 }
             });
@@ -907,7 +1082,6 @@ window.addEventListener('beforeunload', function() {
         }
 
         function setupNotifications() {
-            // Notification system for success messages
             window.showNotification = function (message, type = 'success') {
                 const notification = document.createElement('div');
                 notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
@@ -939,6 +1113,19 @@ window.addEventListener('beforeunload', function() {
         function openAddProductModal() {
             const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
             modal.show();
+        }
+
+        function closeModalAndAddProduct() {
+            // Close stall preview modal
+            const stallModal = bootstrap.Modal.getInstance(document.getElementById('stallPreviewModal'));
+            if (stallModal) {
+                stallModal.hide();
+            }
+            
+            // Open add product modal after a brief delay
+            setTimeout(() => {
+                openAddProductModal();
+            }, 300);
         }
 
         function setupImagePreview() {
@@ -986,7 +1173,6 @@ window.addEventListener('beforeunload', function() {
             const imageInput = document.getElementById('productImages');
             const files = Array.from(imageInput.files);
 
-            // Create new FileList without the removed file
             const dt = new DataTransfer();
             files.forEach((file, i) => {
                 if (i !== index) {
@@ -1017,7 +1203,6 @@ window.addEventListener('beforeunload', function() {
                 }
             });
 
-            // Additional validation
             const price = parseFloat(document.getElementById('productPrice').value);
             const stock = parseInt(document.getElementById('productStock').value);
             const categoryId = parseInt(document.getElementById('productCategory').value);
@@ -1047,10 +1232,8 @@ window.addEventListener('beforeunload', function() {
             btnText.style.display = 'none';
             submitBtn.disabled = true;
 
-            // Prepare form data for submission
             const formData = new FormData(form);
 
-            // Make actual API call to save to database
             fetch('add_product_api.php', {
                 method: 'POST',
                 body: formData
@@ -1063,25 +1246,17 @@ window.addEventListener('beforeunload', function() {
             })
             .then(data => {
                 if (data.success) {
-                    // Add to local products array
                     products.push(data.product);
-
-                    // Update dashboard stats
                     updateDashboardStats();
 
-                    // Close modal and reset form
                     const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
                     modal.hide();
                     form.reset();
                     document.getElementById('imagePreview').style.display = 'none';
 
-                    // Show success message
                     showNotification(data.message, 'success');
-
-                    // Add to recent activity
                     addRecentActivity('product', data.product.name);
 
-                    // Optionally refresh the page to show updated data
                     setTimeout(() => {
                         location.reload();
                     }, 2000);
@@ -1095,7 +1270,6 @@ window.addEventListener('beforeunload', function() {
                 showNotification('Error: ' + error.message, 'danger');
             })
             .finally(() => {
-                // Reset loading state
                 spinner.style.display = 'none';
                 btnText.style.display = 'inline';
                 submitBtn.disabled = false;
@@ -1104,8 +1278,6 @@ window.addEventListener('beforeunload', function() {
 
         function updateDashboardStats() {
             totalProducts = products.length;
-
-            // Update product count
             const productCounter = document.querySelector('.dashboard-card .stat-number');
             if (productCounter) {
                 animateNumber(productCounter, totalProducts);
@@ -1159,7 +1331,6 @@ window.addEventListener('beforeunload', function() {
                 </div>
             `;
 
-            // Insert at the beginning
             const firstActivity = activityContainer.querySelector('.activity-item');
             if (firstActivity) {
                 activityContainer.insertBefore(activityItem, firstActivity);
@@ -1167,14 +1338,12 @@ window.addEventListener('beforeunload', function() {
                 activityContainer.appendChild(activityItem);
             }
 
-            // Keep only the last 5 activities
             const activities = activityContainer.querySelectorAll('.activity-item');
             if (activities.length > 5) {
                 activities[activities.length - 1].remove();
             }
         }
 
-        // Add category validation styling
         document.getElementById('productCategory').addEventListener('change', function() {
             this.classList.remove('is-invalid');
             if (this.value) {
