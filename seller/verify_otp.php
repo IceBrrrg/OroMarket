@@ -1,21 +1,20 @@
 <?php
 session_start();
 
-// Include database connection
-include '../includes/db_connect.php';
+header('Content-Type: application/json');
 
-// Get OTP from POST request
-$user_otp = $_POST['otp'];
+// Get OTP from request
+$userOtp = $_POST['otp'] ?? '';
 
-// Get the OTP stored in session
-$session_otp = $_SESSION['otp'];
-
-if ($user_otp == $session_otp) {
-    // OTP is correct
-    unset($_SESSION['otp']); // Clear OTP from session
-    echo json_encode(["status" => "success", "message" => "OTP verified successfully."]);
-} else {
-    // OTP is incorrect
-    echo json_encode(["status" => "error", "message" => "Invalid OTP. Please try again."]);
+if (!$userOtp) {
+    echo json_encode(["status" => "error", "message" => "OTP is required."]);
+    exit;
 }
-?>
+
+// Compare with stored OTP
+if ($userOtp == $_SESSION['otp']) {
+    echo json_encode(["status" => "success", "message" => "OTP verified successfully."]);
+    unset($_SESSION['otp']); // Remove OTP after use
+} else {
+    echo json_encode(["status" => "error", "message" => "Invalid OTP."]);
+}

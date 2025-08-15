@@ -754,6 +754,24 @@ if ($step === 4) {
             </form>
         </div>
     </div>
+    <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="otpModalLabel">Verify Your OTP</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>We have sent a 6-digit OTP to your email. Please enter it below:</p>
+        <input type="text" id="otpInput" class="form-control" maxlength="6" placeholder="Enter OTP">
+        <div id="otpError" class="text-danger mt-2" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="verifyOtpBtn" class="btn btn-primary">Verify OTP</button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- Document Modal -->
     <div id="documentModal" class="modal-document">
@@ -765,6 +783,77 @@ if ($step === 4) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+      
+document.addEventListener("DOMContentLoaded", function() {
+    // Show OTP modal after OTP is sent
+    // You can trigger this after your AJAX call for sending OTP
+    $('#otpModal').modal('show');
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
+        const otp = document.getElementById('otpInput').value.trim();
+        const errorDiv = document.getElementById('otpError');
+
+        if (otp.length !== 6) {
+            errorDiv.textContent = "OTP must be 6 digits.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        fetch('verify_otp.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'otp=' + encodeURIComponent(otp)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                errorDiv.style.display = "none";
+                $('#otpModal').modal('hide');
+                alert("OTP Verified! Proceeding to Step 2...");
+                // Redirect to next signup step
+                window.location.href = 'signup_step2.php';
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = "block";
+            }
+        });
+    });
+});
+
+
+        document.addEventListener("DOMContentLoaded", function() {
+    // You can trigger this after OTP is sent successfully
+    // Example: $('#otpModal').modal('show');
+
+    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
+        const otp = document.getElementById('otpInput').value.trim();
+        const errorDiv = document.getElementById('otpError');
+
+        if (otp.length !== 6) {
+            errorDiv.textContent = "OTP must be 6 digits.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        fetch('verify_otp.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'otp=' + encodeURIComponent(otp)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                errorDiv.style.display = "none";
+                $('#otpModal').modal('hide');
+                alert("OTP Verified! Proceeding to Step 2...");
+                window.location.href = 'signup_step2.php';
+            } else {
+                errorDiv.textContent = data.message;
+                errorDiv.style.display = "block";
+            }
+        });
+    });
+});
         // Document modal functions
         function openDocumentModal(imagePath, fileName, fileExt) {
             const modal = document.getElementById('documentModal');
