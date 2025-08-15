@@ -227,9 +227,7 @@ try {
                                                 <?php endif; ?>
                                                 <?php echo htmlspecialchars($announcement['title']); ?>
                                             </h4>
-                                            <span class="announcement-audience">
-                                                <?php echo $announcement['target_audience'] === 'all' ? 'All Users' : ucfirst($announcement['target_audience']); ?>
-                                            </span>
+
                                         </div>
                                         <div class="announcement-content">
                                             <?php echo nl2br(htmlspecialchars($announcement['content'])); ?>

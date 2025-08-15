@@ -279,7 +279,7 @@ try {
             </div>
 
             <!-- Announcements Section -->
-            <div class="row g-4 mb-4">
+            <div class="row g-4 mb-4 mt-2">
                 <div class="col-12">
                     <div class="quick-actions">
                         <h4><i class="bi bi-megaphone me-2"></i>Announcements</h4>

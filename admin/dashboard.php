@@ -263,6 +263,7 @@ $occupancy_percentage = $total_stalls > 0 ? round(($occupied_stalls / $total_sta
             border-radius: 15px;
             margin-bottom: 2rem;
             box-shadow: var(--card-shadow);
+            left: 0;
         }
 
         .chart-container {
@@ -505,7 +506,7 @@ $occupancy_percentage = $total_stalls > 0 ? round(($occupied_stalls / $total_sta
                 </div>
 
                 <div class="col-xl-2 col-md-4 col-sm-6">
-                    <a href="manage_stalls.php" class="dashboard-card card-clickable">
+                    <a href="floorplan.php" class="dashboard-card card-clickable">
                         <div class="card-body text-center">
                             <div class="click-indicator">
                                 <i class="bi bi-cursor-pointer"></i>
@@ -706,7 +707,7 @@ $occupancy_percentage = $total_stalls > 0 ? round(($occupied_stalls / $total_sta
                                 </a>
                             </div>
                             <div class="col-md-3">
-                                <a href="manage_stalls.php" class="action-btn">
+                                <a href="floorplan.php" class="action-btn">
                                     <i class="action-icon bi bi-shop"></i>
                                     Manage Stalls
                                 </a>
