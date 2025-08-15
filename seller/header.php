@@ -72,13 +72,24 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-weight: 600;
         font-size: 1.1rem;
+        overflow: hidden;
+        border: 2px solid #ff6f33;
+    }
+
+    .user-avatar.default-avatar {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .user-details-header {
@@ -149,8 +160,12 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
 
     <div class="header-right">
         <div class="user-info-header">
-            <div class="user-avatar">
-                <?php echo strtoupper(substr($business_name, 0, 1)); ?>
+            <div class="user-avatar <?php echo empty($seller['profile_image']) ? 'default-avatar' : ''; ?>">
+                <?php if (!empty($seller['profile_image'])): ?>
+                    <img src="../<?php echo htmlspecialchars($seller['profile_image']); ?>" alt="Profile Image">
+                <?php else: ?>
+                    <?php echo strtoupper(substr($business_name, 0, 1)); ?>
+                <?php endif; ?>
             </div>
             <div class="user-details-header">
                 <div class="user-name-header"><?php echo htmlspecialchars($business_name); ?></div>
