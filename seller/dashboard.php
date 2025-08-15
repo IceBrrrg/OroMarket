@@ -138,7 +138,7 @@ try {
   
 </head>
 
-<body>
+<body data-seller-id="<?php echo htmlspecialchars($seller_id); ?>">
     <?php include 'sidebar.php'; ?>
     <?php include 'header.php'; ?>
 
@@ -146,7 +146,7 @@ try {
         <div class="container-fluid">
             <!-- Welcome Header -->
             <div class="welcome-header">
-                <h1>Welcome back, Sample Business! 👋</h1>
+                <h1>Welcome back, <?php echo htmlspecialchars($business_name); ?>! 👋</h1>
                 <p>Here's what's happening with your store today. Keep up the great work!</p>
             </div>
 
@@ -158,7 +158,7 @@ try {
                             <div class="card-icon products">
                                 <i class="bi bi-box-seam"></i>
                             </div>
-                            <div class="stat-number">0</div>
+                            <div class="stat-number"><?php echo $total_products; ?></div>
                             <div class="stat-label">Total Products</div>
                             <a href="products.php" class="btn btn-primary">
                                 <i class="bi bi-arrow-right me-2"></i>Manage Products
@@ -166,8 +166,37 @@ try {
                         </div>
                     </div>
                 </div>
-
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-body">
+                            <div class="card-icon orders">
+                                <i class="bi bi-bag-check"></i>
+                            </div>
+                            <div class="stat-number"><?php echo $total_orders; ?></div>
+                            <div class="stat-label">Total Orders</div>
+                            <a href="orders.php" class="btn btn-primary">
+                                <i class="bi bi-arrow-right me-2"></i>View Orders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="dashboard-card">
+                        <div class="card-body">
+                            <div class="card-icon revenue">
+                                <i class="bi bi-currency-dollar"></i>
+                            </div>
+                            <div class="stat-number">₱<?php echo number_format($total_revenue, 2); ?></div>
+                            <div class="stat-label">Total Revenue</div>
+                            <a href="analytics.php" class="btn btn-primary">
+                                <i class="bi bi-arrow-right me-2"></i>View Analytics
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- PRICE CHANGES SECTION WILL BE INSERTED HERE BY JAVASCRIPT -->
 
             <!-- Quick Actions & Recent Activity -->
             <div class="row g-4">
@@ -185,7 +214,7 @@ try {
                                 </a>
                             </div>
                             <div class="col-md-6">
-                                <a href="#" class="action-btn">
+                                <a href="products.php" class="action-btn">
                                     <div class="action-icon">
                                         <i class="bi bi-box"></i>
                                     </div>
@@ -193,9 +222,17 @@ try {
                                     <p class="text-muted mb-0">Edit, update, or remove your existing products</p>
                                 </a>
                             </div>
-
                             <div class="col-md-6">
-                                <a href="#" class="action-btn">
+                                <a href="orders.php" class="action-btn">
+                                    <div class="action-icon">
+                                        <i class="bi bi-receipt"></i>
+                                    </div>
+                                    <h5>View Orders</h5>
+                                    <p class="text-muted mb-0">Check and manage your customer orders</p>
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="profile.php" class="action-btn">
                                     <div class="action-icon">
                                         <i class="bi bi-person-gear"></i>
                                     </div>
@@ -211,12 +248,32 @@ try {
                     <div class="recent-activity">
                         <h4><i class="bi bi-clock-history me-2"></i>Recent Activity</h4>
 
-                        <div class="text-center py-4">
-                            <i class="bi bi-inbox"
-                                style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
-                            <p class="text-muted mt-2">No recent activity</p>
-                            <p class="text-muted small">Start by adding some products!</p>
-                        </div>
+                        <?php if (empty($recent_activities)): ?>
+                            <div class="text-center py-4">
+                                <i class="bi bi-inbox"
+                                    style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                                <p class="text-muted mt-2">No recent activity</p>
+                                <p class="text-muted small">Start by adding some products!</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($recent_activities as $activity): ?>
+                                <div class="activity-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="activity-icon" style="background: <?php echo $activity['type'] === 'order' ? 'var(--success)' : 'var(--primary)'; ?>;">
+                                            <i class="bi bi-<?php echo $activity['type'] === 'order' ? 'cart-check' : 'box-seam'; ?>"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">
+                                                <?php echo $activity['type'] === 'order' ? 'Order: ' : 'Product: '; ?><?php echo htmlspecialchars($activity['title']); ?>
+                                            </h6>
+                                            <p class="text-muted mb-0">
+                                                <?php echo date('M j, Y g:i A', strtotime($activity['created_at'])); ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -302,210 +359,499 @@ try {
     </div>
 
     <!-- Add Product Modal -->
-    <!-- Add Product Modal -->
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addProductModalLabel">
-                    <i class="bi bi-plus-circle me-2"></i>Add New Product
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label for="productName" class="form-label">Product Name *</label>
-                            <input type="text" class="form-control" id="productName" name="name" required>
-                        </div>
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">
+                        <i class="bi bi-plus-circle me-2"></i>Add New Product
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addProductForm">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label for="productName" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="productName" name="name" required>
+                            </div>
 
-                        <div class="col-md-4">
-                            <label for="productCategory" class="form-label">Category *</label>
-                            <select class="form-select" id="productCategory" name="category_id" required>
-                                <option value="">Select Category</option>
-                                <?php foreach ($categories as $category): ?>
-                                    <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                            <div class="col-md-4">
+                                <label for="productCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="productCategory" name="category_id" required>
+                                    <option value="">Select Category</option>
+                                    <?php foreach ($categories as $category): ?>
+                                        <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label for="productPrice" class="form-label">Price (₱) *</label>
-                            <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
-                        </div>
+                            <div class="col-md-6">
+                                <label for="productPrice" class="form-label">Price (₱) *</label>
+                                <input type="number" class="form-control" id="productPrice" name="price" step="0.01" min="0" required>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label for="productStock" class="form-label">Stock Quantity *</label>
-                            <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" required>
-                        </div>
+                            <div class="col-md-6">
+                                <label for="productStock" class="form-label">Stock Quantity *</label>
+                                <input type="number" class="form-control" id="productStock" name="stock_quantity" min="0" required>
+                            </div>
 
-                        <div class="col-md-6">
-                            <label for="productWeight" class="form-label">Weight (kg)</label>
-                            <input type="number" class="form-control" id="productWeight" name="weight" step="0.01" min="0" placeholder="0.00">
-                        </div>
+                            <div class="col-md-6">
+                                <label for="productWeight" class="form-label">Weight (kg)</label>
+                                <input type="number" class="form-control" id="productWeight" name="weight" step="0.01" min="0" placeholder="0.00">
+                            </div>
 
-                        <div class="col-md-6">
-                            <div class="form-check mt-4 pt-2">
-                                <input class="form-check-input" type="checkbox" id="productFeatured" name="is_featured">
-                                <label class="form-check-label" for="productFeatured">
-                                    Mark as Featured Product
-                                </label>
+                            <div class="col-md-6">
+                                <div class="form-check mt-4 pt-2">
+                                    <input class="form-check-input" type="checkbox" id="productFeatured" name="is_featured">
+                                    <label class="form-check-label" for="productFeatured">
+                                        Mark as Featured Product
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="productDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
+                            </div>
+
+                            <div class="col-md-12">
+                                <label for="productImages" class="form-label">Product Images</label>
+                                <input type="file" class="form-control" id="productImages" name="images[]" multiple accept="image/*">
+                                <small class="text-muted">You can select multiple images. First image will be the main product image.</small>
+                                <div id="imagePreview" class="image-preview mt-2"></div>
                             </div>
                         </div>
-
-                        <div class="col-md-12">
-                            <label for="productDescription" class="form-label">Description</label>
-                            <textarea class="form-control" id="productDescription" name="description" rows="4" placeholder="Describe your product..."></textarea>
-                        </div>
-
-                        <div class="col-md-12">
-                            <label for="productImages" class="form-label">Product Images</label>
-                            <input type="file" class="form-control" id="productImages" name="images[]" multiple accept="image/*">
-                            <small class="text-muted">You can select multiple images. First image will be the main product image.</small>
-                            <div id="imagePreview" class="image-preview mt-2"></div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="submitProduct()">
-                    <span class="loading-spinner"></span>
-                    <i class="bi bi-plus-circle me-2"></i>Add Product
-                </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitProduct()">
+                        <span class="loading-spinner"></span>
+                        <i class="bi bi-plus-circle me-2"></i>Add Product
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<script>
-// Updated submitProduct function with category validation
-function submitProduct() {
-    const form = document.getElementById('addProductForm');
-    const submitBtn = document.querySelector('.modal-footer .btn-primary');
-    const spinner = submitBtn.querySelector('.loading-spinner');
-    const btnText = submitBtn.querySelector('i');
-
-    // Validate required fields
-    const requiredFields = form.querySelectorAll('[required]');
-    let isValid = true;
-
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('is-invalid');
-            isValid = false;
-        } else {
-            field.classList.remove('is-invalid');
-        }
-    });
-
-    // Additional validation
-    const price = parseFloat(document.getElementById('productPrice').value);
-    const stock = parseInt(document.getElementById('productStock').value);
-    const categoryId = parseInt(document.getElementById('productCategory').value);
-
-    if (price <= 0) {
-        document.getElementById('productPrice').classList.add('is-invalid');
-        isValid = false;
-    }
-
-    if (stock < 0) {
-        document.getElementById('productStock').classList.add('is-invalid');
-        isValid = false;
-    }
-
-    if (categoryId <= 0) {
-        document.getElementById('productCategory').classList.add('is-invalid');
-        isValid = false;
-    }
-
-    if (!isValid) {
-        showNotification('Please fill in all required fields with valid values.', 'danger');
-        return;
-    }
-
-    // Show loading state
-    spinner.style.display = 'inline-block';
-    btnText.style.display = 'none';
-    submitBtn.disabled = true;
-
-    // Prepare form data for submission
-    const formData = new FormData(form);
-
-    // Make actual API call to save to database
-    fetch('add_product_api.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            // Add to local products array
-            products.push(data.product);
-
-            // Update dashboard stats
-            updateDashboardStats();
-
-            // Close modal and reset form
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-            modal.hide();
-            form.reset();
-            document.getElementById('imagePreview').style.display = 'none';
-
-            // Show success message
-            showNotification(data.message, 'success');
-
-            // Add to recent activity
-            addRecentActivity('product', data.product.name);
-
-            // Optionally refresh the page to show updated data
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
-
-        } else {
-            throw new Error(data.message || 'Failed to add product');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('Error: ' + error.message, 'danger');
-    })
-    .finally(() => {
-        // Reset loading state
-        spinner.style.display = 'none';
-        btnText.style.display = 'inline';
-        submitBtn.disabled = false;
-    });
-}
-
-// Add category validation styling
-document.getElementById('productCategory').addEventListener('change', function() {
-    this.classList.remove('is-invalid');
-    if (this.value) {
-        this.classList.add('is-valid');
-    }
-});
-
-// Remove auto-generate SKU function since SKU is removed
-// Keep other existing JavaScript functions...
-</script>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- PRICE CHANGES DASHBOARD INTEGRATION -->
+    <script>
+        /**
+         * Price Changes Dashboard Integration
+         * Integrated directly into the seller dashboard
+         */
+/**
+ * Simplified Price Changes Dashboard Integration
+ * Focus: Show simple list of price changes like "Seller 1 changed the price of fish: from 150 to 200"
+ */
+/**
+ * Fixed Price Changes Dashboard Integration
+ * This replaces the existing PriceChangesDashboard class in your dashboard.php
+ */
+class PriceChangesDashboard {
+    constructor() {
+        // FIX 1: Use correct path for your project structure
+        this.apiBaseUrl = '/OroMarket/seller/price-changes.php';
+
+        this.sellerId = this.getCurrentSellerId();
+        this.isLoading = false;
+        this.refreshInterval = null;
+        this.init();
+    }
+
+    /**
+     * Initialize the price changes dashboard
+     */
+    init() {
+        this.createPriceChangesSection();
+        this.loadPriceChanges();
+        this.setupEventListeners();
+        this.startAutoRefresh();
+    }
+
+    /**
+     * Get current seller ID from session or DOM
+     */
+    getCurrentSellerId() {
+        return document.body.dataset.sellerId || <?php echo $seller_id; ?>;
+    }
+
+    /**
+     * Create simplified price changes section
+     */
+    createPriceChangesSection() {
+        const dashboardContainer = document.querySelector('.container-fluid');
+        if (!dashboardContainer) return;
+
+        const priceChangesSection = document.createElement('div');
+        priceChangesSection.className = 'row g-4 mb-4';
+        priceChangesSection.id = 'price-changes-section';
+        
+        priceChangesSection.innerHTML = `
+            <div class="col-12">
+                <div class="quick-actions">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4>
+                            <i class="bi bi-graph-up-arrow me-2"></i>
+                            Price Changes
+                        </h4>
+                        <button class="btn btn-outline-primary btn-sm" id="refresh-btn">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    
+                    <!-- Price Changes List -->
+                    <div id="price-changes-list">
+                        <div class="text-center py-4" id="loading-state">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Loading price changes...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Insert after the stats cards but before quick actions
+        const statsSection = dashboardContainer.querySelector('.row.g-4.mb-4');
+        if (statsSection && statsSection.nextElementSibling) {
+            dashboardContainer.insertBefore(priceChangesSection, statsSection.nextElementSibling);
+        } else {
+            dashboardContainer.appendChild(priceChangesSection);
+        }
+    }
+
+    /**
+     * Setup event listeners
+     */
+    setupEventListeners() {
+        // Refresh button
+        document.getElementById('refresh-btn')?.addEventListener('click', () => {
+            this.loadPriceChanges();
+        });
+    }
+
+    /**
+     * Load price changes from API
+     */
+    async loadPriceChanges() {
+        if (this.isLoading) return;
+        
+        this.isLoading = true;
+        this.showLoadingState();
+
+        try {
+            const params = {
+                seller_id: this.sellerId,
+                limit: 10,
+                days: 7
+            };
+            
+            const response = await this.fetchPriceChanges(params);
+
+            if (response && response.success) {
+                this.renderPriceChanges(response.data);
+            } else {
+                this.showErrorState(response?.message || 'Failed to load price changes');
+            }
+        } catch (error) {
+            console.error('Error loading price changes:', error);
+            this.showErrorState('Network error occurred: ' + error.message);
+        } finally {
+            this.isLoading = false;
+            this.hideLoadingState();
+        }
+    }
+
+    /**
+     * Fetch price changes from API
+     * FIX 2: Improved URL construction and error handling
+     */
+    async fetchPriceChanges(params) {
+        // FIX 3: Use window.location.origin for proper base URL
+        const url = new URL(this.apiBaseUrl, window.location.origin);
+        url.searchParams.append('endpoint', 'changes');
+        
+        Object.keys(params).forEach(key => {
+            if (params[key] !== null && params[key] !== undefined) {
+                url.searchParams.append(key, params[key]);
+            }
+        });
+
+        console.log('Fetching from URL:', url.toString()); // Debug log
+
+        const response = await fetch(url.toString());
+        
+        // FIX 4: Better error handling
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response received:', text.substring(0, 200));
+            throw new Error('Server returned HTML instead of JSON - check if price-changes.php exists');
+        }
+        
+        return await response.json();
+    }
+
+    /**
+     * Render simple price changes list
+     */
+    renderPriceChanges(priceChanges) {
+        const listContainer = document.getElementById('price-changes-list');
+        if (!listContainer) return;
+
+        if (!priceChanges || priceChanges.length === 0) {
+            listContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="bi bi-graph-up" style="font-size: 3rem; color: var(--text-secondary); opacity: 0.5;"></i>
+                    <p class="text-muted mt-2">No recent price changes</p>
+                    <small class="text-muted">Price changes from the last 7 days will appear here</small>
+                </div>
+            `;
+            return;
+        }
+
+        // Create simple list of price changes
+        const changesHtml = priceChanges.map(change => {
+            const sellerName = change.seller?.name || 'Unknown Seller';
+            const productName = change.product?.name || 'Unknown Product';
+            const oldPrice = change.price_change?.old_price || '0';
+            const newPrice = change.price_change?.new_price || '0';
+            const timeAgo = change.time_ago || 'Recently';
+            
+            const priceDirection = parseFloat(newPrice) > parseFloat(oldPrice) ? 'up' : 'down';
+            const priceColor = priceDirection === 'up' ? 'text-success' : 'text-danger';
+            const priceIcon = priceDirection === 'up' ? 'bi-arrow-up' : 'bi-arrow-down';
+            
+            return `
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <div class="flex-grow-1">
+                        <div class="d-flex align-items-center">
+                            <i class="bi ${priceIcon} ${priceColor} me-2"></i>
+                            <div>
+                                <strong>${sellerName}</strong> changed the price of <strong>${productName}</strong>
+                                <br>
+                                <small class="text-muted">
+                                    From <span class="text-decoration-line-through">₱${parseFloat(oldPrice).toFixed(2)}</span> 
+                                    to <span class="fw-bold ${priceColor}">₱${parseFloat(newPrice).toFixed(2)}</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted text-nowrap ms-2">${timeAgo}</small>
+                </div>
+            `;
+        }).join('');
+
+        listContainer.innerHTML = `
+            <div class="bg-light rounded p-3">
+                <div class="mb-2">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Showing recent price changes from the last 7 days
+                    </small>
+                </div>
+                ${changesHtml}
+            </div>
+        `;
+    }
+
+    /**
+     * Show loading state
+     */
+    showLoadingState() {
+        const loadingState = document.getElementById('loading-state');
+        const refreshBtn = document.getElementById('refresh-btn');
+        
+        if (loadingState) {
+            loadingState.style.display = 'block';
+        }
+        
+        if (refreshBtn) {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
+        }
+    }
+
+    /**
+     * Hide loading state
+     */
+    hideLoadingState() {
+        const loadingState = document.getElementById('loading-state');
+        const refreshBtn = document.getElementById('refresh-btn');
+        
+        if (loadingState) {
+            loadingState.style.display = 'none';
+        }
+        
+        if (refreshBtn) {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Refresh';
+        }
+    }
+
+    /**
+     * Show error state
+     */
+    showErrorState(message) {
+        const listContainer = document.getElementById('price-changes-list');
+        if (!listContainer) return;
+
+        listContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">${message}</p>
+                <div class="mt-3">
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="priceChangesDashboard.loadPriceChanges()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Try Again
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="console.log('Debug info:', priceChangesDashboard)">
+                        <i class="bi bi-bug me-1"></i>Debug Info
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Start auto refresh every 2 minutes
+     */
+    startAutoRefresh() {
+        this.refreshInterval = setInterval(() => {
+            this.loadPriceChanges();
+        }, 2 * 60 * 1000);
+    }
+
+    /**
+     * Stop auto refresh
+     */
+    stopAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
+            this.refreshInterval = null;
+        }
+    }
+
+    /**
+     * Destroy the dashboard instance
+     */
+    destroy() {
+        this.stopAutoRefresh();
+        const section = document.getElementById('price-changes-section');
+        if (section) {
+            section.remove();
+        }
+    }
+}
+// Initialize Price Changes Dashboard when DOM is ready
+
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    if (window.priceChangesDashboard) {
+        window.priceChangesDashboard.destroy();
+    }
+});
+        // Initialize Price Changes Dashboard when DOM is ready
+        let priceChangesDashboard;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Price Changes Dashboard
+            priceChangesDashboard = new PriceChangesDashboard();
+            window.priceChangesDashboard = priceChangesDashboard;
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (window.priceChangesDashboard) {
+                window.priceChangesDashboard.destroy();
+            }
+        });
+    </script>
+
+    <!-- Price Changes Custom Styles -->
+    <style>
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #0056b3) 100%);
+        }
+
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .price-change-info .old-price {
+            font-size: 0.8rem;
+        }
+
+        .price-change-info .new-price {
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #price-changes-section {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .d-flex.gap-2 {
+                flex-direction: column;
+                gap: 0.5rem !important;
+            }
+            
+            .col-md-3 {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+
+    <!-- Original Dashboard Scripts -->
     <script>
         // Global variables
         let products = [];
-        let totalProducts = 0;
-        let totalOrders = 0;
-        let totalRevenue = 0;
+        let totalProducts = <?php echo $total_products; ?>;
+        let totalOrders = <?php echo $total_orders; ?>;
+        let totalRevenue = <?php echo $total_revenue; ?>;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function () {
@@ -516,10 +862,8 @@ document.getElementById('productCategory').addEventListener('change', function()
         function initializeDashboard() {
             // Animate counter numbers
             animateCounters();
-
             // Add hover effects to dashboard cards
             addCardHoverEffects();
-
             // Setup notification system
             setupNotifications();
         }
@@ -676,6 +1020,7 @@ document.getElementById('productCategory').addEventListener('change', function()
             // Additional validation
             const price = parseFloat(document.getElementById('productPrice').value);
             const stock = parseInt(document.getElementById('productStock').value);
+            const categoryId = parseInt(document.getElementById('productCategory').value);
 
             if (price <= 0) {
                 document.getElementById('productPrice').classList.add('is-invalid');
@@ -684,6 +1029,11 @@ document.getElementById('productCategory').addEventListener('change', function()
 
             if (stock < 0) {
                 document.getElementById('productStock').classList.add('is-invalid');
+                isValid = false;
+            }
+
+            if (categoryId <= 0) {
+                document.getElementById('productCategory').classList.add('is-invalid');
                 isValid = false;
             }
 
@@ -705,51 +1055,51 @@ document.getElementById('productCategory').addEventListener('change', function()
                 method: 'POST',
                 body: formData
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Add to local products array
-                        products.push(data.product);
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Add to local products array
+                    products.push(data.product);
 
-                        // Update dashboard stats
-                        updateDashboardStats();
+                    // Update dashboard stats
+                    updateDashboardStats();
 
-                        // Close modal and reset form
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
-                        modal.hide();
-                        form.reset();
-                        document.getElementById('imagePreview').style.display = 'none';
+                    // Close modal and reset form
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                    modal.hide();
+                    form.reset();
+                    document.getElementById('imagePreview').style.display = 'none';
 
-                        // Show success message
-                        showNotification(data.message, 'success');
+                    // Show success message
+                    showNotification(data.message, 'success');
 
-                        // Add to recent activity
-                        addRecentActivity('product', data.product.name);
+                    // Add to recent activity
+                    addRecentActivity('product', data.product.name);
 
-                        // Optionally refresh the page to show updated data
-                        setTimeout(() => {
-                            location.reload();
-                        }, 2000);
+                    // Optionally refresh the page to show updated data
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
 
-                    } else {
-                        throw new Error(data.message || 'Failed to add product');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error: ' + error.message, 'danger');
-                })
-                .finally(() => {
-                    // Reset loading state
-                    spinner.style.display = 'none';
-                    btnText.style.display = 'inline';
-                    submitBtn.disabled = false;
-                });
+                } else {
+                    throw new Error(data.message || 'Failed to add product');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error: ' + error.message, 'danger');
+            })
+            .finally(() => {
+                // Reset loading state
+                spinner.style.display = 'none';
+                btnText.style.display = 'inline';
+                submitBtn.disabled = false;
+            });
         }
 
         function updateDashboardStats() {
@@ -798,12 +1148,12 @@ document.getElementById('productCategory').addEventListener('change', function()
                         </h6>
                         <p class="text-muted mb-0">
                             ${new Date().toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-            })}
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                            })}
                         </p>
                     </div>
                 </div>
@@ -824,171 +1174,15 @@ document.getElementById('productCategory').addEventListener('change', function()
             }
         }
 
-        // Form validation styles
-        const style = document.createElement('style');
-        style.textContent = `
-            .form-control.is-invalid, .form-select.is-invalid {
-                border-color: var(--danger);
-                box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25);
-            }
-            
-            .form-control.is-invalid:focus, .form-select.is-invalid:focus {
-                border-color: var(--danger);
-                box-shadow: 0 0 0 0.2rem rgba(239, 68, 68, 0.25);
-            }
-            
-            .was-validated .form-control:valid, .form-control.is-valid {
-                border-color: var(--success);
-                box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.25);
-            }
-            
-            /* Ripple effect for buttons */
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
-            }
-            
-            .alert {
-                animation: slideInRight 0.3s ease-out;
-            }
-            
-            @keyframes slideInRight {
-                from {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-
-            /* Modal animations */
-            .modal.fade .modal-dialog {
-                transition: transform 0.3s ease-out;
-                transform: translate(0, -50px);
-            }
-            
-            .modal.show .modal-dialog {
-                transform: none;
-            }
-            
-            /* Hover effects for action buttons */
-            .action-btn {
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            
-            .action-btn:hover .action-icon {
-                transform: scale(1.1);
-                transition: transform 0.3s ease;
-            }
-            
-            /* Loading button state */
-            .btn:disabled {
-                opacity: 0.7;
-                cursor: not-allowed;
-            }
-            
-            /* Custom scrollbar for modal */
-            .modal-body::-webkit-scrollbar {
-                width: 6px;
-            }
-            
-            .modal-body::-webkit-scrollbar-track {
-                background: #f1f1f1;
-                border-radius: 3px;
-            }
-            
-            .modal-body::-webkit-scrollbar-thumb {
-                background: var(--primary);
-                border-radius: 3px;
-            }
-            
-            .modal-body::-webkit-scrollbar-thumb:hover {
-                background: var(--primary-dark);
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Auto-generate SKU based on product name
-        document.getElementById('productName').addEventListener('input', function (e) {
-            const skuField = document.getElementById('productSKU');
-            if (!skuField.value && e.target.value) {
-                const sku = e.target.value
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9]/g, '')
-                    .substring(0, 6) + '-' + Math.random().toString(36).substr(2, 3).toUpperCase();
-                skuField.value = sku;
+        // Add category validation styling
+        document.getElementById('productCategory').addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+            if (this.value) {
+                this.classList.add('is-valid');
             }
         });
-
-        // Price formatting
-        document.getElementById('productPrice').addEventListener('blur', function (e) {
-            if (e.target.value) {
-                e.target.value = parseFloat(e.target.value).toFixed(2);
-            }
-        });
-
-        // Add click effects to buttons
-        document.querySelectorAll('.btn, .action-btn[href]').forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                // Create ripple effect
-                const ripple = document.createElement('span');
-                const rect = this.getBoundingClientRect();
-                const size = Math.max(rect.width, rect.height);
-                const x = e.clientX - rect.left - size / 2;
-                const y = e.clientY - rect.top - size / 2;
-
-                ripple.style.cssText = `
-                    position: absolute;
-                    border-radius: 50%;
-                    background: rgba(255, 255, 255, 0.3);
-                    transform: scale(0);
-                    animation: ripple 0.6s linear;
-                    width: ${size}px;
-                    height: ${size}px;
-                    left: ${x}px;
-                    top: ${y}px;
-                    pointer-events: none;
-                `;
-
-                this.style.position = 'relative';
-                this.style.overflow = 'hidden';
-                this.appendChild(ripple);
-
-                setTimeout(() => {
-                    if (ripple.parentNode) {
-                        ripple.remove();
-                    }
-                }, 600);
-            });
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function (e) {
-            // Alt + N to open add product modal
-            if (e.altKey && e.key === 'n') {
-                e.preventDefault();
-                openAddProductModal();
-            }
-
-            // Escape to close modal
-            if (e.key === 'Escape') {
-                const modal = document.querySelector('.modal.show');
-                if (modal) {
-                    const modalInstance = bootstrap.Modal.getInstance(modal);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                }
-            }
-        });
-
-        // Add tooltip to keyboard shortcut
-        document.querySelector('a[onclick="openAddProductModal()"]').title = 'Alt + N';
     </script>
+
 </body>
 
 </html>
