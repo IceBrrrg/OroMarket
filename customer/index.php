@@ -44,27 +44,17 @@ try {
                 </div>
             </div>
 
-            <!-- Results Info and Sort --> 
+            <!-- Results Info  --> 
             <div class="results-info">
                 <div class="results-count">
                     <span id="resultsCount">Showing <?php echo count($products); ?> products</span>
                 </div>
                 <div class="right-controls">
                     <div class="search-box">
-                        <input type="text" id="productSearch" placeholder="Search products...">
+                        <input type="text" id="productSearch" placeholder="Search the market...">
                         <button type="button" class="search-button">
                             <i class="fas fa-search"></i>
                         </button>
-                    </div>
-                    <div class="sort-options">
-                        <label for="sortBy">Sort by:</label>
-                        <select id="sortBy" class="sort-select">
-                            <option value="relevance">Relevance</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="newest">Newest</option>
-                            <option value="most_viewed">Most Viewed</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -163,7 +153,7 @@ try {
                                             <p><?php echo $seller['product_count']; ?> products</p>
                                             <div class="seller-actions">
                                                 <button class="btn visit-store-btn"
-                                                    onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Store</button>
+                                                    onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Stall</button>
                                                 <!-- REMOVED CHAT BUTTON FROM SELLER CARDS TOO -->
                                             </div>
                                         </div>

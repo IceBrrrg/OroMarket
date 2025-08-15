@@ -76,7 +76,7 @@ try {
         AND p.is_active = 1 
         AND s.status = 'approved'
         ORDER BY RAND()
-        LIMIT 4
+        LIMIT 5
     ");
     $stmt->execute([$product['category_id'], $product_id]);
     $similar_products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -138,20 +138,20 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                 </div>
 
                 <?php if (count($product_images) > 1): ?>
-                        <div class="image-thumbnails">
-                            <?php foreach ($product_images as $img): ?>
-                                    <div class="thumbnail-container <?php echo $img['is_primary'] ? 'active' : ''; ?>">
-                                        <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>"
-                                            alt="Product Image" class="thumbnail-img"
-                                            onclick="changeMainImage(this.src, this.parentElement)">
-                                    </div>
-                            <?php endforeach; ?>
-                        </div>
+                    <div class="image-thumbnails">
+                        <?php foreach ($product_images as $img): ?>
+                            <div class="thumbnail-container <?php echo $img['is_primary'] ? 'active' : ''; ?>">
+                                <img src="<?php echo htmlspecialchars(getProductImage($img['image_path'])); ?>"
+                                    alt="Product Image" class="thumbnail-img"
+                                    onclick="changeMainImage(this.src, this.parentElement)">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
 
                 <div class="price-history-section mt-4">
                     <h3><i class="fas fa-chart-line"></i> Price History & Analytics</h3>
-                    
+
                     <div class="price-stats-grid">
                         <div class="price-stat-card">
                             <div class="stat-icon"><i class="fas fa-arrow-trend-up text-success"></i></div>
@@ -160,7 +160,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                                 <span class="stat-label">Highest Price</span>
                             </div>
                         </div>
-                        
+
                         <div class="price-stat-card">
                             <div class="stat-icon"><i class="fas fa-arrow-trend-down text-danger"></i></div>
                             <div class="stat-info">
@@ -168,7 +168,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                                 <span class="stat-label">Lowest Price</span>
                             </div>
                         </div>
-                        
+
                         <div class="price-stat-card">
                             <div class="stat-icon"><i class="fas fa-calculator text-info"></i></div>
                             <div class="stat-info">
@@ -176,7 +176,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                                 <span class="stat-label">Average Price</span>
                             </div>
                         </div>
-                        
+
                         <div class="price-stat-card">
                             <div class="stat-icon"><i class="fas fa-exchange-alt text-warning"></i></div>
                             <div class="stat-info">
@@ -210,7 +210,9 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                                     </tr>
                                 </thead>
                                 <tbody id="price-history-tbody">
-                                    <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                                    <tr>
+                                        <td colspan="4" class="text-center">Loading...</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -223,7 +225,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <h1 class="product-title"><?php echo htmlspecialchars($product['name']); ?></h1>
                     <div class="product-category">
                         <?php if (!empty($product['category_icon'])): ?>
-                                <span class="category-icon"><?php echo $product['category_icon']; ?></span>
+                            <span class="category-icon"><?php echo $product['category_icon']; ?></span>
                         <?php endif; ?>
                         <span
                             class="category-name"><?php echo htmlspecialchars($product['category_name'] ?? 'Uncategorized'); ?></span>
@@ -234,7 +236,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <div class="price-display">
                         <span class="price-amount"><?php echo formatPrice($product['price']); ?></span>
                         <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
-                                <span class="price-unit">per <?php echo $product['weight']; ?>g</span>
+                            <span class="price-unit">per <?php echo $product['weight']; ?>g</span>
                         <?php endif; ?>
                     </div>
                     <div
@@ -243,33 +245,33 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                             class="fas <?php echo $product['stock_quantity'] > 0 ? 'fa-check-circle' : 'fa-times-circle'; ?>"></i>
                         <span>
                             <?php if ($product['stock_quantity'] > 0): ?>
-                                    <?php echo $product['stock_quantity']; ?> items available
+                                <?php echo $product['stock_quantity']; ?> items available
                             <?php else: ?>
-                                    Out of stock
+                                Out of stock
                             <?php endif; ?>
                         </span>
                     </div>
                 </div>
 
                 <?php if (!empty($product['description'])): ?>
-                        <div class="product-description">
-                            <h3>Description</h3>
-                            <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
-                        </div>
+                    <div class="product-description">
+                        <h3>Description</h3>
+                        <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
+                    </div>
                 <?php endif; ?>
 
                 <div class="product-actions">
-                       <?php if ($product['stock_quantity'] > 0): ?>
-                            <button class="btn btn-outline-primary message-btn"
-                                onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
-                                <i class="fas fa-envelope"></i>
-                                <span>Inquire Vendor</span>
-                            </button>
+                    <?php if ($product['stock_quantity'] > 0): ?>
+                        <button class="btn btn-outline-primary message-btn"
+                            onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
+                            <i class="fas fa-envelope"></i>
+                            <span>Inquire Vendor</span>
+                        </button>
                     <?php else: ?>
-                            <button class="btn btn-secondary" disabled>
-                                <i class="fas fa-times"></i>
-                                <span>Out of Stock</span>
-                            </button>
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-times"></i>
+                            <span>Out of Stock</span>
+                        </button>
                     <?php endif; ?>
                 </div>
 
@@ -277,10 +279,10 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                     <h3>Product Details</h3>
                     <div class="details-grid">
                         <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
-                                <div class="detail-item">
-                                    <span class="detail-label">Weight:</span>
-                                    <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
-                                </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Weight:</span>
+                                <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
+                            </div>
                         <?php endif; ?>
 
                         <div class="detail-item">
@@ -292,10 +294,10 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                             <span class="detail-label">Contact:</span>
                             <span class="detail-value">
                                 <?php if (!empty($product['business_phone'])): ?>
-                                        <i class="fas fa-phone text-success"></i>
-                                        <?php echo htmlspecialchars($product['business_phone']); ?>
+                                    <i class="fas fa-phone text-success"></i>
+                                    <?php echo htmlspecialchars($product['business_phone']); ?>
                                 <?php else: ?>
-                                        Available via message
+                                    Available via message
                                 <?php endif; ?>
                             </span>
                         </div>
@@ -318,71 +320,64 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                         <h3 class="store-name"><?php echo htmlspecialchars(getSellerDisplayName($product)); ?></h3>
                         <div class="store-location">
                             <?php if (!empty($product['stall_number'])): ?>
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span>Stall <?php echo htmlspecialchars($product['stall_number']); ?>
-                                        (<?php echo htmlspecialchars($product['stall_section']); ?>)</span>
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Stall <?php echo htmlspecialchars($product['stall_number']); ?>
+                                    (<?php echo htmlspecialchars($product['stall_section']); ?>)</span>
                             <?php else: ?>
-                                    <i class="fas fa-store"></i>
-                                    <span>Marketplace Vendor</span>
+                                <i class="fas fa-store"></i>
+                                <span>Marketplace Vendor</span>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
 
                 <div class="store-actions">
-                    <?php if (!empty($product['stall_number'])): ?>
-                            <a href="stall_view.php?stall=<?php echo urlencode($product['stall_number']); ?>"
-                                class="btn btn-outline-success">
-                                <i class="fas fa-store"></i>
-                                View Stall
-                            </a>
-                    <?php endif; ?>
+                    <a href="view_stall.php?seller_id=<?php echo urlencode($product['seller_id']); ?>"
+                        class="visit-stall-btn">
+                        <i class="fas fa-store"></i>
+                        Visit Stall
+                    </a>
 
                     <?php if (!empty($product['facebook_url'])): ?>
-                            <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank"
-                                class="btn btn-outline-primary">
-                                <i class="fab fa-facebook"></i>
-                                Facebook
-                            </a>
+                        <a href="<?php echo htmlspecialchars($product['facebook_url']); ?>" target="_blank"
+                            class="facebook-btn">
+                            <i class="fab fa-facebook"></i>
+                            Facebook Page
+                        </a>
                     <?php endif; ?>
                 </div>
             </div>
         </div>
 
         <?php if (!empty($similar_products)): ?>
-                <div class="similar-products-section">
-                    <h2>Similar Products</h2>
-                    <div class="similar-products-grid">
-                        <?php foreach ($similar_products as $similar): ?>
-                                <div class="similar-product-card">
-                                    <div class="product-image">
-                                        <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>"
-                                            alt="<?php echo htmlspecialchars($similar['name']); ?>">
-                                    </div>
-                                    <div class="product-content">
-                                        <h3 class="product-name"><?php echo htmlspecialchars($similar['name']); ?></h3>
-                                        <div class="product-price"><?php echo formatPrice($similar['price']); ?></div>
-                                        <div class="seller-info">
-                                            <img src="../assets/img/avatar.jpg" alt="Seller" class="seller-avatar">
-                                            <span class="seller-name">
-                                                <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
-                                            </span>
-                                        </div>
-                                        <a href="view_product.php?id=<?php echo $similar['id']; ?>"
-                                            class="btn btn-outline-primary w-100">
-                                            View Product
-                                        </a>
-                                    </div>
-                                </div>
-                        <?php endforeach; ?>
-                    </div>
+            <div class="similar-products-section">
+                <h2><i class="fas fa-tags"></i> Similar Products</h2>
+                <div class="similar-products-grid">
+                    <?php foreach ($similar_products as $similar): ?>
+                        <a href="view_product.php?id=<?php echo $similar['id']; ?>" class="similar-product-card">
+                            <div class="similar-product-image">
+                                <img src="<?php echo htmlspecialchars(getProductImage($similar['image_path'])); ?>"
+                                    alt="<?php echo htmlspecialchars($similar['name']); ?>">
+                            </div>
+                            <div class="similar-product-info">
+                                <h4><?php echo htmlspecialchars($similar['name']); ?></h4>
+                                <div class="similar-product-price"><?php echo formatPrice($similar['price']); ?></div>
+                                <p class="similar-product-seller">
+                                    <?php echo htmlspecialchars(!empty($similar['business_name']) ? $similar['business_name'] : $similar['first_name'] . ' ' . $similar['last_name']); ?>
+                                </p>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
                 </div>
+            </div>
         <?php endif; ?>
     </div>
 </div>
 
 <link rel="stylesheet" href="css/chat.css">
 <link rel="stylesheet" href="css/view_product.css">
+<link rel="stylesheet" href="css/similar_products.css">
+</style>
 
 <script>
     // Function to change main product image
@@ -397,11 +392,11 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     }
 
     // Track product view
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Get product ID from URL or PHP variable
         const urlParams = new URLSearchParams(window.location.search);
         const productId = urlParams.get('id') || <?php echo $product_id; ?>;
-        
+
         if (productId) {
             trackProductView(productId);
         }
@@ -410,7 +405,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
     // Function to track product view via AJAX
     function trackProductView(productId) {
         console.log('Tracking view for product ID:', productId);
-        
+
         fetch('track_view.php', {
             method: 'POST',
             headers: {
@@ -422,26 +417,26 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                 action: 'track_view'
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log('View tracking response:', data);
-            
-            if (data.success) {
-                console.log('View tracked successfully. New count:', data.new_view_count);
-                
-                // Update view count display if there's an element for it
-                const viewCountElement = document.querySelector('.view-count');
-                if (viewCountElement && data.new_view_count) {
-                    viewCountElement.textContent = data.new_view_count + ' views';
+            .then(response => response.json())
+            .then(data => {
+                console.log('View tracking response:', data);
+
+                if (data.success) {
+                    console.log('View tracked successfully. New count:', data.new_view_count);
+
+                    // Update view count display if there's an element for it
+                    const viewCountElement = document.querySelector('.view-count');
+                    if (viewCountElement && data.new_view_count) {
+                        viewCountElement.textContent = data.new_view_count + ' views';
+                    }
+                } else {
+                    console.error('Failed to track view:', data.message);
+                    console.error('Debug info:', data.debug);
                 }
-            } else {
-                console.error('Failed to track view:', data.message);
-                console.error('Debug info:', data.debug);
-            }
-        })
-        .catch(error => {
-            console.error('Error tracking view:', error);
-        });
+            })
+            .catch(error => {
+                console.error('Error tracking view:', error);
+            });
     }
 </script>
 
@@ -450,185 +445,185 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
 
 <!-- Price Monitoring JavaScript -->
 <script>
-// price-monitoring.js - Client-side price monitoring functionality
+    // price-monitoring.js - Client-side price monitoring functionality
 
-class PriceMonitor {
-    constructor() {
-        this.apiBase = 'price_history_api.php';
-        this.chartInstances = new Map();
-        this.init();
-    }
+    class PriceMonitor {
+        constructor() {
+            this.apiBase = 'price_history_api.php';
+            this.chartInstances = new Map();
+            this.init();
+        }
 
-    init() {
-        this.addPriceHistorySection();
-        this.loadPriceData();
-        this.setupEventListeners();
-    }
+        init() {
+            this.addPriceHistorySection();
+            this.loadPriceData();
+            this.setupEventListeners();
+        }
 
-    setupEventListeners() {
-        // Price history tab switching
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('price-period-btn')) {
-                this.switchPricePeriod(e.target);
+        setupEventListeners() {
+            // Price history tab switching
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('price-period-btn')) {
+                    this.switchPricePeriod(e.target);
+                }
+            });
+        }
+
+        addPriceHistorySection() {
+            // Price history section is already in the HTML, no need to add dynamically
+        }
+
+        async loadPriceData() {
+            const productId = this.getProductId();
+            if (!productId) return;
+
+            try {
+                // Load price statistics
+                await this.loadPriceStatistics(productId);
+
+                // Load price chart
+                await this.loadPriceChart(productId, 30);
+
+                // Load price history table
+                await this.loadPriceHistory(productId);
+
+            } catch (error) {
+                console.error('Error loading price data:', error);
             }
-        });
-    }
-
-    addPriceHistorySection() {
-        // Price history section is already in the HTML, no need to add dynamically
-    }
-
-    async loadPriceData() {
-        const productId = this.getProductId();
-        if (!productId) return;
-
-        try {
-            // Load price statistics
-            await this.loadPriceStatistics(productId);
-            
-            // Load price chart
-            await this.loadPriceChart(productId, 30);
-            
-            // Load price history table
-            await this.loadPriceHistory(productId);
-            
-        } catch (error) {
-            console.error('Error loading price data:', error);
         }
-    }
 
-    async loadPriceStatistics(productId) {
-        try {
-            const response = await fetch(`${this.apiBase}?action=statistics&product_id=${productId}&period=30`);
-            const result = await response.json();
+        async loadPriceStatistics(productId) {
+            try {
+                const response = await fetch(`${this.apiBase}?action=statistics&product_id=${productId}&period=30`);
+                const result = await response.json();
 
-            if (result.success && result.data) {
-                const stats = result.data;
-                document.getElementById('highest-price').textContent = `₱${parseFloat(stats.highest_price || 0).toFixed(2)}`;
-                document.getElementById('lowest-price').textContent = `₱${parseFloat(stats.lowest_price || 0).toFixed(2)}`;
-                document.getElementById('average-price').textContent = `₱${parseFloat(stats.average_price || 0).toFixed(2)}`;
-                document.getElementById('price-changes').textContent = stats.total_changes || 0;
+                if (result.success && result.data) {
+                    const stats = result.data;
+                    document.getElementById('highest-price').textContent = `₱${parseFloat(stats.highest_price || 0).toFixed(2)}`;
+                    document.getElementById('lowest-price').textContent = `₱${parseFloat(stats.lowest_price || 0).toFixed(2)}`;
+                    document.getElementById('average-price').textContent = `₱${parseFloat(stats.average_price || 0).toFixed(2)}`;
+                    document.getElementById('price-changes').textContent = stats.total_changes || 0;
+                }
+            } catch (error) {
+                console.error('Error loading price statistics:', error);
             }
-        } catch (error) {
-            console.error('Error loading price statistics:', error);
         }
-    }
 
-    async loadPriceChart(productId, days = 30) {
-        try {
-            const response = await fetch(`${this.apiBase}?action=chart_data&product_id=${productId}&days=${days}`);
-            const result = await response.json();
+        async loadPriceChart(productId, days = 30) {
+            try {
+                const response = await fetch(`${this.apiBase}?action=chart_data&product_id=${productId}&days=${days}`);
+                const result = await response.json();
 
-            if (result.success && result.data) {
-                this.renderPriceChart(result.data);
+                if (result.success && result.data) {
+                    this.renderPriceChart(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading price chart:', error);
             }
-        } catch (error) {
-            console.error('Error loading price chart:', error);
-        }
-    }
-
-    renderPriceChart(data) {
-        const ctx = document.getElementById('price-history-chart');
-        if (!ctx) return;
-
-        // Destroy existing chart if it exists
-        if (this.chartInstances.has('priceChart')) {
-            this.chartInstances.get('priceChart').destroy();
         }
 
-        // Sort data by date to ensure proper chronological order
-        const sortedData = data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        renderPriceChart(data) {
+            const ctx = document.getElementById('price-history-chart');
+            if (!ctx) return;
 
-        const labels = sortedData.map(item => {
-            const date = new Date(item.datetime);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        });
+            // Destroy existing chart if it exists
+            if (this.chartInstances.has('priceChart')) {
+                this.chartInstances.get('priceChart').destroy();
+            }
 
-        const prices = sortedData.map(item => parseFloat(item.price));
+            // Sort data by date to ensure proper chronological order
+            const sortedData = data.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
 
-        // Calculate min and max for better Y-axis scaling
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
-        const padding = (maxPrice - minPrice) * 0.1; // 10% padding
+            const labels = sortedData.map(item => {
+                const date = new Date(item.datetime);
+                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            });
 
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Price (₱)',
-                    data: prices,
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.2,
-                    pointBackgroundColor: '#007bff',
-                    pointBorderColor: '#007bff',
-                    pointRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Price History'
-                    },
-                    legend: {
-                        display: false
-                    }
+            const prices = sortedData.map(item => parseFloat(item.price));
+
+            // Calculate min and max for better Y-axis scaling
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const padding = (maxPrice - minPrice) * 0.1; // 10% padding
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price (₱)',
+                        data: prices,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.2,
+                        pointBackgroundColor: '#007bff',
+                        pointBorderColor: '#007bff',
+                        pointRadius: 4
+                    }]
                 },
-                scales: {
-                    y: {
-                        min: Math.max(0, minPrice - padding),
-                        max: maxPrice + padding,
-                        ticks: {
-                            callback: function(value) {
-                                return '₱' + value.toFixed(2);
-                            }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Price History'
+                        },
+                        legend: {
+                            display: false
                         }
                     },
-                    x: {
-                        reverse: false // Ensure chronological order
+                    scales: {
+                        y: {
+                            min: Math.max(0, minPrice - padding),
+                            max: maxPrice + padding,
+                            ticks: {
+                                callback: function (value) {
+                                    return '₱' + value.toFixed(2);
+                                }
+                            }
+                        },
+                        x: {
+                            reverse: false // Ensure chronological order
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        this.chartInstances.set('priceChart', chart);
-    }
-
-    async loadPriceHistory(productId) {
-        try {
-            const response = await fetch(`${this.apiBase}?action=history&product_id=${productId}&days=30`);
-            const result = await response.json();
-
-            if (result.success && result.data) {
-                this.renderPriceHistoryTable(result.data);
-            }
-        } catch (error) {
-            console.error('Error loading price history:', error);
-        }
-    }
-
-    renderPriceHistoryTable(history) {
-        const tbody = document.getElementById('price-history-tbody');
-        if (!tbody) return;
-
-        if (history.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">No price changes recorded</td></tr>';
-            return;
+            this.chartInstances.set('priceChart', chart);
         }
 
-        const rows = history.map(item => {
-            const changeValue = parseFloat(item.new_price) - parseFloat(item.old_price);
-            const changePercent = parseFloat(item.percentage_change);
-            const changeClass = changeValue > 0 ? 'text-success' : 'text-danger';
-            const changeIcon = changeValue > 0 ? '↑' : '↓';
-            
-            return `
+        async loadPriceHistory(productId) {
+            try {
+                const response = await fetch(`${this.apiBase}?action=history&product_id=${productId}&days=30`);
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    this.renderPriceHistoryTable(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading price history:', error);
+            }
+        }
+
+        renderPriceHistoryTable(history) {
+            const tbody = document.getElementById('price-history-tbody');
+            if (!tbody) return;
+
+            if (history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No price changes recorded</td></tr>';
+                return;
+            }
+
+            const rows = history.map(item => {
+                const changeValue = parseFloat(item.new_price) - parseFloat(item.old_price);
+                const changePercent = parseFloat(item.percentage_change);
+                const changeClass = changeValue > 0 ? 'text-success' : 'text-danger';
+                const changeIcon = changeValue > 0 ? '↑' : '↓';
+
+                return `
                 <tr>
                     <td>${new Date(item.changed_at).toLocaleDateString()}</td>
                     <td>₱${parseFloat(item.old_price).toFixed(2)}</td>
@@ -639,86 +634,86 @@ class PriceMonitor {
                     </td>
                 </tr>
             `;
-        }).join('');
+            }).join('');
 
-        tbody.innerHTML = rows;
-    }
-
-    switchPricePeriod(button) {
-        // Update active button
-        document.querySelectorAll('.price-period-btn').forEach(btn => btn.classList.remove('active'));
-        button.classList.add('active');
-
-        // Reload chart with new period
-        const days = parseInt(button.dataset.days);
-        const productId = this.getProductId();
-        if (productId) {
-            this.loadPriceChart(productId, days);
+            tbody.innerHTML = rows;
         }
-    }
 
-    getProductId() {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('id') || null;
-    }
+        switchPricePeriod(button) {
+            // Update active button
+            document.querySelectorAll('.price-period-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
 
-    // Method to update price in real-time (if needed)
-    async refreshCurrentPrice() {
-        const productId = this.getProductId();
-        if (!productId) return;
-
-        try {
-            const response = await fetch(`get_product.php?id=${productId}`);
-            const result = await response.json();
-            
-            if (result.success) {
-                const currentPriceElement = document.querySelector('.price-amount');
-                if (currentPriceElement) {
-                    currentPriceElement.textContent = `₱${parseFloat(result.data.price).toFixed(2)}`;
-                }
-                
-                // Update price change indicator
-                this.updatePriceChangeIndicator(result.data);
+            // Reload chart with new period
+            const days = parseInt(button.dataset.days);
+            const productId = this.getProductId();
+            if (productId) {
+                this.loadPriceChart(productId, days);
             }
-        } catch (error) {
-            console.error('Error refreshing price:', error);
-        }
-    }
-
-    updatePriceChangeIndicator(productData) {
-        const priceSection = document.querySelector('.product-price-section');
-        if (!priceSection || !productData.previous_price) return;
-
-        // Remove existing indicator
-        const existingIndicator = priceSection.querySelector('.price-change-indicator');
-        if (existingIndicator) {
-            existingIndicator.remove();
         }
 
-        if (productData.price_change !== 'no_change') {
-            const changePercentage = productData.price_change_percentage || 0;
-            const isIncrease = productData.price_change === 'up';
-            
-            const indicator = document.createElement('div');
-            indicator.className = `price-change-indicator ${isIncrease ? 'price-up' : 'price-down'}`;
-            indicator.innerHTML = `
+        getProductId() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id') || null;
+        }
+
+        // Method to update price in real-time (if needed)
+        async refreshCurrentPrice() {
+            const productId = this.getProductId();
+            if (!productId) return;
+
+            try {
+                const response = await fetch(`get_product.php?id=${productId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    const currentPriceElement = document.querySelector('.price-amount');
+                    if (currentPriceElement) {
+                        currentPriceElement.textContent = `₱${parseFloat(result.data.price).toFixed(2)}`;
+                    }
+
+                    // Update price change indicator
+                    this.updatePriceChangeIndicator(result.data);
+                }
+            } catch (error) {
+                console.error('Error refreshing price:', error);
+            }
+        }
+
+        updatePriceChangeIndicator(productData) {
+            const priceSection = document.querySelector('.product-price-section');
+            if (!priceSection || !productData.previous_price) return;
+
+            // Remove existing indicator
+            const existingIndicator = priceSection.querySelector('.price-change-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+
+            if (productData.price_change !== 'no_change') {
+                const changePercentage = productData.price_change_percentage || 0;
+                const isIncrease = productData.price_change === 'up';
+
+                const indicator = document.createElement('div');
+                indicator.className = `price-change-indicator ${isIncrease ? 'price-up' : 'price-down'}`;
+                indicator.innerHTML = `
                 <i class="fas fa-arrow-${isIncrease ? 'up' : 'down'}"></i>
                 <span>${Math.abs(changePercentage).toFixed(2)}%</span>
                 <small>vs last price</small>
             `;
-            
-            priceSection.appendChild(indicator);
+
+                priceSection.appendChild(indicator);
+            }
         }
     }
-}
 
-// Initialize price monitoring when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize price monitor on product pages
-    if (document.querySelector('.product-details-container')) {
-        window.priceMonitor = new PriceMonitor();
-    }
-});
+    // Initialize price monitoring when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize price monitor on product pages
+        if (document.querySelector('.product-details-container')) {
+            window.priceMonitor = new PriceMonitor();
+        }
+    });
 </script>
 
 <script src="js/chat.js"></script>

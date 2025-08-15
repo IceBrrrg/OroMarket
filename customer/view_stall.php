@@ -358,8 +358,8 @@ function contactSeller(email, phone) {
 }
 
 .profile-image img {
-    width: 120px;
-    height: 120px;
+    width: 140px;
+    height: 150px;
     object-fit: cover;
     border: 4px solid white;
 }
