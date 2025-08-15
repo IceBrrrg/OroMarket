@@ -734,4 +734,4 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="../assets/js/main.js"></script>
 </body>
 
-</html>
+</html> 
