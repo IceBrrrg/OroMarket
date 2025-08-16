@@ -43,11 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($stmt->fetchColumn() > 0) {
                         $error = "Username or email already exists.";
                     } else {
-                        // Move to next step
-                        // Send OTP after successful validation
-                        $_SESSION['signup_data']['email'] = $_POST['email'];
-                        header("Location: send_otp.php");
-                        exit();
+                        // Set flag to show OTP modal instead of redirecting
+                        $_SESSION['show_otp_modal'] = true;
+                        $_SESSION['otp_step'] = true;
+                        $success = "Please check your email for the OTP code.";
                     }
                 } catch (PDOException $e) {
                     error_log("Database error in step 1: " . $e->getMessage());
@@ -281,6 +280,61 @@ if ($step === 4) {
         <link rel="stylesheet" href="../assets/css/floorplan.css">
     <?php endif; ?>
     <link rel="stylesheet" href="assets/css/signup.css">
+    <style>
+        /* OTP Modal Styles */
+        .otp-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom: none;
+        }
+        
+        .otp-modal-body {
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .otp-input {
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 1rem 0;
+        }
+        
+        .otp-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .otp-timer {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        .resend-otp {
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .resend-otp:hover {
+            color: #5a67d8;
+        }
+        
+        .otp-success {
+            color: #28a745;
+            margin-top: 1rem;
+        }
+        
+        .otp-error {
+            color: #dc3545;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -387,6 +441,13 @@ if ($step === 4) {
                         </div>
 
                     <?php elseif ($step === 2): ?>
+                        <?php
+                        // Check if email was verified before allowing step 2
+                        if (!isset($_SESSION['email_verified']) || !$_SESSION['email_verified']) {
+                            header("Location: signup.php?step=1");
+                            exit();
+                        }
+                        ?>
                         <h4 class="mb-3">Stall Information</h4>
                         <div class="mb-3">
                             <label for="business_name" class="form-label">Stall Name *</label>
@@ -396,7 +457,7 @@ if ($step === 4) {
 
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="business_phone" class="form-label">Business Phone Numberr *</label>
+                                <label for="business_phone" class="form-label">Business Phone Number *</label>
                                 <input type="text" class="form-control" id="business_phone" name="business_phone"
                                     value="<?php echo htmlspecialchars($data['business_phone'] ?? ''); ?>" required>
                             </div>
@@ -749,29 +810,56 @@ if ($step === 4) {
                                 <?php endif; ?>
                             </div>
                         </div>
-                </div>
-            <?php endif; ?>
-            </form>
+                    <?php endif; ?>
+                </form>
+            </div>
         </div>
     </div>
+
+    <!-- OTP Modal -->
     <div class="modal fade" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="otpModalLabel">Verify Your OTP</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <p>We have sent a 6-digit OTP to your email. Please enter it below:</p>
-        <input type="text" id="otpInput" class="form-control" maxlength="6" placeholder="Enter OTP">
-        <div id="otpError" class="text-danger mt-2" style="display:none;"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="verifyOtpBtn" class="btn btn-primary">Verify OTP</button>
-      </div>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header otp-modal-header">
+                    <h5 class="modal-title" id="otpModalLabel">
+                        <i class="fas fa-shield-alt me-2"></i>Email Verification
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body otp-modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-envelope-open-text fa-3x text-primary mb-3"></i>
+                        <p class="mb-2">We've sent a 6-digit verification code to:</p>
+                        <strong><?php echo htmlspecialchars($data['email'] ?? ''); ?></strong>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <input type="text" id="otpInput" class="form-control otp-input text-center" 
+                               maxlength="6" placeholder="000000" autocomplete="off">
+                    </div>
+                    
+                    <div id="otpError" class="alert alert-danger otp-error" style="display:none;"></div>
+                    <div id="otpSuccess" class="alert alert-success otp-success" style="display:none;"></div>
+                    
+                    <div class="text-center">
+                        <button type="button" id="verifyOtpBtn" class="btn btn-primary btn-lg px-4">
+                            <i class="fas fa-check me-2"></i>Verify Code
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            Didn't receive the code? 
+                            <span id="resendOtp" class="resend-otp">Resend OTP</span>
+                        </small>
+                        <div id="otpTimer" class="otp-timer mt-2" style="display:none;">
+                            Resend available in: <span id="timerCount">60</span> seconds
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
     <!-- Document Modal -->
     <div id="documentModal" class="modal-document">
@@ -783,77 +871,169 @@ if ($step === 4) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      
-document.addEventListener("DOMContentLoaded", function() {
-    // Show OTP modal after OTP is sent
-    // You can trigger this after your AJAX call for sending OTP
-    $('#otpModal').modal('show');
-
-    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
-        const otp = document.getElementById('otpInput').value.trim();
-        const errorDiv = document.getElementById('otpError');
-
-        if (otp.length !== 6) {
-            errorDiv.textContent = "OTP must be 6 digits.";
-            errorDiv.style.display = "block";
-            return;
-        }
-
-        fetch('verify_otp.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'otp=' + encodeURIComponent(otp)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                errorDiv.style.display = "none";
-                $('#otpModal').modal('hide');
-                alert("OTP Verified! Proceeding to Step 2...");
-                // Redirect to next signup step
-                window.location.href = 'signup_step2.php';
-            } else {
-                errorDiv.textContent = data.message;
-                errorDiv.style.display = "block";
-            }
-        });
-    });
-});
-
-
+        // OTP Modal functionality
+        <?php if (isset($_SESSION['show_otp_modal']) && $_SESSION['show_otp_modal']): ?>
         document.addEventListener("DOMContentLoaded", function() {
-    // You can trigger this after OTP is sent successfully
-    // Example: $('#otpModal').modal('show');
+            // Send OTP automatically
+            fetch('send_otp.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Show the OTP modal
+                    const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+                    otpModal.show();
+                    startResendTimer();
+                } else {
+                    alert('Error sending OTP: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+        });
+        <?php 
+        unset($_SESSION['show_otp_modal']); 
+        endif; 
+        ?>
 
-    document.getElementById('verifyOtpBtn').addEventListener('click', function() {
-        const otp = document.getElementById('otpInput').value.trim();
-        const errorDiv = document.getElementById('otpError');
+        // OTP verification
+        document.addEventListener("DOMContentLoaded", function() {
+            const verifyBtn = document.getElementById('verifyOtpBtn');
+            const otpInput = document.getElementById('otpInput');
+            const errorDiv = document.getElementById('otpError');
+            const successDiv = document.getElementById('otpSuccess');
+            const resendBtn = document.getElementById('resendOtp');
 
-        if (otp.length !== 6) {
-            errorDiv.textContent = "OTP must be 6 digits.";
-            errorDiv.style.display = "block";
-            return;
-        }
+            // Auto-focus on OTP input when modal opens
+            document.getElementById('otpModal').addEventListener('shown.bs.modal', function () {
+                otpInput.focus();
+            });
 
-        fetch('verify_otp.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-            body: 'otp=' + encodeURIComponent(otp)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
+            // Format OTP input (numbers only)
+            otpInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // Verify OTP
+            verifyBtn.addEventListener('click', verifyOTP);
+            
+            // Allow Enter key to verify
+            otpInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    verifyOTP();
+                }
+            });
+
+            function verifyOTP() {
+                const otp = otpInput.value.trim();
+                
                 errorDiv.style.display = "none";
-                $('#otpModal').modal('hide');
-                alert("OTP Verified! Proceeding to Step 2...");
-                window.location.href = 'signup_step2.php';
-            } else {
-                errorDiv.textContent = data.message;
+                successDiv.style.display = "none";
+
+                if (otp.length !== 6) {
+                    showError("Please enter a 6-digit code.");
+                    return;
+                }
+
+                verifyBtn.disabled = true;
+                verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Verifying...';
+
+                fetch('verify_otp.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'otp=' + encodeURIComponent(otp)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showSuccess("Email verified successfully!");
+                        setTimeout(() => {
+                            window.location.href = 'signup.php?step=2';
+                        }, 1500);
+                    } else {
+                        showError(data.message || "Invalid or expired code. Please try again.");
+                        verifyBtn.disabled = false;
+                        verifyBtn.innerHTML = '<i class="fas fa-check me-2"></i>Verify Code';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError("Network error. Please try again.");
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = '<i class="fas fa-check me-2"></i>Verify Code';
+                });
+            }
+
+            // Resend OTP
+            resendBtn.addEventListener('click', function() {
+                if (resendBtn.classList.contains('disabled')) return;
+
+                resendBtn.style.pointerEvents = 'none';
+                resendBtn.textContent = 'Sending...';
+
+                fetch('send_otp.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'}
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showSuccess("New verification code sent!");
+                        startResendTimer();
+                    } else {
+                        showError(data.message || "Error sending code. Please try again.");
+                        resendBtn.style.pointerEvents = 'auto';
+                        resendBtn.textContent = 'Resend OTP';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError("Network error. Please try again.");
+                    resendBtn.style.pointerEvents = 'auto';
+                    resendBtn.textContent = 'Resend OTP';
+                });
+            });
+
+            function showError(message) {
+                errorDiv.textContent = message;
                 errorDiv.style.display = "block";
             }
+
+            function showSuccess(message) {
+                successDiv.textContent = message;
+                successDiv.style.display = "block";
+            }
+
+            function startResendTimer() {
+                const timerDiv = document.getElementById('otpTimer');
+                const timerCount = document.getElementById('timerCount');
+                let seconds = 60;
+
+                resendBtn.style.pointerEvents = 'none';
+                resendBtn.classList.add('disabled');
+                timerDiv.style.display = 'block';
+
+                const timer = setInterval(() => {
+                    seconds--;
+                    timerCount.textContent = seconds;
+
+                    if (seconds <= 0) {
+                        clearInterval(timer);
+                        timerDiv.style.display = 'none';
+                        resendBtn.style.pointerEvents = 'auto';
+                        resendBtn.classList.remove('disabled');
+                        resendBtn.textContent = 'Resend OTP';
+                    }
+                }, 1000);
+            }
         });
-    });
-});
+
         // Document modal functions
         function openDocumentModal(imagePath, fileName, fileExt) {
             const modal = document.getElementById('documentModal');
