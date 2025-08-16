@@ -2,6 +2,13 @@
 session_start();
 header('Content-Type: application/json');
 
+// Include PHPMailer (installed in parent directory)
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
+
+require '../vendor/autoload.php'; // Path to vendor from seller directory
+
 // Check if user has signup data in session
 if (!isset($_SESSION['signup_data']['email']) || empty($_SESSION['signup_data']['email'])) {
     echo json_encode([
@@ -33,8 +40,15 @@ $_SESSION['otp'] = $otp;
 $_SESSION['otp_expiry'] = $otp_expiry;
 $_SESSION['otp_attempts'] = 0; // Reset attempts counter
 
-// Email configuration
-$to = $email;
+// Gmail SMTP Configuration - Try different settings
+$smtp_host = 'smtp.gmail.com';
+$smtp_port = 465; // Try SSL port instead of STARTTLS
+$smtp_username = 'oroquietamarketplace@gmail.com'; // Fixed spelling (added 'e')
+$smtp_password = 'hlmn ezjh arti mkwa'; // Try with original spaces format
+$from_email = 'oroquietamarketplace@gmail.com';
+$from_name = 'Oroquieta Marketplace';
+
+// Email content
 $subject = "Oroquieta Marketplace - Email Verification Code";
 
 // Create HTML email content
@@ -140,46 +154,66 @@ $message = "
 </html>
 ";
 
-// Email headers
-$headers = [
-    'MIME-Version: 1.0',
-    'Content-type: text/html; charset=UTF-8',
-    'From: Oroquieta Marketplace <noreply@oroquietamarketplace.com>',
-    'Reply-To: support@oroquietamarketplace.com',
-    'X-Mailer: PHP/' . phpversion()
-];
-
-// Send email
+// Send email using PHPMailer
 try {
-    $mail_sent = mail($to, $subject, $message, implode("\r\n", $headers));
+    $mail = new PHPMailer(true);
+
+    // Enable verbose debug output (remove in production)
+    $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+    $mail->Debugoutput = function($str, $level) {
+        error_log("PHPMailer Debug: $str");
+    };
+
+    // Server settings - Try SSL instead of STARTTLS
+    $mail->isSMTP();
+    $mail->Host       = $smtp_host;
+    $mail->SMTPAuth   = true;
+    $mail->Username   = $smtp_username;
+    $mail->Password   = $smtp_password;
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS; // Changed to SSL
+    $mail->Port       = $smtp_port;
     
-    if ($mail_sent) {
-        // Log successful OTP sending (optional)
-        error_log("OTP sent successfully to: " . $email . " | OTP: " . $otp . " | Expires: " . date('Y-m-d H:i:s', $otp_expiry));
-        
-        echo json_encode([
-            'status' => 'success',
-            'message' => 'Verification code sent to your email address.',
-            'email' => $email,
-            'expires_in' => 600 // 10 minutes in seconds
-        ]);
-    } else {
-        // Log email sending failure
-        error_log("Failed to send OTP email to: " . $email);
-        
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Failed to send verification email. Please try again or contact support.'
-        ]);
-    }
-    
+    // Additional security settings for Gmail
+    $mail->SMTPOptions = array(
+        'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        )
+    );
+
+    // Recipients
+    $mail->setFrom($from_email, $from_name);
+    $mail->addAddress($email);
+    $mail->addReplyTo('support@oroquietamarketplace.com', 'Support Team');
+
+    // Content
+    $mail->isHTML(true);
+    $mail->Subject = $subject;
+    $mail->Body    = $message;
+
+    // Send the email
+    $mail->send();
+
+    // Log successful OTP sending
+    error_log("OTP sent successfully to: " . $email . " | OTP: " . $otp . " | Expires: " . date('Y-m-d H:i:s', $otp_expiry));
+
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Verification code sent to your email address.',
+        'email' => $email,
+        'expires_in' => 600 // 10 minutes in seconds
+    ]);
+
 } catch (Exception $e) {
-    // Log exception
-    error_log("Exception while sending OTP email: " . $e->getMessage());
-    
+    // Log the error
+    error_log("Failed to send OTP email to: " . $email . " | Error: " . $mail->ErrorInfo . " | Exception: " . $e->getMessage());
+
     echo json_encode([
         'status' => 'error',
-        'message' => 'An error occurred while sending the verification email. Please try again.'
+        'message' => 'Failed to send verification email. Please try again or contact support.',
+        'debug' => $mail->ErrorInfo,
+        'exception' => $e->getMessage()
     ]);
 }
 ?>
