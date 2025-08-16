@@ -97,7 +97,7 @@ try {
                                         <div class="product-image">
                                             <img src="<?php echo $product['image_url']; ?>"
                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                                onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200&h=200&fit=crop'">
+                                                onerror="this.src='https://estore.midas.com.my/image/cache/no_image_uploaded-253x190.png'">
                                             <?php if ($product['is_featured']): ?>
                                                 <div class="featured-badge">Featured</div>
                                             <?php endif; ?>
@@ -168,27 +168,6 @@ try {
                             <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
                             <p><?php echo $seller['product_count']; ?> product<?php echo $seller['product_count'] != 1 ? 's' : ''; ?></p>
                             
-                            <!-- Star rating -->
-                            <div class="seller-rating">
-                                <?php 
-                                // Default to 4 stars if no rating available
-                                $rating = isset($seller['rating']) && $seller['rating'] > 0 ? $seller['rating'] : 4;
-                                $rating = round($rating, 1);
-                                $fullStars = floor($rating);
-                                $hasHalfStar = ($rating - $fullStars) >= 0.5;
-                                
-                                for ($i = 1; $i <= 5; $i++) {
-                                    if ($i <= $fullStars) {
-                                        echo '<i class="fas fa-star"></i>';
-                                    } elseif ($i == $fullStars + 1 && $hasHalfStar) {
-                                        echo '<i class="fas fa-star-half-alt"></i>';
-                                    } else {
-                                        echo '<i class="far fa-star"></i>';
-                                    }
-                                }
-                                ?>
-                                <span>(<?php echo $rating; ?>)</span>
-                            </div>
                         </div>
                         
                         <!-- Visit Stall button at bottom -->
