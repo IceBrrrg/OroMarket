@@ -6,7 +6,15 @@ require_once 'fetch_products.php';
 $products = fetchProducts(12);
 $categories = fetchCategories();
 $featured_products = getFeaturedProducts(6);
-$popular_sellers = getSellers(4);
+$all_sellers = getSellers(1000); // Fetch enough sellers for pagination
+
+// Pagination logic for sellers
+$sellers_per_page = 6;
+$seller_page = isset($_GET['seller_page']) ? max(1, intval($_GET['seller_page'])) : 1;
+$total_sellers = count($all_sellers);
+$total_seller_pages = ceil($total_sellers / $sellers_per_page);
+$start_index = ($seller_page - 1) * $sellers_per_page;
+$popular_sellers = array_slice($all_sellers, $start_index, $sellers_per_page);
 $most_viewed_products = getMostViewedProducts(4); // Get most viewed products
 
 // Fetch announcements targeted to customers or all users
@@ -44,7 +52,7 @@ try {
                 </div>
             </div>
 
-            <!-- Results Info  --> 
+            <!-- Results Info  -->
             <div class="results-info">
                 <div class="results-count">
                     <span id="resultsCount">Showing <?php echo count($products); ?> products</span>
@@ -60,9 +68,9 @@ try {
             </div>
 
             <!-- Include existing styles -->
-            
 
-        
+
+
             <!-- Main Grid -->
             <div class="main-grid">
                 <!-- Left Column -->
@@ -129,39 +137,73 @@ try {
                         </div>
                     </section>
 
-                    <!-- All Sellers -->
-                    <section class="all-sellers">
-                        <div class="section-header">
-                            <h2>Our Sellers</h2>
-                            <a href="#" class="view-more">View All Sellers</a>
-                        </div>
+<!-- All Sellers Section - Updated HTML Structure -->
+<section class="all-sellers">
+    <div class="section-header">
+        <h2>Our Sellers</h2>
+        <a href="#" class="view-more">View All Sellers</a>
+    </div>
 
-                        <div class="sellers-grid">
-                            <?php if (empty($popular_sellers)): ?>
-                                <div class="no-sellers">
-                                    <p>No sellers available at the moment.</p>
-                                </div>
-                            <?php else: ?>
-                                <?php foreach ($popular_sellers as $seller): ?>
-                                    <div class="seller-card">
-                                        <div class="seller-banner"></div>
-                                        <div class="seller-info">
-                                            <div class="seller-logo">
-                                                <img src="<?php echo $seller['profile_image_url']; ?>" alt="Seller Logo">
-                                            </div>
-                                            <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
-                                            <p><?php echo $seller['product_count']; ?> products</p>
-                                            <div class="seller-actions">
-                                                <button class="btn visit-store-btn"
-                                                    onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">Visit Stall</button>
-                                                <!-- REMOVED CHAT BUTTON FROM SELLER CARDS TOO -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+    <div class="sellers-grid">
+        <?php if (empty($popular_sellers)): ?>
+            <div class="no-sellers">
+                <p>No sellers available at the moment.</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($popular_sellers as $seller): ?>
+                <div class="seller-card">
+                    <!-- Green banner at top -->
+                    <div class="seller-banner"></div>
+                    
+                    <!-- Profile image circle overlapping the banner -->
+                    <div class="seller-logo">
+                        <img src="<?php echo !empty($seller['profile_image_url']) ? $seller['profile_image_url'] : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face'; ?>" 
+                             alt="<?php echo htmlspecialchars($seller['full_name']); ?>"
+                             onerror="this.style.display='none';">
+                    </div>
+                    
+                    <!-- White content box -->
+                    <div class="seller-info">
+                        <div class="seller-details">
+                            <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
+                            <p><?php echo $seller['product_count']; ?> product<?php echo $seller['product_count'] != 1 ? 's' : ''; ?></p>
+                            
+                            <!-- Star rating -->
+                            <div class="seller-rating">
+                                <?php 
+                                // Default to 4 stars if no rating available
+                                $rating = isset($seller['rating']) && $seller['rating'] > 0 ? $seller['rating'] : 4;
+                                $rating = round($rating, 1);
+                                $fullStars = floor($rating);
+                                $hasHalfStar = ($rating - $fullStars) >= 0.5;
+                                
+                                for ($i = 1; $i <= 5; $i++) {
+                                    if ($i <= $fullStars) {
+                                        echo '<i class="fas fa-star"></i>';
+                                    } elseif ($i == $fullStars + 1 && $hasHalfStar) {
+                                        echo '<i class="fas fa-star-half-alt"></i>';
+                                    } else {
+                                        echo '<i class="far fa-star"></i>';
+                                    }
+                                }
+                                ?>
+                                <span>(<?php echo $rating; ?>)</span>
+                            </div>
                         </div>
-                    </section>
+                        
+                        <!-- Visit Stall button at bottom -->
+                        <div class="seller-actions">
+                            <button class="visit-store-btn" onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">
+                                <i class="fas fa-store"></i>
+                                Visit Stall
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+</section>
 
 
                 </div>
@@ -199,18 +241,19 @@ try {
                         </div>
 
                         <?php if (!empty($most_viewed_products)): ?>
-                        <div class="order-navigation">
-                            <?php for ($i = 0; $i < min(3, count($most_viewed_products)); $i++): ?>
-                                <button class="nav-dot <?php echo $i === 0 ? 'active' : ''; ?>" data-slide="<?php echo $i; ?>"></button>
-                            <?php endfor; ?>
-                        </div>
+                            <div class="order-navigation">
+                                <?php for ($i = 0; $i < min(3, count($most_viewed_products)); $i++): ?>
+                                    <button class="nav-dot <?php echo $i === 0 ? 'active' : ''; ?>"
+                                        data-slide="<?php echo $i; ?>"></button>
+                                <?php endfor; ?>
+                            </div>
                         <?php endif; ?>
                     </section>
 
                     <!-- Announcements Section -->
                     <section class="announcements-section">
                         <h2>Announcements</h2>
-                        
+
                         <div class="announcements-container">
                             <?php if (empty($announcements)): ?>
                                 <div class="no-announcements-message">
@@ -237,7 +280,8 @@ try {
                                                 <i class="fas fa-calendar"></i>
                                                 <?php echo date('M j, Y', strtotime($announcement['created_at'])); ?>
                                                 <?php if ($announcement['expiry_date']): ?>
-                                                    | Expires: <?php echo date('M j, Y', strtotime($announcement['expiry_date'])); ?>
+                                                    | Expires:
+                                                    <?php echo date('M j, Y', strtotime($announcement['expiry_date'])); ?>
                                                 <?php endif; ?>
                                             </small>
                                         </div>
@@ -253,163 +297,163 @@ try {
 </div>
 
 <script>
-// Fetch and update price ticker with product images
-function fetchPriceTicker() {
-    fetch('api/price_ticker.php')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const tickerContent = document.getElementById('priceTickerContent');
-                tickerContent.innerHTML = '';
+    // Fetch and update price ticker with product images
+    function fetchPriceTicker() {
+        fetch('api/price_ticker.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const tickerContent = document.getElementById('priceTickerContent');
+                    tickerContent.innerHTML = '';
 
-                data.data.forEach(item => {
-                    const tickerItem = document.createElement('div');
-                    tickerItem.className = 'ticker-item';
+                    data.data.forEach(item => {
+                        const tickerItem = document.createElement('div');
+                        tickerItem.className = 'ticker-item';
 
-                    const productImage = document.createElement('img');
-                    productImage.src = item.image_url;
-                    productImage.alt = item.name;
-                    productImage.className = 'ticker-product-image';
+                        const productImage = document.createElement('img');
+                        productImage.src = item.image_url;
+                        productImage.alt = item.name;
+                        productImage.className = 'ticker-product-image';
 
-                    const icon = document.createElement('img');
-                    if (item.change === 'up') {
-                        icon.src = '../assets/img/up-arrow.png'; // Local green arrow
-                    } else if (item.change === 'down') {
-                        icon.src = '../assets/img/down-arrow.png'; // Local red arrow
-                    } else {
-                        icon.src = '../assets/img/no-change.png'; // Local gray dash
-                    }
+                        const icon = document.createElement('img');
+                        if (item.change === 'up') {
+                            icon.src = '../assets/img/up-arrow.png'; // Local green arrow
+                        } else if (item.change === 'down') {
+                            icon.src = '../assets/img/down-arrow.png'; // Local red arrow
+                        } else {
+                            icon.src = '../assets/img/no-change.png'; // Local gray dash
+                        }
 
-                    const text = document.createTextNode(`${item.name}: ₱${item.price}`);
+                        const text = document.createTextNode(`${item.name}: ₱${item.price}`);
 
-                    tickerItem.appendChild(productImage);
-                    tickerItem.appendChild(icon);
-                    tickerItem.appendChild(text);
-                    tickerContent.appendChild(tickerItem);
-                });
-            }
-        })
-        .catch(error => console.error('Error fetching price ticker:', error));
-}
+                        tickerItem.appendChild(productImage);
+                        tickerItem.appendChild(icon);
+                        tickerItem.appendChild(text);
+                        tickerContent.appendChild(tickerItem);
+                    });
+                }
+            })
+            .catch(error => console.error('Error fetching price ticker:', error));
+    }
 
-// Refresh ticker every 30 seconds
-setInterval(fetchPriceTicker, 30000);
-fetchPriceTicker();
+    // Refresh ticker every 30 seconds
+    setInterval(fetchPriceTicker, 30000);
+    fetchPriceTicker();
 
-// Update the ticker animation for a smooth upward transition
-function updateTickerAnimation() {
-    const tickerContent = document.getElementById('priceTickerContent');
-    const firstChild = tickerContent.firstElementChild;
-    const tickerHeight = firstChild.offsetHeight;
+    // Update the ticker animation for a smooth upward transition
+    function updateTickerAnimation() {
+        const tickerContent = document.getElementById('priceTickerContent');
+        const firstChild = tickerContent.firstElementChild;
+        const tickerHeight = firstChild.offsetHeight;
 
-    tickerContent.style.transition = 'transform 1s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Smooth easing
-    tickerContent.style.transform = `translateY(-${tickerHeight}px)`;
+        tickerContent.style.transition = 'transform 1s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Smooth easing
+        tickerContent.style.transform = `translateY(-${tickerHeight}px)`;
 
-    // Reset the position after the animation completes
-    setTimeout(() => {
-        tickerContent.style.transition = 'none';
-        tickerContent.style.transform = 'translateY(0)';
-        tickerContent.appendChild(firstChild);
-    }, 1000); // Match the transition duration
-}
+        // Reset the position after the animation completes
+        setTimeout(() => {
+            tickerContent.style.transition = 'none';
+            tickerContent.style.transform = 'translateY(0)';
+            tickerContent.appendChild(firstChild);
+        }, 1000); // Match the transition duration
+    }
 
-// Ensure the animation runs every 3 seconds
-setInterval(updateTickerAnimation, 3000);
+    // Ensure the animation runs every 3 seconds
+    setInterval(updateTickerAnimation, 3000);
 </script>
 
 <script>
-// Enhanced JavaScript for view tracking and most viewed functionality
+    // Enhanced JavaScript for view tracking and most viewed functionality
 
-// Track product view when clicking on a product
-function viewProduct(productId) {
-    // Track the view via AJAX
-    fetch('track_view.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            product_id: productId,
-            action: 'track_view'
+    // Track product view when clicking on a product
+    function viewProduct(productId) {
+        // Track the view via AJAX
+        fetch('track_view.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                product_id: productId,
+                action: 'track_view'
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('View tracked successfully');
-            // Optionally update view count in UI
-            updateViewCount(productId, data.new_view_count);
-        }
-    })
-    .catch(error => {
-        console.error('Error tracking view:', error);
-    });
-    
-    // Redirect to product page
-    window.location.href = `view_product.php?id=${productId}`;
-}
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('View tracked successfully');
+                    // Optionally update view count in UI
+                    updateViewCount(productId, data.new_view_count);
+                }
+            })
+            .catch(error => {
+                console.error('Error tracking view:', error);
+            });
 
-// Function to update view count in UI
-function updateViewCount(productId, newCount) {
-    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
-    if (productCard) {
-        const viewBadge = productCard.querySelector('.view-count-badge');
-        if (viewBadge) {
-            viewBadge.textContent = `${newCount} views`;
-        } else if (newCount > 0) {
-            // Create view count badge if it doesn't exist
-            const productImage = productCard.querySelector('.product-image');
-            const badge = document.createElement('div');
-            badge.className = 'view-count-badge';
-            badge.textContent = `${newCount} views`;
-            productImage.appendChild(badge);
+        // Redirect to product page
+        window.location.href = `view_product.php?id=${productId}`;
+    }
+
+    // Function to update view count in UI
+    function updateViewCount(productId, newCount) {
+        const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+        if (productCard) {
+            const viewBadge = productCard.querySelector('.view-count-badge');
+            if (viewBadge) {
+                viewBadge.textContent = `${newCount} views`;
+            } else if (newCount > 0) {
+                // Create view count badge if it doesn't exist
+                const productImage = productCard.querySelector('.product-image');
+                const badge = document.createElement('div');
+                badge.className = 'view-count-badge';
+                badge.textContent = `${newCount} views`;
+                productImage.appendChild(badge);
+            }
         }
     }
-}
 
-// View seller products function
-function viewSellerProducts(sellerId) {
-    window.location.href = `view_stall.php?seller_id=${sellerId}`;
-}
+    // View seller products function
+    function viewSellerProducts(sellerId) {
+        window.location.href = `view_stall.php?seller_id=${sellerId}`;
+    }
 
-// Enhanced sort functionality to include most viewed
-document.getElementById('sortBy').addEventListener('change', function() {
-    const sortValue = this.value;
-    
-    // Show loading state
-    const productsGrid = document.getElementById('productsGrid');
-    productsGrid.innerHTML = '<div class="loading">Loading products...</div>';
-    
-    // Fetch sorted products
-    fetch('ajax_sort_products.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            sort_by: sortValue,
-            search: document.getElementById('productSearch').value
+    // Enhanced sort functionality to include most viewed
+    document.getElementById('sortBy').addEventListener('change', function () {
+        const sortValue = this.value;
+
+        // Show loading state
+        const productsGrid = document.getElementById('productsGrid');
+        productsGrid.innerHTML = '<div class="loading">Loading products...</div>';
+
+        // Fetch sorted products
+        fetch('ajax_sort_products.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                sort_by: sortValue,
+                search: document.getElementById('productSearch').value
+            })
         })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            updateProductsGrid(data.products);
-            document.getElementById('resultsCount').textContent = `Showing ${data.products.length} products`;
-        }
-    })
-    .catch(error => {
-        console.error('Error sorting products:', error);
-        productsGrid.innerHTML = '<div class="error">Error loading products</div>';
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateProductsGrid(data.products);
+                    document.getElementById('resultsCount').textContent = `Showing ${data.products.length} products`;
+                }
+            })
+            .catch(error => {
+                console.error('Error sorting products:', error);
+                productsGrid.innerHTML = '<div class="error">Error loading products</div>';
+            });
     });
-});
 
-// Function to update products grid - REMOVED CHAT BUTTON FROM GENERATED HTML
-function updateProductsGrid(products) {
-    const productsGrid = document.getElementById('productsGrid');
-    
-    if (products.length === 0) {
-        productsGrid.innerHTML = `
+    // Function to update products grid - REMOVED CHAT BUTTON FROM GENERATED HTML
+    function updateProductsGrid(products) {
+        const productsGrid = document.getElementById('productsGrid');
+
+        if (products.length === 0) {
+            productsGrid.innerHTML = `
             <div class="no-products">
                 <div class="no-products-content">
                     <i class="fas fa-shopping-basket"></i>
@@ -418,12 +462,12 @@ function updateProductsGrid(products) {
                 </div>
             </div>
         `;
-        return;
-    }
-    
-    let html = '';
-    products.forEach(product => {
-        html += `
+            return;
+        }
+
+        let html = '';
+        products.forEach(product => {
+            html += `
             <div class="product-card" data-product-id="${product.id}">
                 <div class="product-image">
                     <img src="${product.image_url}" 
@@ -449,55 +493,56 @@ function updateProductsGrid(products) {
                 </div>
             </div>
         `;
-    });
-    
-    productsGrid.innerHTML = html;
-}
+        });
 
-// Navigation dots for most viewed section
-document.querySelectorAll('.nav-dot').forEach(dot => {
-    dot.addEventListener('click', function() {
-        const slideIndex = this.getAttribute('data-slide');
-        
-        // Remove active class from all dots
-        document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
-        
-        // Add active class to clicked dot
-        this.classList.add('active');
-        
-        console.log(`Navigating to slide ${slideIndex}`);
-    });
-});
+        productsGrid.innerHTML = html;
+    }
 
-// Auto-refresh most viewed section periodically
-setInterval(function() {
-    fetch('ajax_most_viewed.php')
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.products) {
-            updateMostViewedSection(data.products);
-        }
-    })
-    .catch(error => {
-        console.error('Error refreshing most viewed:', error);
-    });
-}, 60000); // Refresh every minute
+    // Navigation dots for most viewed section
+    document.querySelectorAll('.nav-dot').forEach(dot => {
+        dot.addEventListener('click', function () {
+            const slideIndex = this.getAttribute('data-slide');
 
-function updateMostViewedSection(products) {
-    const orderItems = document.querySelector('.order-items');
-    
-    if (products.length === 0) {
-        orderItems.innerHTML = `
+            // Remove active class from all dots
+            document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+
+            // Add active class to clicked dot
+            this.classList.add('active');
+
+            console.log(`Navigating to slide ${slideIndex}`);
+        });
+    });
+
+    // Auto-refresh most viewed section periodically
+    setInterval(function () {
+        fetch('ajax_most_viewed.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.products) {
+                    updateMostViewedSection(data.products);
+                }
+            })
+            .catch(error => {
+                console.error('Error refreshing most viewed:', error);
+            });
+    }, 60000); // Refresh every minute
+
+    function updateMostViewedSection(products) {
+        const orderItems = document.querySelector('.order-items');
+
+        if (products.length === 0) {
+            orderItems.innerHTML = `
             <div class="no-products-message">
                 <i class="fas fa-eye"></i>
                 <p>No viewed products yet</p>
             </div>
         `;
-        return;
+            return;
+        }
+
+
     }
     
-    
-}
 </script>
 
 <script src="../customer/js/index.js"></script>
@@ -515,4 +560,5 @@ function updateMostViewedSection(products) {
 <script src="../assets/js/main.js"></script>
 
 </body>
+
 </html>

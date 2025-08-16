@@ -1,50 +1,58 @@
-/* Sellers Section Styles */
+/* Sellers Section Styles - Matching Your Design */
 .all-sellers {
     padding: 20px;
     margin: 20px 0;
     background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .sellers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
 
 .seller-card {
     background-color: #fff;
-    border-radius: 10px;
+    border-radius: 15px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    height: 320px;
+    position: relative;
 }
 
 .seller-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
+/* Green banner at the top */
 .seller-banner {
-    height: 100px;
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-}
-
-.seller-info {
-    padding: 20px;
-    text-align: center;
+    height: 120px;
+    background: linear-gradient(135deg, #52c41a 0%, #45a820 100%);
     position: relative;
+    border-radius: 15px 15px 0 0;
 }
 
+/* Profile image circle overlapping the banner */
 .seller-logo {
+    position: absolute;
+    top: 60px; /* Half of banner height to center it on the edge */
+    left: 50%;
+    transform: translateX(-50%);
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    margin: -60px auto 15px;
-    overflow: hidden;
     border: 4px solid #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    background-color: #f5f5f5;
+    z-index: 10;
 }
 
 .seller-logo img {
@@ -53,38 +61,252 @@
     object-fit: cover;
 }
 
+/* Default placeholder for missing images */
+.seller-logo::before {
+    content: '👤';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.5rem;
+    color: #ccc;
+    z-index: 1;
+}
+
+/* Main content area - the "box" */
+.seller-info {
+    background: #fff;
+    padding: 50px 20px 20px 20px; /* Top padding to account for overlapping profile image */
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    border-radius: 0 0 15px 15px;
+}
+
+/* Seller details container */
+.seller-details {
+    margin-bottom: 20px;
+}
+
 .seller-info h3 {
     color: #333;
     font-size: 1.2rem;
-    margin-bottom: 5px;
+    font-weight: 600;
+    margin: 0 0 8px 0;
+    line-height: 1.3;
 }
 
 .seller-info p {
     color: #666;
     font-size: 0.9rem;
-    margin-bottom: 15px;
+    margin: 0 0 12px 0;
+    font-weight: 500;
 }
 
+/* Star rating */
 .seller-rating {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 8px;
+}
+
+.seller-rating i {
     color: #ffc107;
-    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.seller-rating .far {
+    color: #d9d9d9;
 }
 
 .seller-rating span {
     color: #666;
+    font-size: 0.85rem;
     margin-left: 5px;
 }
 
+/* Visit Stall button at the bottom */
+.seller-actions {
+    margin-top: auto;
+}
+
 .visit-store-btn {
-    background-color: #4CAF50;
+    background: linear-gradient(135deg, #52c41a, #45a820);
     color: white;
     border: none;
-    padding: 8px 20px;
-    border-radius: 5px;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    font-size: 0.9rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .visit-store-btn:hover {
-    background-color: #45a049;
+    background: linear-gradient(135deg, #45a820, #389e0d);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(82, 196, 26, 0.3);
 }
+
+.visit-store-btn i {
+    font-size: 0.9rem;
+}
+
+/* No sellers state */
+.no-sellers {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+    grid-column: 1 / -1;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.no-sellers::before {
+    content: '🏪';
+    display: block;
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-sellers p {
+    margin: 0;
+    font-style: italic;
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .sellers-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .seller-card {
+        height: 300px;
+    }
+    
+    .seller-logo {
+        width: 70px;
+        height: 70px;
+        top: 55px;
+    }
+    
+    .seller-logo::before {
+        font-size: 2rem;
+    }
+    
+    .seller-info {
+        padding: 45px 15px 15px 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .all-sellers {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .sellers-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+    }
+    
+    .seller-card {
+        height: 280px;
+    }
+    
+    .seller-banner {
+        height: 100px;
+    }
+    
+    .seller-logo {
+        width: 60px;
+        height: 60px;
+        top: 50px;
+    }
+    
+    .seller-logo::before {
+        font-size: 1.8rem;
+    }
+    
+    .seller-info {
+        padding: 40px 15px 15px 15px;
+    }
+    
+    .seller-info h3 {
+        font-size: 1.1rem;
+    }
+    
+    .seller-info p {
+        font-size: 0.85rem;
+    }
+    
+    .visit-store-btn {
+        padding: 10px 20px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .sellers-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .seller-card {
+        height: 280px;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .seller-banner {
+        height: 90px;
+    }
+    
+    .seller-logo {
+        width: 60px;
+        height: 60px;
+        top: 45px;
+    }
+    
+    .seller-info {
+        padding: 40px 15px 15px 15px;
+    }
+    
+    .visit-store-btn {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation for seller cards */
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.seller-card {
+    animation: fadeInScale 0.5s ease forwards;
+}
+
+.seller-card:nth-child(1) { animation-delay: 0.1s; }
+.seller-card:nth-child(2) { animation-delay: 0.2s; }
+.seller-card:nth-child(3) { animation-delay: 0.3s; }
+.seller-card:nth-child(4) { animation-delay: 0.4s; }
