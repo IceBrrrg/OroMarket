@@ -579,11 +579,17 @@ $announcement_count = count($announcements);
             </div>
         </div>
     </div>
-    <a class="complaint-fab" onclick="openComplaintModal()" title="Report a Complaint">
-        <i class="fas fa-flag"></i>
-    </a>
+    <?php
+    // Only show complaint button on view_product.php
+    $current_page = basename($_SERVER['PHP_SELF']);
+    if ($current_page === 'view_product.php'):
+        ?>
+        <a class="complaint-fab" onclick="openComplaintModal()" title="Report a Complaint">
+            <i class="fas fa-flag"></i>
+        </a>
+    <?php endif; ?>
 
-    <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+    <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledBy="complaintModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

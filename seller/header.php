@@ -173,9 +173,61 @@ $business_name = $application ? $application['business_name'] : ($seller['first_
             </div>
         </div>
 
-        <a href="../logout.php" class="logout-btn-header">
+        <button type="button" class="logout-btn-header" data-bs-toggle="modal" data-bs-target="#logoutModal">
             <i class="bi bi-box-arrow-right"></i>
             Logout
-        </a>
+        </button>
     </div>
 </div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white;">
+                <h5 class="modal-title" id="logoutModalLabel">
+                    <i class="bi bi-question-circle me-2"></i>Confirm Logout
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to logout from your seller account?</p>
+                <p class="text-muted small mb-0 mt-2">You will need to login again to access your seller dashboard.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </button>
+                <a href="../logout.php" class="btn btn-primary"
+                    style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); border: none;">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Add modal styles */
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+    }
+</style>

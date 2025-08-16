@@ -32,6 +32,51 @@ try {
 } catch (Exception $e) {
     $total_products = 0;
 }
+
+// Handle AJAX request for product details
+if (isset($_GET['action']) && $_GET['action'] === 'get_product_details' && isset($_GET['product_id'])) {
+    $product_id = (int)$_GET['product_id'];
+    
+    try {
+        // Fetch detailed product information
+        $sql = "SELECT p.*, c.name AS category_name,
+                       CONCAT(COALESCE(sa.business_name, s.username)) AS seller_name,
+                       s.email AS seller_email,
+                       s.phone AS seller_phone
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN sellers s ON p.seller_id = s.id
+                LEFT JOIN seller_applications sa ON sa.seller_id = s.id AND sa.status = 'approved'
+                WHERE p.id = ?";
+        
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$product_id]);
+        $product = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$product) {
+            echo json_encode(['error' => 'Product not found']);
+            exit;
+        }
+        
+        // Fetch all product images
+        $images_sql = "SELECT image_path, is_primary FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, id ASC";
+        $images_stmt = $pdo->prepare($images_sql);
+        $images_stmt->execute([$product_id]);
+        $images = $images_stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $product['images'] = $images;
+        
+        // Return JSON response
+        header('Content-Type: application/json');
+        echo json_encode($product);
+        exit;
+        
+    } catch (Exception $e) {
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+        exit;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -228,7 +273,7 @@ try {
         }
 
         .table thead th {
-            background: var(--primary-color);
+            background: #2f6186;
             color: white;
             border: none;
             padding: 1rem;
@@ -303,6 +348,61 @@ try {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
+
+
+        .product-images .carousel-item img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-images .carousel-control-prev,
+.product-images .carousel-control-next {
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.product-images .carousel-control-prev {
+    left: 10px;
+}
+
+.product-images .carousel-control-next {
+    right: 10px;
+}
+
+.product-info .row {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 0;
+}
+
+.product-info .row:last-child {
+    border-bottom: none;
+}
+
+#productDescription {
+    min-height: 100px;
+    white-space: pre-wrap;
+}
+
+.modal-xl {
+    max-width: 1200px;
+}
+
+@media (max-width: 768px) {
+    .modal-xl {
+        max-width: 95%;
+        margin: 10px auto;
+    }
+    
+    .product-images .carousel-item img {
+        height: 250px;
+    }
+}
     </style>
 </head>
 
@@ -515,22 +615,155 @@ try {
         </div>
     </div>
 
-    <!-- View Details Modal -->
-    <div class="modal fade" id="detailsModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-box me-2"></i>Product Details
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <!-- Replace your existing View Details Modal with this enhanced version -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header text-white" style="background-color: #2f6186">
+                <h5 class="modal-title">
+                    <i class="fas fa-box me-2"></i>Product Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="productDetailsContent">
+                    <!-- Loading state -->
+                    <div class="text-center py-4" id="loadingState">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading product details</p>
+                        <p style="font-style: italic;">(Refresh the page if it takes too long)</p>
+                    </div>
+                    
+                    <!-- Error state -->
+                    <div class="alert alert-danger d-none" id="errorState">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="errorMessage">Failed to load product details.</span>
+                    </div>
+                    
+                    <!-- Product details content -->
+                    <div class="d-none" id="productContent">
+                        <div class="row">
+                            <!-- Product Images -->
+                            <div class="col-md-5">
+                                <div class="product-images">
+                                    <div id="productImageCarousel" class="carousel slide" data-bs-ride="carousel">
+                                        <div class="carousel-inner" id="carouselImages">
+                                            <!-- Images will be loaded here -->
+                                        </div>
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#productImageCarousel" data-bs-slide="prev">
+                                            <span class="carousel-control-prev-icon"></span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#productImageCarousel" data-bs-slide="next">
+                                            <span class="carousel-control-next-icon"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Product Information -->
+                            <div class="col-md-7">
+                                <div class="product-info">
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Product ID:</strong></div>
+                                        <div class="col-sm-8" id="productId">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Name:</strong></div>
+                                        <div class="col-sm-8" id="productName">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Category:</strong></div>
+                                        <div class="col-sm-8" id="productCategory">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Price:</strong></div>
+                                        <div class="col-sm-8" id="productPrice">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Stock:</strong></div>
+                                        <div class="col-sm-8" id="productStock">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Weight:</strong></div>
+                                        <div class="col-sm-8" id="productWeight">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Status:</strong></div>
+                                        <div class="col-sm-8" id="productStatus">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Featured:</strong></div>
+                                        <div class="col-sm-8" id="productFeatured">-</div>
+                                    </div>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-sm-4"><strong>Created:</strong></div>
+                                        <div class="col-sm-8" id="productCreated">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Description -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6><strong>Description:</strong></h6>
+                                <div class="border rounded p-3 bg-light" id="productDescription">
+                                    -
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seller Information -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6><strong>Seller Information:</strong></h6>
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <strong>Name:</strong>
+                                                <span id="sellerName">-</span>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Email:</strong>
+                                                <span id="sellerEmail">-</span>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <strong>Phone:</strong>
+                                                <span id="sellerPhone">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <!-- Details will be loaded here -->
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+                <button type="button" class="btn btn-primary" id="editProductBtn" style="display: none;">
+                    <i class="fas fa-edit me-1"></i>Edit Product
+                </button>
             </div>
         </div>
     </div>
+</div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -569,11 +802,120 @@ try {
             modal.show();
         }
 
-        function viewProductDetails(productId) {
-            // Implement AJAX call to fetch product details
-            const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
-            modal.show();
-        }
+        // Replace your existing viewProductDetails function with this enhanced version
+function viewProductDetails(productId) {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    modal.show();
+    
+    // Reset modal state
+    document.getElementById('loadingState').classList.remove('d-none');
+    document.getElementById('errorState').classList.add('d-none');
+    document.getElementById('productContent').classList.add('d-none');
+    
+    // Fetch product details via AJAX
+    fetch(`?action=get_product_details&product_id=${productId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Hide loading state
+            document.getElementById('loadingState').classList.add('d-none');
+            
+            // Populate product details
+            populateProductDetails(data);
+            
+            // Show content
+            document.getElementById('productContent').classList.remove('d-none');
+        })
+        .catch(error => {
+            console.error('Error fetching product details:', error);
+            
+            // Hide loading state
+            document.getElementById('loadingState').classList.add('d-none');
+            
+            // Show error state
+            document.getElementById('errorMessage').textContent = error.message || 'Failed to load product details.';
+            document.getElementById('errorState').classList.remove('d-none');
+        });
+}
+
+function populateProductDetails(product) {
+    // Basic product information
+    document.getElementById('productId').textContent = product.id || '-';
+    document.getElementById('productName').textContent = product.name || '-';
+    document.getElementById('productCategory').textContent = product.category_name || 'Uncategorized';
+    document.getElementById('productPrice').textContent = product.price ? `₱${parseFloat(product.price).toLocaleString()}` : '-';
+    document.getElementById('productStock').textContent = product.stock_quantity || '0';
+    document.getElementById('productWeight').textContent = product.weight ? `${product.weight} kg` : '-';
+    document.getElementById('productDescription').textContent = product.description || 'No description available.';
+    
+    // Status badge
+    const statusElement = document.getElementById('productStatus');
+    const isActive = parseInt(product.is_active);
+    statusElement.innerHTML = `<span class="badge ${isActive ? 'bg-success' : 'bg-danger'}">${isActive ? 'Active' : 'Inactive'}</span>`;
+    
+    // Featured badge
+    const featuredElement = document.getElementById('productFeatured');
+    const isFeatured = parseInt(product.is_featured);
+    featuredElement.innerHTML = `<span class="badge ${isFeatured ? 'bg-warning' : 'bg-secondary'}">${isFeatured ? 'Yes' : 'No'}</span>`;
+    
+    // Created date
+    const createdDate = product.created_at ? new Date(product.created_at).toLocaleDateString() : '-';
+    document.getElementById('productCreated').textContent = createdDate;
+    
+    // Seller information
+    document.getElementById('sellerName').textContent = product.seller_name || 'Unknown';
+    document.getElementById('sellerEmail').textContent = product.seller_email || '-';
+    document.getElementById('sellerPhone').textContent = product.seller_phone || '-';
+    
+    // Handle product images
+    const carouselImages = document.getElementById('carouselImages');
+    carouselImages.innerHTML = '';
+    
+    if (product.images && product.images.length > 0) {
+        product.images.forEach((image, index) => {
+            const carouselItem = document.createElement('div');
+            carouselItem.className = `carousel-item ${index === 0 ? 'active' : ''}`;
+            
+            const img = document.createElement('img');
+            img.src = `../${image.image_path}`;
+            img.className = 'd-block w-100';
+            img.alt = 'Product Image';
+            img.onerror = function() {
+                this.src = 'https://via.placeholder.com/400x300?text=No+Image';
+            };
+            
+            carouselItem.appendChild(img);
+            carouselImages.appendChild(carouselItem);
+        });
+    } else {
+        // No images available
+        const carouselItem = document.createElement('div');
+        carouselItem.className = 'carousel-item active';
+        
+        const img = document.createElement('img');
+        img.src = 'https://via.placeholder.com/400x300?text=No+Image+Available';
+        img.className = 'd-block w-100';
+        img.alt = 'No Image Available';
+        
+        carouselItem.appendChild(img);
+        carouselImages.appendChild(carouselItem);
+    }
+    
+    // Show/hide carousel controls based on number of images
+    const prevControl = document.querySelector('.carousel-control-prev');
+    const nextControl = document.querySelector('.carousel-control-next');
+    if (product.images && product.images.length > 1) {
+        prevControl.style.display = 'flex';
+        nextControl.style.display = 'flex';
+    } else {
+        prevControl.style.display = 'none';
+        nextControl.style.display = 'none';
+    }
+}
 
         // Auto-hide alerts after 5 seconds
         document.addEventListener('DOMContentLoaded', function () {

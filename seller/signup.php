@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Set flag to show OTP modal instead of redirecting
                         $_SESSION['show_otp_modal'] = true;
                         $_SESSION['otp_step'] = true;
-                        $success = "Please check your email for the OTP code.";
+                        $success = "Please check your email for the OTP code and wait for the verification form to appear.";
                     }
                 } catch (PDOException $e) {
                     error_log("Database error in step 1: " . $e->getMessage());
@@ -921,10 +921,10 @@ if ($step === 4) {
                     alert('Error sending OTP: ' + data.message);
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Network error. Please try again.');
-            });
+            // .catch(error => {
+            //     console.error('Error:', error);
+            //     alert('Network error. Please try again.');
+            // });
         });
         <?php 
         unset($_SESSION['show_otp_modal']); 

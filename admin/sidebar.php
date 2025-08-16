@@ -140,9 +140,38 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <small class="text">Administrator</small>
             </div>
         </div>
-        <a href="../logout.php" class="btn btn-outline-light btn-sm w-100 mt-2">
+        <button type="button" class="btn btn-outline-light btn-sm w-100 mt-2" data-bs-toggle="modal"
+            data-bs-target="#logoutModal">
             <i class="bi bi-box-arrow-right me-2"></i> Logout
-        </a>
+        </button>
+    </div>
+</div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));">
+                <h5 class="modal-title" id="logoutModalLabel">
+                    <i class="bi bi-question-circle me-2"></i>Confirm Logout
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Are you sure you want to logout from the admin dashboard?</p>
+                <p class="text-muted small mb-0 mt-2">You will need to login again to access the admin features.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle me-2"></i>Cancel
+                </button>
+                <a href="../logout.php" class="btn btn-danger">
+                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
