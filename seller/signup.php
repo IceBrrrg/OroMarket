@@ -242,9 +242,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Handle direct stall selection on step 4 (from the floorplan buttons)
-    if (isset($_POST['stall']) && $step === 4 && !isset($_POST['step'])) {
-        $_SESSION['signup_data']['selected_stall'] = $_POST['stall'];
+
+// Replace the existing POST handling section (around line 245-255) with this fixed version:
+
+// Handle direct stall selection on step 4 (from the floorplan buttons)
+if (isset($_POST['stall']) && $step === 4 && !isset($_POST['step'])) {
+    $selected_stall = $_POST['stall'];
+    
+    // Validate that the stall exists and is available
+    try {
+        $stmt = $pdo->prepare("SELECT id, status FROM stalls WHERE stall_number = ?");
+        $stmt->execute([$selected_stall]);
+        $stall = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$stall) {
+            $error = "Selected stall does not exist. Please choose another stall.";
+        } elseif ($stall['status'] !== 'available') {
+            $error = "Selected stall is not available. Please choose another stall.";
+        } else {
+            $_SESSION['signup_data']['selected_stall'] = $selected_stall;
+            $_SESSION['signup_data']['stall_id'] = $stall['id'];
+
+            // Create seller account and application
+            try {
+                $pdo->beginTransaction();
+
+                // Insert into sellers table
+                $stmt = $pdo->prepare("
+                    INSERT INTO sellers (username, email, password, first_name, last_name, phone, facebook_url, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'pending')
+                ");
+
+                $hashed_password = password_hash($_SESSION['signup_data']['password'], PASSWORD_DEFAULT);
+
+                $stmt->execute([
+                    $_SESSION['signup_data']['username'],
+                    $_SESSION['signup_data']['email'],
+                    $hashed_password,
+                    $_SESSION['signup_data']['first_name'],
+                    $_SESSION['signup_data']['last_name'],
+                    $_SESSION['signup_data']['phone'],
+                    $_SESSION['signup_data']['facebook_url']
+                ]);
+
+                $seller_id = $pdo->lastInsertId();
+
+                // Insert into seller_applications table
+                $stmt = $pdo->prepare("
+                    INSERT INTO seller_applications (
+                        seller_id, business_name, business_phone,
+                        tax_id,  
+                        documents_submitted, selected_stall
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?)");
+
+                // Encode all uploaded document paths into a single JSON string
+                $documents_json = !empty($_SESSION['signup_data']['uploaded_documents']) ? json_encode($_SESSION['signup_data']['uploaded_documents']) : null;
+
+                $stmt->execute([
+                    $seller_id,
+                    $_SESSION['signup_data']['business_name'],
+                    $_SESSION['signup_data']['business_phone'],
+                    $_SESSION['signup_data']['tax_id'],
+                    $documents_json,
+                    $_SESSION['signup_data']['selected_stall']
+                ]);
+
+                // Create stall application
+                $stmt = $pdo->prepare("
+                    INSERT INTO stall_applications (stall_id, seller_id, status)
+                    VALUES (?, ?, 'pending')
+                ");
+                $stmt->execute([$_SESSION['signup_data']['stall_id'], $seller_id]);
+
+                // Optionally reserve the stall
+                $stmt = $pdo->prepare("UPDATE stalls SET status = 'reserved' WHERE id = ?");
+                $stmt->execute([$_SESSION['signup_data']['stall_id']]);
+
+                $pdo->commit();
+
+                // Clear session data
+                unset($_SESSION['signup_data']);
+
+                // Redirect to success page
+                header("Location: signup_success.php");
+                exit();
+
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                error_log("Database error in step 4: " . $e->getMessage());
+                $error = "An error occurred during application submission. Please try again.";
+            }
+        }
+    } catch (PDOException $e) {
+        error_log("Database error validating stall: " . $e->getMessage());
+        $error = "Error validating stall selection. Please try again.";
     }
+}
+
 }
 
 // Get stored data from session

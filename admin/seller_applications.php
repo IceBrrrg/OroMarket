@@ -1,6 +1,16 @@
 <?php
+// Turn off error display to prevent HTML output in AJAX responses
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+
 session_start();
 require_once '../includes/db_connect.php';
+
+// Include PHPMailer
+require_once __DIR__ . '/phpmailer/Exception.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
 
 // Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
@@ -8,11 +18,203 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['
     exit();
 }
 
+// Email sending function using PHPMailer or basic mail()
+function sendEmail($to_email, $to_name, $subject, $body, $is_html = true) {
+    // Updated Gmail SMTP Configuration (same as working test)
+    $smtp_host = 'smtp.gmail.com';
+    $smtp_port = 587; // Changed from 465 to 587
+    $smtp_username = 'oroquietamarketplace@gmail.com';
+    $smtp_password = 'hlmn ezjh arti mkwa';
+    $from_email = 'oroquietamarketplace@gmail.com';
+    $from_name = 'Oroquieta Marketplace';
+
+    // Log the email attempt
+    error_log("Attempting to send email to: " . $to_email . " - Subject: " . $subject);
+
+    // Use PHPMailer (should be available now)
+    if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+
+        try {
+            // Server settings
+            $mail->isSMTP();
+            $mail->Host = $smtp_host;
+            $mail->SMTPAuth = true;
+            $mail->Username = $smtp_username;
+            $mail->Password = $smtp_password;
+            $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS; // Changed from SMTPS to STARTTLS
+            $mail->Port = $smtp_port;
+
+            // SSL options for Gmail compatibility
+            $mail->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
+
+            // Recipients
+            $mail->setFrom($from_email, $from_name);
+            $mail->addAddress($to_email, $to_name);
+            $mail->addReplyTo($from_email, $from_name);
+
+            // Content
+            $mail->isHTML($is_html);
+            $mail->Subject = $subject;
+            $mail->Body = $body;
+            $mail->AltBody = strip_tags($body); // Plain text version
+
+            // Additional headers to improve delivery
+            $mail->addCustomHeader('List-Unsubscribe', '<mailto:' . $from_email . '>');
+            $mail->addCustomHeader('X-Mailer', 'Oroquieta Marketplace System');
+
+            // Send the email
+            $result = $mail->send();
+            
+            if ($result) {
+                error_log("✅ Email sent successfully to: " . $to_email);
+            } else {
+                error_log("❌ Email failed to send to: " . $to_email);
+            }
+            
+            return $result;
+
+        } catch (\PHPMailer\PHPMailer\Exception $e) {
+            error_log("PHPMailer Error: " . $e->getMessage());
+            error_log("Error Info: " . $mail->ErrorInfo);
+            return false;
+        }
+    } else {
+        // PHPMailer not available - this should not happen now
+        error_log("❌ PHPMailer not available! Check if files are properly included.");
+        return false;
+    }
+}
+
+// Function to generate approval email template
+function getApprovalEmailTemplate($seller_name, $business_name) {
+    return "
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .success-badge { background: #27ae60; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; margin: 20px 0; }
+            .btn { background: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #666; }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>🎉 Application Approved!</h1>
+                <p>Oroquieta Marketplace</p>
+            </div>
+            <div class='content'>
+                <h2>Congratulations, " . htmlspecialchars($seller_name) . "!</h2>
+                
+                <div class='success-badge'>✅ APPROVED</div>
+                
+                <p>Great news! Your seller application for <strong>" . htmlspecialchars($business_name) . "</strong> has been approved by our admin team.</p>
+                
+                <h3>What happens next?</h3>
+                <ul>
+                    <li>✅ Your seller account is now active</li>
+                    <li>📦 You can start listing your products</li>
+                    <li>🏪 Your requested stall has been assigned to you</li>
+                    <li>💼 You can access your seller dashboard</li>
+                </ul>
+                
+                <p>You can now log in to your seller account and start managing your marketplace presence.</p>
+                
+                <a href='#' class='btn'>Access Your Dashboard</a>
+                
+                <div class='footer'>
+                    <p>Welcome to the Oroquieta Marketplace family!</p>
+                    <p><strong>Need help?</strong> Contact our support team at oroquietamarketplace@gmail.com</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>";
+}
+
+// Function to generate rejection email template
+function getRejectionEmailTemplate($seller_name, $business_name, $reason = '') {
+    return "
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #2c3e50, #e74c3c); color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .rejection-badge { background: #e74c3c; color: white; padding: 10px 20px; border-radius: 25px; display: inline-block; margin: 20px 0; }
+            .reason-box { background: #fff; border-left: 4px solid #e74c3c; padding: 15px; margin: 20px 0; }
+            .btn { background: #3498db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #666; }
+        </style>
+    </head>
+    <body>
+        <div class='container'>
+            <div class='header'>
+                <h1>Application Update</h1>
+                <p>Oroquieta Marketplace</p>
+            </div>
+            <div class='content'>
+                <h2>Dear " . htmlspecialchars($seller_name) . ",</h2>
+                
+                <div class='rejection-badge'>❌ NOT APPROVED</div>
+                
+                <p>Thank you for your interest in becoming a seller at Oroquieta Marketplace. After careful review, we regret to inform you that your application for <strong>" . htmlspecialchars($business_name) . "</strong> has not been approved at this time.</p>
+                
+                " . ($reason ? "
+                <div class='reason-box'>
+                    <h4>📋 Reason for Decision:</h4>
+                    <p>" . htmlspecialchars($reason) . "</p>
+                </div>
+                " : "") . "
+                
+                <h3>What you can do:</h3>
+                <ul>
+                    <li>📞 Contact our support team for more details</li>
+                    <li>📝 Review our seller requirements</li>
+                    <li>🔄 Consider reapplying in the future after addressing any issues</li>
+                </ul>
+                
+                <p>We appreciate your interest in our marketplace and encourage you to reach out if you have any questions about this decision.</p>
+                
+                <div class='footer'>
+                    <p><strong>Questions?</strong> Contact our support team at oroquietamarketplace@gmail.com</p>
+                    <p>Thank you for your understanding.</p>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>";
+}
+
 // Admin approval process functions
-function approveSeller($seller_id, $pdo)
-{
+function approveSeller($seller_id, $pdo) {
     try {
         $pdo->beginTransaction();
+
+        // Get seller information for email
+        $stmt = $pdo->prepare("SELECT s.email, s.first_name, s.last_name, s.username, sa.business_name 
+                               FROM sellers s 
+                               LEFT JOIN seller_applications sa ON s.id = sa.seller_id 
+                               WHERE s.id = ?");
+        $stmt->execute([$seller_id]);
+        $seller_info = $stmt->fetch();
+
+        if (!$seller_info) {
+            throw new Exception("Seller not found");
+        }
 
         // Update seller status to approved
         $stmt = $pdo->prepare("UPDATE sellers SET status = 'approved', is_active = 1 WHERE id = ?");
@@ -22,22 +224,20 @@ function approveSeller($seller_id, $pdo)
         $stmt = $pdo->prepare("UPDATE seller_applications SET status = 'approved' WHERE seller_id = ?");
         $stmt->execute([$seller_id]);
 
-        // Get stall application and approve it
+        // Handle stall assignment (your existing code)
         $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ? AND status = 'pending'");
         $stmt->execute([$seller_id]);
         $stall_application = $stmt->fetch();
 
         if ($stall_application) {
-            // Update stall application status
             $stmt = $pdo->prepare("UPDATE stall_applications SET status = 'approved' WHERE seller_id = ?");
             $stmt->execute([$seller_id]);
 
-            // Assign stall to seller
             $stmt = $pdo->prepare("UPDATE stalls SET status = 'occupied', current_seller_id = ? WHERE id = ?");
             $stmt->execute([$seller_id, $stall_application['stall_id']]);
         }
 
-        // Send notification to seller
+        // Send notification
         $stmt = $pdo->prepare("
             INSERT INTO notifications (recipient_type, recipient_id, title, message, link) 
             VALUES ('seller', ?, 'Application Approved!', 'Your seller application has been approved. You can now start listing products.', 'dashboard.php')
@@ -45,6 +245,24 @@ function approveSeller($seller_id, $pdo)
         $stmt->execute([$seller_id]);
 
         $pdo->commit();
+
+        // Send approval email using the updated function
+        if ($seller_info['email']) {
+            $seller_name = trim(($seller_info['first_name'] ?? '') . ' ' . ($seller_info['last_name'] ?? '')) ?: $seller_info['username'];
+            $business_name = $seller_info['business_name'] ?: 'your business';
+            
+            $subject = "🎉 Your Seller Application Has Been Approved - Oroquieta Marketplace";
+            $email_body = getApprovalEmailTemplate($seller_name, $business_name);
+            
+            $email_sent = sendEmail($seller_info['email'], $seller_name, $subject, $email_body);
+            
+            if ($email_sent) {
+                error_log("✅ Approval email sent successfully to: " . $seller_info['email']);
+            } else {
+                error_log("❌ Failed to send approval email to: " . $seller_info['email']);
+            }
+        }
+
         return true;
 
     } catch (Exception $e) {
@@ -59,6 +277,18 @@ function rejectSeller($seller_id, $pdo, $reason = '')
 {
     try {
         $pdo->beginTransaction();
+
+        // Get seller information for email
+        $stmt = $pdo->prepare("SELECT s.email, s.first_name, s.last_name, s.username, sa.business_name 
+                               FROM sellers s 
+                               LEFT JOIN seller_applications sa ON s.id = sa.seller_id 
+                               WHERE s.id = ?");
+        $stmt->execute([$seller_id]);
+        $seller_info = $stmt->fetch();
+
+        if (!$seller_info) {
+            throw new Exception("Seller not found");
+        }
 
         // First, get all stall applications for this seller (not just pending ones)
         $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ?");
@@ -98,6 +328,22 @@ function rejectSeller($seller_id, $pdo, $reason = '')
         $stmt->execute([$seller_id, $message]);
 
         $pdo->commit();
+
+        // Send rejection email
+        if ($seller_info['email']) {
+            $seller_name = trim(($seller_info['first_name'] ?? '') . ' ' . ($seller_info['last_name'] ?? '')) ?: $seller_info['username'];
+            $business_name = $seller_info['business_name'] ?: 'your business';
+            
+            $subject = "Application Status Update - Oroquieta Marketplace";
+            $email_body = getRejectionEmailTemplate($seller_name, $business_name, $reason);
+            
+            $email_sent = sendEmail($seller_info['email'], $seller_name, $subject, $email_body);
+            
+            if (!$email_sent) {
+                error_log("Failed to send rejection email to: " . $seller_info['email']);
+            }
+        }
+
         return true;
 
     } catch (Exception $e) {
@@ -112,6 +358,14 @@ function deleteSeller($seller_id, $pdo, $reason = '')
 {
     try {
         $pdo->beginTransaction();
+
+        // Get seller information for email before deletion
+        $stmt = $pdo->prepare("SELECT s.email, s.first_name, s.last_name, s.username, sa.business_name 
+                               FROM sellers s 
+                               LEFT JOIN seller_applications sa ON s.id = sa.seller_id 
+                               WHERE s.id = ?");
+        $stmt->execute([$seller_id]);
+        $seller_info = $stmt->fetch();
 
         // Get all stall applications for this seller first
         $stmt = $pdo->prepare("SELECT stall_id FROM stall_applications WHERE seller_id = ?");
@@ -158,6 +412,22 @@ function deleteSeller($seller_id, $pdo, $reason = '')
         $stmt->execute([$admin_id, $details]);
 
         $pdo->commit();
+
+        // Send rejection email before deletion (if email exists)
+        if ($seller_info && $seller_info['email']) {
+            $seller_name = trim(($seller_info['first_name'] ?? '') . ' ' . ($seller_info['last_name'] ?? '')) ?: $seller_info['username'];
+            $business_name = $seller_info['business_name'] ?: 'your business';
+            
+            $subject = "Application Status Update - Oroquieta Marketplace";
+            $email_body = getRejectionEmailTemplate($seller_name, $business_name, $reason);
+            
+            $email_sent = sendEmail($seller_info['email'], $seller_name, $subject, $email_body);
+            
+            if (!$email_sent) {
+                error_log("Failed to send rejection email to: " . $seller_info['email']);
+            }
+        }
+
         return true;
 
     } catch (Exception $e) {
@@ -169,69 +439,13 @@ function deleteSeller($seller_id, $pdo, $reason = '')
 
 // Updated handler for rejection - you can choose which function to use
 if (isset($_POST['ajax_action']) && $_POST['ajax_action'] == 'reject') {
-    $application_id = $_POST['application_id'];
-    $admin_notes = $_POST['admin_notes'] ?? '';
+    // Prevent any output before JSON
+    ob_clean();
+    
+    try {
+        $application_id = (int)$_POST['application_id'];
+        $admin_notes = $_POST['admin_notes'] ?? '';
 
-    // Get application details
-    $sql = "SELECT seller_id FROM seller_applications WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$application_id]);
-    $application = $stmt->fetch();
-
-    if ($application) {
-        // Choose one of these approaches:
-
-        // Option 1: Just reject but keep data (with proper stall freeing)
-        if (rejectSeller($application['seller_id'], $pdo, $admin_notes)) {
-            echo json_encode(['success' => true, 'message' => 'Application rejected and stall freed successfully!']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error rejecting application. Please try again.']);
-        }
-
-        // Option 2: Complete deletion (uncomment this and comment above if you prefer deletion)
-        /*
-        if (deleteSeller($application['seller_id'], $pdo, $admin_notes)) {
-            echo json_encode(['success' => true, 'message' => 'Application rejected and data deleted successfully!']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Error deleting application. Please try again.']);
-        }
-        */
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Application not found.']);
-    }
-    exit();
-}
-
-// Handle application approval/rejection via AJAX
-if (isset($_POST['ajax_action']) && isset($_POST['application_id'])) {
-    $application_id = $_POST['application_id'];
-    $action = $_POST['ajax_action'];
-    $admin_notes = $_POST['admin_notes'] ?? '';
-
-    if ($action == 'approve') {
-        // Get application details
-        $sql = "SELECT * FROM seller_applications WHERE id = ?";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$application_id]);
-        $application = $stmt->fetch();
-
-        if ($application) {
-            // Use the new approval function
-            if (approveSeller($application['seller_id'], $pdo)) {
-                // Update admin notes if provided
-                if ($admin_notes) {
-                    $update_sql = "UPDATE seller_applications SET admin_notes = ? WHERE id = ?";
-                    $stmt = $pdo->prepare($update_sql);
-                    $stmt->execute([$admin_notes, $application_id]);
-                }
-                echo json_encode(['success' => true, 'message' => 'Application approved successfully!']);
-            } else {
-                echo json_encode(['success' => false, 'message' => 'Error approving application. Please try again.']);
-            }
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Application not found.']);
-        }
-    } elseif ($action == 'reject') {
         // Get application details
         $sql = "SELECT seller_id FROM seller_applications WHERE id = ?";
         $stmt = $pdo->prepare($sql);
@@ -239,55 +453,171 @@ if (isset($_POST['ajax_action']) && isset($_POST['application_id'])) {
         $application = $stmt->fetch();
 
         if ($application) {
-            // Use the new rejection function
+            // Choose one of these approaches:
+
+            // Option 1: Just reject but keep data (with proper stall freeing)
             if (rejectSeller($application['seller_id'], $pdo, $admin_notes)) {
-                echo json_encode(['success' => true, 'message' => 'Application rejected successfully!']);
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Application rejected and email sent successfully!']);
             } else {
+                header('Content-Type: application/json');
                 echo json_encode(['success' => false, 'message' => 'Error rejecting application. Please try again.']);
             }
+
+            // Option 2: Complete deletion (uncomment this and comment above if you prefer deletion)
+            /*
+            if (deleteSeller($application['seller_id'], $pdo, $admin_notes)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true, 'message' => 'Application rejected and email sent successfully!']);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'message' => 'Error deleting application. Please try again.']);
+            }
+            */
         } else {
+            header('Content-Type: application/json');
             echo json_encode(['success' => false, 'message' => 'Application not found.']);
         }
+    } catch (Exception $e) {
+        error_log("Error processing rejection: " . $e->getMessage());
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => 'An error occurred. Please try again.']);
     }
+    exit();
+}
+
+// Debug endpoint to check if script is working
+if (isset($_GET['debug'])) {
+    ob_clean();
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => 'working',
+        'session_user' => $_SESSION['user_id'] ?? 'not set',
+        'is_admin' => $_SESSION['is_admin'] ?? 'not set',
+        'post_data' => $_POST,
+        'get_data' => $_GET
+    ]);
+    exit();
+}
+
+// Handle application approval/rejection via AJAX
+if (isset($_POST['ajax_action']) && isset($_POST['application_id'])) {
+    // Start output buffering and clean any previous output
+    ob_start();
+    ob_clean();
+    
+    try {
+        $application_id = (int)$_POST['application_id'];
+        $action = $_POST['ajax_action'];
+        $admin_notes = $_POST['admin_notes'] ?? '';
+
+        // Log the action for debugging
+        error_log("Processing application action: $action for ID: $application_id");
+
+        if ($action == 'approve') {
+            // Get application details
+            $sql = "SELECT * FROM seller_applications WHERE id = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$application_id]);
+            $application = $stmt->fetch();
+
+            if ($application) {
+                error_log("Found application for approval: " . print_r($application, true));
+                
+                // Use the new approval function
+                if (approveSeller($application['seller_id'], $pdo)) {
+                    // Update admin notes if provided
+                    if ($admin_notes) {
+                        $update_sql = "UPDATE seller_applications SET admin_notes = ? WHERE id = ?";
+                        $stmt = $pdo->prepare($update_sql);
+                        $stmt->execute([$admin_notes, $application_id]);
+                    }
+                    
+                    $response = ['success' => true, 'message' => 'Application approved and email sent successfully!'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Error approving application. Please try again.'];
+                }
+            } else {
+                $response = ['success' => false, 'message' => 'Application not found.'];
+            }
+        } elseif ($action == 'reject') {
+            // Get application details
+            $sql = "SELECT seller_id FROM seller_applications WHERE id = ?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$application_id]);
+            $application = $stmt->fetch();
+
+            if ($application) {
+                error_log("Found application for rejection: " . print_r($application, true));
+                
+                // Use the new rejection function
+                if (rejectSeller($application['seller_id'], $pdo, $admin_notes)) {
+                    $response = ['success' => true, 'message' => 'Application rejected and email sent successfully!'];
+                } else {
+                    $response = ['success' => false, 'message' => 'Error rejecting application. Please try again.'];
+                }
+            } else {
+                $response = ['success' => false, 'message' => 'Application not found.'];
+            }
+        } else {
+            $response = ['success' => false, 'message' => 'Invalid action specified.'];
+        }
+    } catch (Exception $e) {
+        error_log("Error processing application action: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        $response = ['success' => false, 'message' => 'An error occurred. Please try again.'];
+    }
+
+    // Clean any remaining output buffer and send JSON response
+    ob_clean();
+    header('Content-Type: application/json');
+    echo json_encode($response);
     exit();
 }
 
 // Get application details for modal
 if (isset($_GET['get_application']) && isset($_GET['id'])) {
-    $id = $_GET['id'];
-    $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
-                   st.stall_number, st.section, st.floor_number, st.monthly_rent
-            FROM seller_applications sa 
-            LEFT JOIN sellers s ON sa.seller_id = s.id 
-            LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
-            LEFT JOIN stalls st ON sta.stall_id = st.id
-            WHERE sa.id = ?";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$id]);
-    $application = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Prevent any output before JSON
+    ob_clean();
+    
+    try {
+        $id = (int)$_GET['id'];
+        $sql = "SELECT sa.*, s.username, s.email as seller_email, s.phone, s.first_name, s.last_name, s.status as seller_status,
+                       st.stall_number, st.section, st.floor_number, st.monthly_rent
+                FROM seller_applications sa 
+                LEFT JOIN sellers s ON sa.seller_id = s.id 
+                LEFT JOIN stall_applications sta ON sa.seller_id = sta.seller_id AND sta.status IN ('pending', 'approved')
+                LEFT JOIN stalls st ON sta.stall_id = st.id
+                WHERE sa.id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$id]);
+        $application = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($application) {
-        // Parse documents if they exist
-        if ($application['documents_submitted']) {
-            $documents = json_decode($application['documents_submitted'], true);
+        if ($application) {
+            // Parse documents if they exist
+            if ($application['documents_submitted']) {
+                $documents = json_decode($application['documents_submitted'], true);
 
-            // Log for debugging
-            error_log("Raw documents: " . $application['documents_submitted']);
-            error_log("Decoded documents: " . print_r($documents, true));
-
-            if (json_last_error() === JSON_ERROR_NONE && $documents) {
-                $application['documents'] = $documents;
+                if (json_last_error() === JSON_ERROR_NONE && $documents) {
+                    $application['documents'] = $documents;
+                } else {
+                    error_log("JSON decode error: " . json_last_error_msg());
+                    $application['documents'] = [];
+                }
             } else {
-                error_log("JSON decode error: " . json_last_error_msg());
                 $application['documents'] = [];
             }
-        } else {
-            $application['documents'] = [];
-        }
 
-        echo json_encode($application);
-    } else {
-        echo json_encode(['error' => 'Application not found']);
+            header('Content-Type: application/json');
+            echo json_encode($application);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Application not found']);
+        }
+    } catch (Exception $e) {
+        error_log("Error fetching application: " . $e->getMessage());
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Database error occurred']);
     }
     exit();
 }
@@ -345,6 +675,17 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                 margin-left: 0;
                 padding: 10px;
             }
+        }
+
+        /* Email success indicator */
+        .email-indicator {
+            font-size: 0.85em;
+            margin-top: 5px;
+            color: #28a745;
+        }
+
+        .email-indicator.error {
+            color: #dc3545;
         }
     </style>
 </head>
@@ -646,17 +987,18 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                     modalBody.innerHTML = `
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Stall Information</h6>
+                                <h6>Business Information</h6>
                                 <p><strong>Store Name:</strong> ${data.business_name || 'N/A'}</p>
-                                <p><strong>Business Phone Number:</strong> ${data.business_phone || 'N/A'}</p>
+                                <p><strong>Business Email:</strong> ${data.business_email || 'N/A'}</p>
+                                <p><strong>Business Phone:</strong> ${data.business_phone || 'N/A'}</p>
                                 <p><strong>Tax ID:</strong> ${data.tax_id || 'N/A'}</p>
                                 <p><strong>Registration Number:</strong> ${data.business_registration_number || 'N/A'}</p>
                             </div>
                             <div class="col-md-6">
-                                <h6 class="mt-3">Seller Information</h6>
+                                <h6>Seller Information</h6>
                                 <p><strong>Username:</strong> ${data.username || 'N/A'}</p>
                                 <p><strong>Name:</strong> ${(data.first_name || '') + ' ' + (data.last_name || '') || 'N/A'}</p>
-                                <p><strong>Email:</strong> ${data.seller_email || 'N/A'}</p>
+                                <p><strong>Personal Email:</strong> ${data.seller_email || 'N/A'}</p>
                                 <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
                                 <p><strong>Account Status:</strong> ${getStatusBadge(data.seller_status)}</p>
                             </div>
@@ -691,14 +1033,17 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                                 <div class="mb-3">
                                     <label for="adminNotes" class="form-label">Admin Notes (Optional)</label>
                                     <textarea class="form-control" id="adminNotes" rows="2" placeholder="Add any notes about this decision..."></textarea>
+                                    <div class="form-text">
+                                        <i class="bi bi-info-circle"></i> These notes will be included in the email notification to the seller.
+                                    </div>
                                 </div>
                                 <div class="d-flex justify-content-end gap-2">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     <button type="button" class="btn btn-danger" onclick="processApplication(${id}, 'reject')">
-                                        <i class="bi bi-x-lg"></i> Reject
+                                        <i class="bi bi-x-lg"></i> Reject & Send Email
                                     </button>
                                     <button type="button" class="btn btn-success" onclick="processApplication(${id}, 'approve')">
-                                        <i class="bi bi-check-lg"></i> Approve
+                                        <i class="bi bi-check-lg"></i> Approve & Send Email
                                     </button>
                                 </div>
                             </div>
@@ -719,9 +1064,18 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
             const adminNotes = document.getElementById('adminNotes')?.value || '';
             const actionText = action === 'approve' ? 'approve' : 'reject';
 
-            if (!confirm(`Are you sure you want to ${actionText} this application?`)) {
+            if (!confirm(`Are you sure you want to ${actionText} this application?\n\nAn email notification will be sent to the seller automatically.`)) {
                 return;
             }
+
+            // Show processing state
+            const actionButtons = document.querySelectorAll('#modalFooter button');
+            actionButtons.forEach(btn => {
+                if (btn.textContent.includes(actionText === 'approve' ? 'Approve' : 'Reject')) {
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Processing...`;
+                    btn.disabled = true;
+                }
+            });
 
             const formData = new FormData();
             formData.append('ajax_action', action);
@@ -738,20 +1092,41 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                         // Close modal
                         bootstrap.Modal.getInstance(document.getElementById('applicationModal')).hide();
 
-                        // Show success message
+                        // Show success message with email confirmation
                         showToast(data.message, 'success');
 
                         // Reload page to reflect changes
                         setTimeout(() => {
                             location.reload();
-                        }, 1500);
+                        }, 2000);
                     } else {
+                        // Restore button state
+                        actionButtons.forEach(btn => {
+                            btn.disabled = false;
+                            if (btn.textContent.includes('Processing')) {
+                                btn.innerHTML = action === 'approve' 
+                                    ? '<i class="bi bi-check-lg"></i> Approve & Send Email'
+                                    : '<i class="bi bi-x-lg"></i> Reject & Send Email';
+                            }
+                        });
+                        
                         showToast(data.message || 'Error processing application', 'error');
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showToast('Error processing application', 'error');
+                    
+                    // Restore button state
+                    actionButtons.forEach(btn => {
+                        btn.disabled = false;
+                        if (btn.textContent.includes('Processing')) {
+                            btn.innerHTML = action === 'approve' 
+                                ? '<i class="bi bi-check-lg"></i> Approve & Send Email'
+                                : '<i class="bi bi-x-lg"></i> Reject & Send Email';
+                        }
+                    });
+                    
+                    showToast('Error processing application. Please try again.', 'error');
                 });
         }
 
@@ -760,7 +1135,10 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
             const toastHtml = `
                 <div class="toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="d-flex">
-                        <div class="toast-body">${message}</div>
+                        <div class="toast-body">
+                            <i class="bi bi-${type === 'success' ? 'check-circle' : 'x-circle'} me-2"></i>
+                            ${message}
+                        </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                     </div>
                 </div>
@@ -780,7 +1158,10 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
 
             // Show toast element
             const toastElement = toastContainer.lastElementChild;
-            const toast = new bootstrap.Toast(toastElement);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: 5000
+            });
             toast.show();
 
             // Remove toast element after it's hidden
@@ -788,7 +1169,46 @@ $pending_count = $pdo->query($pending_count_sql)->fetchColumn();
                 toastElement.remove();
             });
         }
+
+        // Add email status indicator
+        function showEmailStatus(success, message) {
+            const emailIndicator = document.createElement('div');
+            emailIndicator.className = `email-indicator ${success ? '' : 'error'}`;
+            emailIndicator.innerHTML = `<i class="bi bi-envelope${success ? '-check' : '-x'}"></i> ${message}`;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            modalFooter.appendChild(emailIndicator);
+            
+            setTimeout(() => {
+                emailIndicator.remove();
+            }, 5000);
+        }
     </script>
 </body>
 
 </html>
+<?php
+if (isset($_GET['verify_phpmailer'])) {
+    echo "<div style='padding: 20px; background: #f0f8ff; border: 1px solid #ccc; margin: 20px;'>";
+    echo "<h3>PHPMailer Status Check</h3>";
+    echo "<p><strong>PHPMailer Available:</strong> " . (class_exists('PHPMailer\PHPMailer\PHPMailer') ? '✅ YES' : '❌ NO') . "</p>";
+    echo "<p><strong>Files Expected:</strong></p>";
+    echo "<ul>";
+    
+    $required_files = [
+        'phpmailer/Exception.php',
+        'phpmailer/PHPMailer.php', 
+        'phpmailer/SMTP.php'
+    ];
+    
+    foreach ($required_files as $file) {
+        $exists = file_exists(__DIR__ . '/' . $file);
+        echo "<li>$file: " . ($exists ? '✅ EXISTS' : '❌ MISSING') . "</li>";
+    }
+    
+    echo "</ul>";
+    echo "<p><small>Visit: your-file.php?verify_phpmailer=1</small></p>";
+    echo "</div>";
+    exit;
+}
+?>
