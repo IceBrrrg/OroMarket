@@ -284,43 +284,51 @@ try {
 
 <script>
     // Fetch and update price ticker with product images
-    function fetchPriceTicker() {
-        fetch('api/price_ticker.php')
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const tickerContent = document.getElementById('priceTickerContent');
-                    tickerContent.innerHTML = '';
+   // Fetch and update price ticker with product images
+function fetchPriceTicker() {
+    fetch('api/price_ticker.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const tickerContent = document.getElementById('priceTickerContent');
+                tickerContent.innerHTML = '';
 
-                    data.data.forEach(item => {
-                        const tickerItem = document.createElement('div');
-                        tickerItem.className = 'ticker-item';
+                data.data.forEach(item => {
+                    const tickerItem = document.createElement('div');
+                    tickerItem.className = 'ticker-item';
 
-                        const productImage = document.createElement('img');
-                        productImage.src = item.image_url;
-                        productImage.alt = item.name;
-                        productImage.className = 'ticker-product-image';
+                    const productImage = document.createElement('img');
+                    productImage.src = item.image_url;
+                    productImage.alt = item.name;
+                    productImage.className = 'ticker-product-image';
 
-                        const icon = document.createElement('img');
-                        if (item.change === 'up') {
-                            icon.src = '../assets/img/up-arrow.png'; // Local green arrow
-                        } else if (item.change === 'down') {
-                            icon.src = '../assets/img/down-arrow.png'; // Local red arrow
-                        } else {
-                            icon.src = '../assets/img/no-change.png'; // Local gray dash
-                        }
+                    const icon = document.createElement('img');
+                    if (item.change === 'up') {
+                        icon.src = '../assets/img/up-arrow.png'; // Local green arrow
+                    } else if (item.change === 'down') {
+                        icon.src = '../assets/img/down-arrow.png'; // Local red arrow
+                    } else {
+                        icon.src = '../assets/img/no-change.png'; // Local gray dash
+                    }
 
-                        const text = document.createTextNode(`${item.name}: ₱${item.price}`);
+                    const text = document.createTextNode(`${item.name}: ₱${item.price}`);
 
-                        tickerItem.appendChild(productImage);
-                        tickerItem.appendChild(icon);
-                        tickerItem.appendChild(text);
-                        tickerContent.appendChild(tickerItem);
-                    });
-                }
-            })
-            .catch(error => console.error('Error fetching price ticker:', error));
-    }
+                    tickerItem.appendChild(productImage);
+                    tickerItem.appendChild(icon);
+                    tickerItem.appendChild(text);
+                    tickerContent.appendChild(tickerItem);
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching price ticker:', error));
+}
+
+// Refresh ticker every 30 seconds
+setInterval(fetchPriceTicker, 30000);
+fetchPriceTicker();
+
+// REMOVED: updateTickerAnimation function and its interval
+// The ticker will now display statically without the upward scrolling animation
 
     // Refresh ticker every 30 seconds
     setInterval(fetchPriceTicker, 30000);

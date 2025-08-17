@@ -1016,8 +1016,8 @@ body {
 }
 
 .ticker-content {
-    display: block;
-    animation: ticker-scroll 3s linear infinite;
+    display: inline-block;
+    /* REMOVED: animation: ticker-scroll 15s linear infinite; */
 }
 
 .ticker-item {
@@ -1619,7 +1619,7 @@ body {
 
                 .ticker-content {
                     display: inline-block;
-                    animation: ticker-scroll 15s linear infinite;
+                   
                 }
 
                 .ticker-item {
@@ -1634,11 +1634,7 @@ body {
                     margin-right: 5px;
                 }
 
-                @keyframes ticker-scroll {
-                    0% { transform: translateY(0); }
-                    100% { transform: translateY(-100%); }
-                }
-
+              
                 /* Responsive Design */
                 @media (max-width: 992px) {
                     .products-grid {
