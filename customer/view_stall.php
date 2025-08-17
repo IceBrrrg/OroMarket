@@ -157,8 +157,8 @@ function getSellerDisplayName($seller)
                                 </button>
                                 <?php if (!empty($seller['facebook_url'])): ?>
                                 <a href="<?php echo htmlspecialchars($seller['facebook_url']); ?>" target="_blank"
-                                    class="btn btn-light btn-outline-primary">
-                                    <i class="fab fa-facebook"></i>
+                                    class="btn facebook-btn">
+                                    <i class="fab fa-facebook me-2"></i>
                                     Facebook
                                 </a>
                                 <?php endif; ?>
@@ -202,7 +202,7 @@ function getSellerDisplayName($seller)
                         <?php foreach ($products as $product): ?>
                             <div class="product-card">
                                 <div class="product-image">
-                                    <img src="<?php echo !empty($product['image_path']) ? '../' . htmlspecialchars($product['image_path']) : '../assets/img/default-product.jpg'; ?>" 
+                                    <img src="<?php echo !empty($product['image_path']) ? '../' . htmlspecialchars($product['image_path']) : 'https://estore.midas.com.my/image/cache/no_image_uploaded-253x190.png'; ?>" 
                                          alt="<?php echo htmlspecialchars($product['name']); ?>">
                                     <?php if ($product['is_featured']): ?>
                                         <span class="featured-badge">Featured</span>
@@ -358,10 +358,10 @@ function contactSeller(email, phone) {
 }
 
 .profile-image img {
-    width: 140px;
+    width: 150px;
     height: 150px;
     object-fit: cover;
-    border: 4px solid white;
+    
 }
 
 .profile-details {
@@ -415,6 +415,26 @@ function contactSeller(email, phone) {
     background: #f8f9fa;
     color: #72ac07;
     transform: translateY(-2px);
+}
+
+.facebook-btn {
+    background: #3176a7;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    border: none;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.facebook-btn:hover {
+    background: #0d6efd;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.2);
 }
 
 .contact-btn {
