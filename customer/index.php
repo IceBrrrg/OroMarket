@@ -137,52 +137,59 @@ try {
                         </div>
                     </section>
 
-<!-- All Sellers Section - Updated HTML Structure -->
-<section class="all-sellers">
-    <div class="section-header">
-        <h2>Our Sellers</h2>
-        <a href="#" class="view-more">View All Sellers</a>
-    </div>
+                    <!-- All Sellers Section - Updated HTML Structure -->
+                    <section class="all-sellers">
+                        <div class="section-header">
+                            <h2>Our Sellers</h2>
+                            <a href="#" class="view-more">View All Sellers</a>
+                        </div>
 
-    <div class="sellers-grid">
-        <?php if (empty($popular_sellers)): ?>
-            <div class="no-sellers">
-                <p>No sellers available at the moment.</p>
-            </div>
-        <?php else: ?>
-            <?php foreach ($popular_sellers as $seller): ?>
-                <div class="seller-card">
-                    <!-- Green banner at top -->
-                    <div class="seller-banner"></div>
-                    
-                    <!-- Profile image circle overlapping the banner -->
-                    <div class="seller-logo">
-                        <img src="<?php echo !empty($seller['profile_image_url']) ? $seller['profile_image_url'] : 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face'; ?>" 
-                             alt="<?php echo htmlspecialchars($seller['full_name']); ?>"
-                             onerror="this.style.display='none';">
-                    </div>
-                    
-                    <!-- White content box -->
-                    <div class="seller-info">
-                        <div class="seller-details">
-                            <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
-                            <p><?php echo $seller['product_count']; ?> product<?php echo $seller['product_count'] != 1 ? 's' : ''; ?></p>
-                            
+                        <div class="sellers-grid">
+                            <?php if (empty($popular_sellers)): ?>
+                                <div class="no-sellers">
+                                    <p>No sellers available at the moment.</p>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($popular_sellers as $seller): ?>
+                                    <div class="seller-card">
+                                        <!-- Green banner at top -->
+                                        <div class="seller-banner"></div>
+
+                                        <!-- Profile image circle overlapping the banner -->
+                                        <div class="seller-logo">
+                                            <img src="<?php
+                                            if (!empty($seller['profile_image'])) {
+                                                echo '../uploads/profile_images/' . htmlspecialchars($seller['profile_image']);
+                                            } else {
+                                                echo '../assets/img/avatar.jpg';
+                                            }
+                                            ?>" alt="<?php echo htmlspecialchars($seller['full_name']); ?>"
+                                                onerror="this.src='../assets/img/avatar.jpg';">
+                                        </div>
+
+                                        <!-- White content box -->
+                                        <div class="seller-info">
+                                            <div class="seller-details">
+                                                <h3><?php echo htmlspecialchars($seller['full_name']); ?></h3>
+                                                <p><?php echo $seller['product_count']; ?>
+                                                    product<?php echo $seller['product_count'] != 1 ? 's' : ''; ?></p>
+
+                                            </div>
+
+                                            <!-- Visit Stall button at bottom -->
+                                            <div class="seller-actions">
+                                                <button class="visit-store-btn"
+                                                    onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">
+                                                    <i class="fas fa-store"></i>
+                                                    Visit Stall
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </div>
-                        
-                        <!-- Visit Stall button at bottom -->
-                        <div class="seller-actions">
-                            <button class="visit-store-btn" onclick="viewSellerProducts(<?php echo $seller['id']; ?>)">
-                                <i class="fas fa-store"></i>
-                                Visit Stall
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-</section>
+                    </section>
 
 
                 </div>
@@ -521,7 +528,7 @@ try {
 
 
     }
-    
+
 </script>
 
 <script src="../customer/js/index.js"></script>

@@ -33,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = trim($_POST['description']);
         $price = floatval($_POST['price']);
         $stock_quantity = intval($_POST['stock_quantity']);
-        $sku = trim($_POST['sku']);
-        $weight = floatval($_POST['weight']);
+        $weight = isset($_POST['weight']) ? floatval($_POST['weight']) : 0;
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
         // Validate inputs
@@ -43,10 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $message_type = "danger";
         } else {
             // Insert product into database
-            $query = "INSERT INTO products (seller_id, name, description, price, stock_quantity, sku, weight, is_featured, created_at) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+            $query = "INSERT INTO products (seller_id, name, description, price, stock_quantity, weight, is_featured, created_at) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
             $stmt = $pdo->prepare($query);
-            $result = $stmt->execute([$seller_id, $product_name, $description, $price, $stock_quantity, $sku, $weight, $is_featured]);
+            $result = $stmt->execute([$seller_id, $product_name, $description, $price, $stock_quantity, $weight, $is_featured]);
 
             if ($result) {
                 $product_id = $pdo->lastInsertId();
@@ -867,9 +866,6 @@ $categories = $cat_stmt->fetchAll();
                                     <div class="price-info">
                                         <div class="price">₱<?php echo number_format($product['price'], 2); ?></div>
                                         <div class="stock-info">
-                                            <?php if (!empty($product['sku'])): ?>
-                                                SKU: <?php echo htmlspecialchars($product['sku']); ?><br>
-                                            <?php endif; ?>
                                             Stock: <?php echo $product['stock_quantity']; ?>
                                             <?php if ($product['image_count'] > 0): ?>
                                                 <br><i class="bi bi-images me-1"></i><?php echo $product['image_count']; ?> image(s)
@@ -926,9 +922,22 @@ $categories = $cat_stmt->fetchAll();
                 <form method="POST" enctype="multipart/form-data" id="addProductForm">
                     <div class="modal-body">
                         <div class="row g-3">
+
                             <div class="col-md-12">
                                 <label for="productName" class="form-label">Product Name *</label>
                                 <input type="text" class="form-control" id="productName" name="name" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label for="productCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="productCategory" name="category_id" required>
+                                    <option value="" disabled selected>Select category</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?php echo $cat['id']; ?>">
+                                            <?php echo htmlspecialchars($cat['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
 
                             <div class="col-md-6">
@@ -941,12 +950,6 @@ $categories = $cat_stmt->fetchAll();
                                 <label for="productStock" class="form-label">Stock Quantity *</label>
                                 <input type="number" class="form-control" id="productStock" name="stock_quantity"
                                     min="0" required>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label for="productSKU" class="form-label">SKU (Optional)</label>
-                                <input type="text" class="form-control" id="productSKU" name="sku"
-                                    placeholder="e.g., PROD-001">
                             </div>
 
                             <div class="col-md-6">
@@ -1134,7 +1137,7 @@ $categories = $cat_stmt->fetchAll();
 
     <script>
         // Check URL parameters and open modal if needed
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('action') === 'add') {
                 openAddProductModal();
