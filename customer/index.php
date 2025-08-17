@@ -531,6 +531,508 @@ try {
 
 </script>
 
+<script>
+    // Enhanced JavaScript for sidebar filtering functionality
+
+// Global variables to track current filters
+let currentFilters = {
+    categories: [],
+    minPrice: null,
+    maxPrice: null,
+    seller: null,
+    featured: false,
+    search: ''
+};
+
+// Initialize filters when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFilters();
+    loadProducts(); // Load initial products
+});
+
+// Initialize filter event listeners
+function initializeFilters() {
+    // Category filters
+    const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+    categoryCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', handleCategoryFilter);
+    });
+
+    // Price range filters
+    const minPriceInput = document.getElementById('minPrice');
+    const maxPriceInput = document.getElementById('maxPrice');
+    
+    if (minPriceInput) {
+        minPriceInput.addEventListener('input', debounce(handlePriceFilter, 500));
+    }
+    if (maxPriceInput) {
+        maxPriceInput.addEventListener('input', debounce(handlePriceFilter, 500));
+    }
+
+    // Seller filter
+    const sellerFilter = document.getElementById('sellerFilter');
+    if (sellerFilter) {
+        sellerFilter.addEventListener('change', handleSellerFilter);
+    }
+
+    // Featured filter
+    const featuredCheckbox = document.getElementById('featured_only');
+    if (featuredCheckbox) {
+        featuredCheckbox.addEventListener('change', handleFeaturedFilter);
+    }
+
+    // Search filter
+    const productSearch = document.getElementById('productSearch');
+    if (productSearch) {
+        productSearch.addEventListener('input', debounce(handleSearchFilter, 300));
+        
+        // Handle search button click
+        const searchButton = document.querySelector('.search-button');
+        if (searchButton) {
+            searchButton.addEventListener('click', handleSearchFilter);
+        }
+    }
+}
+
+// Handle category filter changes
+function handleCategoryFilter(event) {
+    const checkbox = event.target;
+    const categoryId = checkbox.value;
+
+    if (categoryId === '') {
+        // "All Categories" checkbox
+        if (checkbox.checked) {
+            // Uncheck all other categories
+            document.querySelectorAll('input[name="category"]:not([value=""])').forEach(cb => {
+                cb.checked = false;
+            });
+            currentFilters.categories = [];
+        }
+    } else {
+        // Specific category checkbox
+        if (checkbox.checked) {
+            // Uncheck "All Categories"
+            document.getElementById('category_all').checked = false;
+            
+            // Add to current filters
+            if (!currentFilters.categories.includes(categoryId)) {
+                currentFilters.categories.push(categoryId);
+            }
+        } else {
+            // Remove from current filters
+            currentFilters.categories = currentFilters.categories.filter(id => id !== categoryId);
+            
+            // If no categories selected, check "All Categories"
+            if (currentFilters.categories.length === 0) {
+                document.getElementById('category_all').checked = true;
+            }
+        }
+    }
+
+    applyFilters();
+}
+
+// Handle price filter changes
+function handlePriceFilter() {
+    const minPrice = document.getElementById('minPrice').value;
+    const maxPrice = document.getElementById('maxPrice').value;
+
+    currentFilters.minPrice = minPrice ? parseFloat(minPrice) : null;
+    currentFilters.maxPrice = maxPrice ? parseFloat(maxPrice) : null;
+
+    applyFilters();
+}
+
+// Handle seller filter changes
+function handleSellerFilter(event) {
+    currentFilters.seller = event.target.value || null;
+    applyFilters();
+}
+
+// Handle featured filter changes
+function handleFeaturedFilter(event) {
+    currentFilters.featured = event.target.checked;
+    applyFilters();
+}
+
+// Handle search filter changes
+function handleSearchFilter() {
+    const searchValue = document.getElementById('productSearch').value.trim();
+    currentFilters.search = searchValue;
+    applyFilters();
+}
+
+// Apply all current filters
+function applyFilters() {
+    // Show loading state
+    showLoadingState();
+
+    // Send AJAX request to filter products
+    fetch('ajax_filter_products.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(currentFilters)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateProductsGrid(data.products);
+            updateResultsCount(data.products.length);
+            updateActiveFilters();
+        } else {
+            showErrorState(data.message || 'Error filtering products');
+        }
+    })
+    .catch(error => {
+        console.error('Error applying filters:', error);
+        showErrorState('Network error occurred');
+    });
+}
+
+// Clear all filters
+function clearFilters() {
+    // Reset filter state
+    currentFilters = {
+        categories: [],
+        minPrice: null,
+        maxPrice: null,
+        seller: null,
+        featured: false,
+        search: ''
+    };
+
+    // Reset UI elements
+    document.getElementById('category_all').checked = true;
+    document.querySelectorAll('input[name="category"]:not([value=""])').forEach(cb => {
+        cb.checked = false;
+    });
+
+    document.getElementById('minPrice').value = '';
+    document.getElementById('maxPrice').value = '';
+    document.getElementById('sellerFilter').value = '';
+    document.getElementById('featured_only').checked = false;
+    document.getElementById('productSearch').value = '';
+
+    // Hide active filters
+    document.getElementById('activeFilters').style.display = 'none';
+
+    // Reload all products
+    loadProducts();
+}
+
+// Load initial products (without filters)
+function loadProducts() {
+    showLoadingState();
+
+    fetch('ajax_get_products.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateProductsGrid(data.products);
+                updateResultsCount(data.products.length);
+            } else {
+                showErrorState('Error loading products');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading products:', error);
+            showErrorState('Network error occurred');
+        });
+}
+
+// Update the products grid with filtered results
+function updateProductsGrid(products) {
+    const productsGrid = document.getElementById('productsGrid');
+
+    if (products.length === 0) {
+        productsGrid.innerHTML = `
+            <div class="no-products">
+                <div class="no-products-content">
+                    <i class="fas fa-shopping-basket"></i>
+                    <h3>No products found</h3>
+                    <p>Try adjusting your search or filters</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    products.forEach(product => {
+        html += `
+            <div class="product-card" data-product-id="${product.id}">
+                <div class="product-image">
+                    <img src="${product.image_url}" 
+                         alt="${escapeHtml(product.name)}"
+                         onerror="this.src='https://estore.midas.com.my/image/cache/no_image_uploaded-253x190.png'">
+                    ${product.is_featured ? '<div class="featured-badge">Featured</div>' : ''}
+                    ${product.view_count > 0 ? `<div class="view-count-badge">${product.view_count} views</div>` : ''}
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">${escapeHtml(product.name)}</h3>
+                    <div class="stall-name">${escapeHtml(product.seller_full_name)}</div>
+                    <div class="product-description">
+                        ${product.short_description ? escapeHtml(product.short_description) : ''}
+                    </div>
+                    <div class="product-footer">
+                        <div class="price-section">
+                            <span class="price">${product.formatted_price}</span>
+                        </div>
+                        <div class="product-actions">
+                            <button class="view-product-btn" onclick="viewProduct(${product.id})" title="View product">
+                                <i class="fas fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    productsGrid.innerHTML = html;
+}
+
+// Update results count
+function updateResultsCount(count) {
+    const resultsCount = document.getElementById('resultsCount');
+    if (resultsCount) {
+        resultsCount.textContent = `Showing ${count} product${count !== 1 ? 's' : ''}`;
+    }
+}
+
+// Update active filters display
+function updateActiveFilters() {
+    const activeFiltersDiv = document.getElementById('activeFilters');
+    const activeFilterTags = document.getElementById('activeFilterTags');
+    
+    if (!activeFiltersDiv || !activeFilterTags) return;
+
+    let tags = [];
+
+    // Category filters
+    if (currentFilters.categories.length > 0) {
+        currentFilters.categories.forEach(categoryId => {
+            const checkbox = document.getElementById(`category_${categoryId}`);
+            if (checkbox) {
+                const label = checkbox.nextElementSibling.textContent;
+                tags.push({
+                    type: 'category',
+                    value: categoryId,
+                    label: `Category: ${label}`
+                });
+            }
+        });
+    }
+
+    // Price filters
+    if (currentFilters.minPrice !== null || currentFilters.maxPrice !== null) {
+        let priceLabel = 'Price: ';
+        if (currentFilters.minPrice !== null && currentFilters.maxPrice !== null) {
+            priceLabel += `₱${currentFilters.minPrice} - ₱${currentFilters.maxPrice}`;
+        } else if (currentFilters.minPrice !== null) {
+            priceLabel += `₱${currentFilters.minPrice}+`;
+        } else {
+            priceLabel += `Up to ₱${currentFilters.maxPrice}`;
+        }
+        tags.push({
+            type: 'price',
+            value: null,
+            label: priceLabel
+        });
+    }
+
+    // Seller filter
+    if (currentFilters.seller) {
+        const sellerSelect = document.getElementById('sellerFilter');
+        const selectedOption = sellerSelect.querySelector(`option[value="${currentFilters.seller}"]`);
+        if (selectedOption) {
+            tags.push({
+                type: 'seller',
+                value: currentFilters.seller,
+                label: `Seller: ${selectedOption.textContent}`
+            });
+        }
+    }
+
+    // Featured filter
+    if (currentFilters.featured) {
+        tags.push({
+            type: 'featured',
+            value: null,
+            label: 'Featured Only'
+        });
+    }
+
+    // Search filter
+    if (currentFilters.search) {
+        tags.push({
+            type: 'search',
+            value: null,
+            label: `Search: "${currentFilters.search}"`
+        });
+    }
+
+    // Display tags
+    if (tags.length > 0) {
+        activeFilterTags.innerHTML = tags.map(tag => `
+            <div class="filter-tag">
+                ${escapeHtml(tag.label)}
+                <span class="remove-filter" onclick="removeFilter('${tag.type}', ${tag.value ? `'${tag.value}'` : 'null'})">&times;</span>
+            </div>
+        `).join('');
+        activeFiltersDiv.style.display = 'block';
+    } else {
+        activeFiltersDiv.style.display = 'none';
+    }
+}
+
+// Remove individual filter
+function removeFilter(type, value) {
+    switch (type) {
+        case 'category':
+            const categoryCheckbox = document.getElementById(`category_${value}`);
+            if (categoryCheckbox) {
+                categoryCheckbox.checked = false;
+                currentFilters.categories = currentFilters.categories.filter(id => id !== value);
+                if (currentFilters.categories.length === 0) {
+                    document.getElementById('category_all').checked = true;
+                }
+            }
+            break;
+
+        case 'price':
+            document.getElementById('minPrice').value = '';
+            document.getElementById('maxPrice').value = '';
+            currentFilters.minPrice = null;
+            currentFilters.maxPrice = null;
+            break;
+
+        case 'seller':
+            document.getElementById('sellerFilter').value = '';
+            currentFilters.seller = null;
+            break;
+
+        case 'featured':
+            document.getElementById('featured_only').checked = false;
+            currentFilters.featured = false;
+            break;
+
+        case 'search':
+            document.getElementById('productSearch').value = '';
+            currentFilters.search = '';
+            break;
+    }
+
+    applyFilters();
+}
+
+// Show loading state
+function showLoadingState() {
+    const productsGrid = document.getElementById('productsGrid');
+    if (productsGrid) {
+        productsGrid.innerHTML = `
+            <div class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Loading products...</p>
+            </div>
+        `;
+    }
+}
+
+// Show error state
+function showErrorState(message) {
+    const productsGrid = document.getElementById('productsGrid');
+    if (productsGrid) {
+        productsGrid.innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Error</h3>
+                <p>${escapeHtml(message)}</p>
+                <button onclick="loadProducts()" class="retry-btn">Try Again</button>
+            </div>
+        `;
+    }
+}
+
+// Utility function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Debounce function to limit API calls
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Add styles for loading and error states
+const additionalStyles = `
+<style>
+.loading-state, .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    text-align: center;
+    grid-column: 1 / -1;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #52c41a;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-state i {
+    font-size: 3rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+}
+
+.retry-btn {
+    background: #52c41a;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    font-weight: 600;
+}
+
+.retry-btn:hover {
+    background: #45a820;
+}
+</style>
+`;
+
+// Inject additional styles
+if (document.head) {
+    document.head.insertAdjacentHTML('beforeend', additionalStyles);
+}
+</script>
+
 <script src="../customer/js/index.js"></script>
 <script src="../customer/js/customer.js"></script>
 
