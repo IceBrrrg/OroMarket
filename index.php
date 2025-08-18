@@ -287,7 +287,7 @@
                     <div class="footer-item">
                         <h4 class="text-light mb-3">Contact Info</h4>
                         <p><i class="fas fa-map-marker-alt me-2"></i>Oroquieta City Public Market</p>
-                        <p><i class="fas fa-envelope me-2"></i>info@oroquieta-market.com</p>
+                        <p><i class="fas fa-envelope me-2"></i>oroquietamarketplace@gmail.com</p>
                         <p><i class="fas fa-phone me-2"></i>+63 912 345 6789</p>
                         <p><i class="fas fa-clock me-2"></i>Open Daily: 6AM - 6PM</p>
                     </div>

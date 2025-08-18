@@ -130,7 +130,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
             <div class="product-images-section">
                 <div class="main-image-container">
                     <?php
-                    $main_image = !empty($product['primary_image']) ? '../' . $product['primary_image'] : '../assets/img/fruite-item-1.jpg';
+                    $main_image = !empty($product['primary_image']) ? '../' . $product['primary_image'] : 'https://estore.midas.com.my/image/cache/no_image_uploaded-253x190.png';
                     ?>
                     <img src="<?php echo htmlspecialchars($main_image); ?>"
                         alt="<?php echo htmlspecialchars($product['name']); ?>" id="main-product-image"
@@ -281,14 +281,11 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                         <?php if (!empty($product['weight']) && $product['weight'] > 0): ?>
                             <div class="detail-item">
                                 <span class="detail-label">Weight:</span>
-                                <span class="detail-value"><?php echo $product['weight']; ?> grams</span>
+                                <span class="detail-value"><?php echo $product['weight']; ?> kilograms</span>
                             </div>
                         <?php endif; ?>
 
-                        <div class="detail-item">
-                            <span class="detail-label">Condition:</span>
-                            <span class="detail-value">Fresh</span>
-                        </div>
+
 
                         <div class="detail-item">
                             <span class="detail-label">Contact:</span>

@@ -61,17 +61,6 @@
     object-fit: cover;
 }
 
-/* Default placeholder for missing images */
-.seller-logo::before {
-    content: '👤';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2.5rem;
-    color: #ccc;
-    z-index: 1;
-}
 
 /* Main content area - the "box" */
 .seller-info {
@@ -202,9 +191,6 @@
         top: 55px;
     }
     
-    .seller-logo::before {
-        font-size: 2rem;
-    }
     
     .seller-info {
         padding: 45px 15px 15px 15px;
@@ -236,9 +222,6 @@
         top: 50px;
     }
     
-    .seller-logo::before {
-        font-size: 1.8rem;
-    }
     
     .seller-info {
         padding: 40px 15px 15px 15px;
