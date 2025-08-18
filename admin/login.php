@@ -191,8 +191,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
-    <a href="../authenticator.php" class="back-link">
-        <i class="fas fa-arrow-left me-2"></i>Back to Role Selection
+    <a href="../index.php" class="back-link">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
     </a>
 
     <div class="login-container">

@@ -69,11 +69,7 @@
 
                     </div>
                     <div class="d-flex m-3 me-0">
-
-
-                        <a href="authenticator.php" class="my-auto">
-                            <i class="fas fa-user fa-2x"></i>
-                        </a>
+                            <!-- Can put something like View Market button redirect to community page -->
                     </div>
                 </div>
             </nav>
