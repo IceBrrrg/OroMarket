@@ -138,10 +138,10 @@ try {
                     </section>
 
                     <!-- All Sellers Section - Updated HTML Structure -->
-                    <section class="all-sellers">
+                    <section class="all-sellers" id="sellers-section">
                         <div class="section-header">
                             <h2>Our Sellers</h2>
-                            <a href="#" class="view-more">View All Sellers</a>
+                            <a href="#sellers-section" class="view-more" onclick="scrollToSellers(event)">View All Sellers</a>
                         </div>
 
                         <div class="sellers-grid">
@@ -408,6 +408,43 @@ fetchPriceTicker();
     // View seller products function
     function viewSellerProducts(sellerId) {
         window.location.href = `view_stall.php?seller_id=${sellerId}`;
+    }
+
+    // Smooth scroll to sellers section
+    function scrollToSellers(event) {
+        event.preventDefault();
+        const sellersSection = document.getElementById('sellers-section');
+        if (sellersSection) {
+            sellersSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    }
+
+    // Handle view dropdown change
+    function handleViewChange(value) {
+        if (value === 'scroll-to-sellers') {
+            const sellersSection = document.getElementById('sellers-section');
+            if (sellersSection) {
+                sellersSection.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+            // Reset dropdown to default after scrolling
+            setTimeout(() => {
+                document.getElementById('sellerFilter').value = '';
+            }, 500);
+        } else if (value) {
+            // Handle seller filtering
+            currentFilters.seller = value;
+            applyFilters();
+        } else {
+            // Clear seller filter
+            currentFilters.seller = null;
+            applyFilters();
+        }
     }
 
     // Enhanced sort functionality to include most viewed

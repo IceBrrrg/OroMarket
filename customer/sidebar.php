@@ -70,9 +70,9 @@ try {
     <!-- Seller Filter -->
     <div class="filter-section">
         <h5>View</h5>
-        <select id="sellerFilter" class="filter-select">
+        <select id="sellerFilter" class="filter-select" onchange="handleViewChange(this.value)">
             <option value="">All Products</option>
-            <option value="">All Sellers</option>
+            <option value="scroll-to-sellers">All Sellers</option>
             <option value="">All Products & Sellers</option>
             <?php foreach ($filter_sellers as $seller): ?>
             <option value="<?php echo $seller['id']; ?>">

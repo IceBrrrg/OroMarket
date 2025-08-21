@@ -34,18 +34,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $price = floatval($_POST['price']);
         $stock_quantity = intval($_POST['stock_quantity']);
         $weight = isset($_POST['weight']) ? floatval($_POST['weight']) : 0;
+        $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : null;
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
         // Validate inputs
-        if (empty($product_name) || $price <= 0 || $stock_quantity < 0) {
+        if (empty($product_name) || $price <= 0 || $stock_quantity < 0 || empty($category_id)) {
             $message = "Please fill in all required fields correctly.";
             $message_type = "danger";
         } else {
             // Insert product into database
-            $query = "INSERT INTO products (seller_id, name, description, price, stock_quantity, weight, is_featured, created_at) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, NOW())";
+            $query = "INSERT INTO products (seller_id, name, description, price, stock_quantity, weight, category_id, is_featured, created_at) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
             $stmt = $pdo->prepare($query);
-            $result = $stmt->execute([$seller_id, $product_name, $description, $price, $stock_quantity, $weight, $is_featured]);
+            $result = $stmt->execute([$seller_id, $product_name, $description, $price, $stock_quantity, $weight, $category_id, $is_featured]);
 
             if ($result) {
                 $product_id = $pdo->lastInsertId();
@@ -99,10 +100,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $price = floatval($_POST['price']);
         $stock_quantity = intval($_POST['stock_quantity']);
         $weight = floatval($_POST['weight']);
+        $category_id = isset($_POST['category_id']) ? intval($_POST['category_id']) : null;
         $is_featured = isset($_POST['is_featured']) ? 1 : 0;
 
         // Validate inputs
-        if (empty($product_name) || $price <= 0 || $stock_quantity < 0) {
+        if (empty($product_name) || $price <= 0 || $stock_quantity < 0 || empty($category_id)) {
             $message = "Please fill in all required fields correctly.";
             $message_type = "danger";
         } else {
@@ -112,10 +114,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $check_stmt->execute([$product_id, $seller_id]);
 
             if ($check_stmt->fetch()) {
-                // Update product in database (removed sku from update)
-                $query = "UPDATE products SET name = ?, description = ?, price = ?, stock_quantity = ?, weight = ?, is_featured = ?, updated_at = NOW() WHERE id = ? AND seller_id = ?";
+                // Update product in database
+                $query = "UPDATE products SET name = ?, description = ?, price = ?, stock_quantity = ?, weight = ?, category_id = ?, is_featured = ?, updated_at = NOW() WHERE id = ? AND seller_id = ?";
                 $stmt = $pdo->prepare($query);
-                $result = $stmt->execute([$product_name, $description, $price, $stock_quantity, $weight, $is_featured, $product_id, $seller_id]);
+                $result = $stmt->execute([$product_name, $description, $price, $stock_quantity, $weight, $category_id, $is_featured, $product_id, $seller_id]);
 
                 if ($result) {
                     $message = "Product updated successfully!";
@@ -1076,9 +1078,19 @@ $categories = $cat_stmt->fetchAll();
                                     min="0" required>
                             </div>
 
-                            <!-- SKU field removed from edit form -->
+                            <div class="col-md-6">
+                                <label for="edit_productCategory" class="form-label">Category *</label>
+                                <select class="form-select" id="edit_productCategory" name="category_id" required>
+                                    <option value="" disabled>Select category</option>
+                                    <?php foreach ($categories as $cat): ?>
+                                        <option value="<?php echo $cat['id']; ?>">
+                                            <?php echo htmlspecialchars($cat['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
 
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label for="edit_productWeight" class="form-label">Weight (kg)</label>
                                 <input type="number" class="form-control" id="edit_productWeight" name="weight"
                                     step="0.01" min="0">
@@ -1193,11 +1205,12 @@ $categories = $cat_stmt->fetchAll();
                     if (data.success) {
                         const product = data.product;
 
-                        // Populate edit form (removed SKU field)
+                        // Populate edit form
                         document.getElementById('edit_product_id').value = product.id;
                         document.getElementById('edit_productName').value = product.name;
                         document.getElementById('edit_productPrice').value = product.price;
                         document.getElementById('edit_productStock').value = product.stock_quantity;
+                        document.getElementById('edit_productCategory').value = product.category_id || '';
                         document.getElementById('edit_productWeight').value = product.weight || '';
                         document.getElementById('edit_productDescription').value = product.description || '';
                         document.getElementById('edit_productFeatured').checked = product.is_featured == 1;

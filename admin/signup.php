@@ -82,6 +82,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+// Fetch all admins for display
+$admin_query = "SELECT id, username, email, first_name, last_name, phone, profile_image, is_active, created_at FROM admins ORDER BY created_at DESC";
+$admin_stmt = $pdo->prepare($admin_query);
+$admin_stmt->execute();
+$admins = $admin_stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -262,6 +268,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="text-end">
                     <h3 class="mb-0"><i class="fas fa-users-cog"></i></h3>
                     <small>Admin Management</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin List Table -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="form-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0"><i class="fas fa-users me-2"></i>Current Administrators</h4>
+                        <span class="badge bg-primary"><?php echo count($admins); ?> Total</span>
+                    </div>
+                    
+                    <?php if (!empty($admins)): ?>
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-primary">
+                                    <tr>
+                                        <th>Profile</th>
+                                        <th>Username</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($admins as $admin): ?>
+                                        <tr>
+                                            <td>
+                                                <?php if (!empty($admin['profile_image'])): ?>
+                                                    <img src="../<?php echo htmlspecialchars($admin['profile_image']); ?>" 
+                                                         alt="Profile" class="rounded-circle" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                                <?php else: ?>
+                                                    <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" 
+                                                         style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user text-white"></i>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <strong><?php echo htmlspecialchars($admin['username']); ?></strong>
+                                            </td>
+                                            <td>
+                                                <?php 
+                                                $fullName = trim($admin['first_name'] . ' ' . $admin['last_name']);
+                                                echo !empty($fullName) ? htmlspecialchars($fullName) : '<em class="text-muted">Not provided</em>';
+                                                ?>
+                                            </td>
+                                            <td>
+                                                <a href="mailto:<?php echo htmlspecialchars($admin['email']); ?>" 
+                                                   class="text-decoration-none">
+                                                    <?php echo htmlspecialchars($admin['email']); ?>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <?php echo !empty($admin['phone']) ? htmlspecialchars($admin['phone']) : '<em class="text-muted">Not provided</em>'; ?>
+                                            </td>
+                                            <td>
+                                                <?php if ($admin['is_active']): ?>
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check-circle me-1"></i>Active
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-times-circle me-1"></i>Inactive
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    <?php echo date('M j, Y', strtotime($admin['created_at'])); ?>
+                                                </small>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No administrators found</h5>
+                            <p class="text-muted">Create your first admin account using the form below.</p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

@@ -22,8 +22,10 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 $product_id = intval($_GET['id']);
 
 try {
-    // Get product data
-    $query = "SELECT * FROM products WHERE id = ? AND seller_id = ?";
+    // Get product data with category information
+    $query = "SELECT p.*, c.name as category_name FROM products p 
+              LEFT JOIN categories c ON p.category_id = c.id 
+              WHERE p.id = ? AND p.seller_id = ?";
     $stmt = $pdo->prepare($query);
     $stmt->execute([$product_id, $seller_id]);
     $product = $stmt->fetch();

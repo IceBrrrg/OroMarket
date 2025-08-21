@@ -265,7 +265,7 @@ function getProductImage($image_path, $default = '../assets/img/fruite-item-1.jp
                         <button class="btn btn-outline-primary message-btn"
                             onclick="startChatWithSeller(<?php echo $product['seller_id']; ?>, <?php echo $product['id']; ?>)">
                             <i class="fas fa-envelope"></i>
-                            <span>Inquire Vendor</span>
+                            <span>Inquire Seller</span>
                         </button>
                     <?php else: ?>
                         <button class="btn btn-secondary" disabled>

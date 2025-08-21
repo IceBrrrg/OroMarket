@@ -3,7 +3,7 @@ session_start();
 
 // Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_admin']) || $_SESSION['is_admin'] !== true) {
-    header("Location: ../authenticator.php");
+    header("Location: login.php");
     exit();
 }
 

@@ -3,7 +3,7 @@ session_start();
 
 // Check if user is logged in and is a seller
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['is_seller']) || $_SESSION['is_seller'] !== true) {
-    header("Location: ../authenticator.php");
+    header("Location: login.php");
     exit();
 }
 
@@ -191,7 +191,7 @@ function getSellerDisplayName($seller, $business_name)
                         <h4><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h4>
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <a href="#" class="action-btn" onclick="openAddProductModal()">
+                                <a href="#" class="action-btn" onclick="window.location.href = 'products.php'">
                                     <div class="action-icon">
                                         <i class="bi bi-plus-lg"></i>
                                     </div>
